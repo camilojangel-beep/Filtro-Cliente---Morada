@@ -1,14 +1,14 @@
 const SOLICITANTES = [
     {
-        nombre: "Carlos Martínez",
+        nombre: "Juan Camilo Angel",
         descripcion: "Estable, todos los pagos → $4.5M",
         data: {
             id: "sol-001", status: "APPROVED",
             data: {
                 fecha: "04/23/2026 04:58:50 PM",
-                numero_identificacion_persona_natural: "1024490001",
-                primer_nombre_persona_natural: "CARLOS",
-                primer_apellido_persona_natural: "MARTINEZ",
+                numero_identificacion_persona_natural: "70565593",
+                primer_nombre_persona_natural: "JUAN CAMILO",
+                primer_apellido_persona_natural: "ANGEL",
                 aportantes: [{
                     tipo_identificacion_aportante_id: 2,
                     numero_identificacion_aportante: "901800001",

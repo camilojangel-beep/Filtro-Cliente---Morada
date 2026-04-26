@@ -5,6 +5,9 @@ from typing import List, Optional
 
 from fastapi import APIRouter, File, Form, UploadFile, HTTPException
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
+
+from app.services.contrato_arrendamiento import analizar_contrato
 
 router = APIRouter(prefix="/documentos", tags=["documentos"])
 
@@ -112,6 +115,41 @@ def listar_documentos(numero_identificacion: str):
             })
 
     return {"centrales": centrales, "arriendos": arriendos}
+
+
+class AnalisisContratoRequest(BaseModel):
+    numero_identificacion: str
+    indice_inmueble: int
+
+
+@router.post("/analizar-contrato")
+def endpoint_analizar_contrato(req: AnalisisContratoRequest):
+    carpeta = UPLOADS_DIR / req.numero_identificacion / "arriendos"
+    if not carpeta.exists():
+        raise HTTPException(status_code=404, detail="No se encontraron documentos para este solicitante")
+
+    archivo = None
+    for ext in [".pdf", ".png", ".jpg", ".jpeg", ".docx", ".doc"]:
+        candidato = carpeta / f"contrato_inmueble_{req.indice_inmueble}{ext}"
+        if candidato.exists():
+            archivo = candidato
+            break
+
+    if not archivo:
+        raise HTTPException(status_code=404, detail="No se encontró contrato para este inmueble")
+
+    resultado = analizar_contrato(str(archivo))
+    if resultado.error:
+        raise HTTPException(status_code=422, detail=resultado.error)
+
+    return {
+        "fecha_firma": resultado.fecha_firma,
+        "direccion": resultado.direccion,
+        "nomenclatura": resultado.nomenclatura,
+        "arrendadores": resultado.arrendadores,
+        "canon_mensual": resultado.canon_mensual,
+        "texto_completo": resultado.texto_completo,
+    }
 
 
 @router.get("/archivo/{numero_identificacion}/{subcarpeta}/{nombre_archivo}")

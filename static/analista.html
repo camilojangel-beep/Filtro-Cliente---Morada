@@ -377,59 +377,6 @@ async function evaluar() {
 
     var haySeg = !!centrales.secundario;
 
-    // Validar e incluir arriendos de sessionStorage
-    var arriendosRechazados = { principal: [], secundario: [] };
-    var arriendosRaw = sessionStorage.getItem('morada_arriendos');
-    if (arriendosRaw) {
-        try {
-            var arriendos = JSON.parse(arriendosRaw);
-            function procesarArriendos(lista, tipo) {
-                if (!lista || lista.length === 0) return [];
-                var validos = [];
-                var hoy = new Date();
-                for (var i = 0; i < lista.length; i++) {
-                    var a = lista[i];
-                    var motivos = [];
-
-                    if (!a.pin_certificado)
-                        motivos.push('No se proporcionó el PIN del Certificado de Tradición');
-
-                    if (!a.fecha_emision_certificado) {
-                        motivos.push('No se proporcionó la fecha de emisión del certificado');
-                    } else {
-                        var fecha = new Date(a.fecha_emision_certificado + 'T00:00:00');
-                        var dias = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
-                        if (dias > 30) motivos.push('Certificado vencido (' + dias + ' días, máximo 30)');
-                        if (dias < 0) motivos.push('Fecha de emisión del certificado es futura');
-                    }
-
-                    if (!a.contrato_cargado)
-                        motivos.push('No se cargó el contrato de arrendamiento');
-
-                    if (motivos.length > 0) {
-                        arriendosRechazados[tipo].push({
-                            inmueble: i + 1,
-                            declarado: a.ingreso_arriendo_declarado,
-                            motivos: motivos
-                        });
-                    } else {
-                        var simArr = document.getElementById('simArr_' + tipo + '_' + i);
-                        var simInm = document.getElementById('simInm_' + tipo + '_' + i);
-                        if (simArr && simArr.value) a.valor_arriendo_simulador = parsearMonto(simArr.value);
-                        if (simInm && simInm.value) a.valor_inmueble_simulador = parsearMonto(simInm.value);
-                        delete a.contrato_cargado;
-                        validos.push(a);
-                    }
-                }
-                return validos;
-            }
-            var validosPrincipal = procesarArriendos(arriendos.arriendos_principal, 'principal');
-            var validosSecundario = procesarArriendos(arriendos.arriendos_secundario, 'secundario');
-            if (validosPrincipal.length > 0) payload.arriendos_principal = validosPrincipal;
-            if (validosSecundario.length > 0) payload.arriendos_secundario = validosSecundario;
-        } catch(e) {}
-    }
-
     const resultsDiv = document.getElementById('results');
     resultsDiv.classList.add('visible');
     document.getElementById('summaryPrincipal').innerHTML = '<div class="loading">Evaluando</div>';
@@ -450,11 +397,73 @@ async function evaluar() {
 
         const data = await resp.json();
         renderAnalista(data, payload);
-        renderRechazados(arriendosRechazados);
     } catch(e) {
         document.getElementById('summaryPrincipal').innerHTML =
             '<div class="error-msg">Error de conexión: ' + e.message + '</div>';
     }
+}
+
+function calcularAntiguedad(datosExperian) {
+    if (!datosExperian || !datosExperian.data) {
+        return { cumple: false, detalle: 'Sin datos', tipo: 'desconocido' };
+    }
+    var d = datosExperian.data;
+    var cedula = (d.numero_identificacion_persona_natural || '').replace(/[.\s]/g, '');
+    var aportantes = d.aportantes || [];
+    if (aportantes.length === 0) {
+        return { cumple: false, detalle: 'Sin historial de aportantes', tipo: 'desconocido' };
+    }
+
+    var ultimo = aportantes[aportantes.length - 1];
+    var nitUltimo = (ultimo.numero_identificacion_aportante || '').replace(/[.\s]/g, '');
+    var pagosUltimo = ultimo.resultado_pagos || ultimo.resultados_pago || [];
+
+    if (cedula && nitUltimo && cedula === nitUltimo) {
+        return { cumple: false, tipo: 'independiente', detalle: 'CC igual a NIT empleador — Se considera independiente' };
+    }
+
+    var descCotizante = (ultimo.descripcion_cotizante_persona_natural || '').toLowerCase();
+    var esPensionado = descCotizante.indexOf('pension') !== -1;
+
+    var totalMeses = 0;
+    for (var a = 0; a < aportantes.length; a++) {
+        var pagos = aportantes[a].resultado_pagos || aportantes[a].resultados_pago || [];
+        for (var p = 0; p < pagos.length; p++) {
+            if (pagos[p].realizo_pago) totalMeses++;
+        }
+    }
+
+    var pagosOrd = pagosUltimo.slice().sort(function(x, y) {
+        var ya = x.ano_periodo_validado || x.anio;
+        var ym = x.mes_periodo_validado || x.mes;
+        var za = y.ano_periodo_validado || y.anio;
+        var zm = y.mes_periodo_validado || y.mes;
+        return (ya * 100 + ym) - (za * 100 + zm);
+    });
+    var consecutivos = 0;
+    var rachaActual = 0;
+    for (var i = 0; i < pagosOrd.length; i++) {
+        if (pagosOrd[i].realizo_pago) {
+            rachaActual++;
+            if (rachaActual > consecutivos) consecutivos = rachaActual;
+        } else {
+            rachaActual = 0;
+        }
+    }
+
+    if (esPensionado) {
+        return {
+            cumple: totalMeses >= 1, tipo: 'pensionado',
+            meses_totales: totalMeses, meses_consecutivos: consecutivos,
+            detalle: 'Pensionado — ' + totalMeses + ' mes(es) con pago (mín. 1)'
+        };
+    }
+
+    return {
+        cumple: totalMeses >= 6 && consecutivos >= 2, tipo: 'empleado',
+        meses_totales: totalMeses, meses_consecutivos: consecutivos,
+        detalle: totalMeses + ' meses totales (mín. 6) — ' + consecutivos + ' consecutivos en última entidad (mín. 2)'
+    };
 }
 
 function renderDetalleSolicitante(detalle, datosExperian) {
@@ -464,6 +473,7 @@ function renderDetalleSolicitante(detalle, datosExperian) {
     const cedula = datosExperian?.data?.numero_identificacion_persona_natural || '';
     const ingreso = detalle.ingreso_calculado;
     const esPositivo = ingreso > 0;
+    const antiguedad = calcularAntiguedad(datosExperian);
 
     let html = '';
 
@@ -474,6 +484,10 @@ function renderDetalleSolicitante(detalle, datosExperian) {
             <div class="metric-label">Ingreso Calculado</div>
             <div class="metric-value">${formatCOP(ingreso)}</div>
             <div class="metric-detail">Actividad principal</div>
+            <div style="margin-top:8px; padding-top:8px; border-top:1px solid ${esPositivo ? '#c3e6cb' : '#f5c6cb'};">
+                <span class="badge ${antiguedad.cumple ? 'badge-si' : 'badge-no'}">${antiguedad.cumple ? 'Cumple Antigüedad (8.1.4)' : 'No Cumple Antigüedad (8.1.4)'}</span>
+                <div class="metric-detail" style="margin-top:4px">${antiguedad.detalle}</div>
+            </div>
         </div>`;
 
     if (nombre) {
@@ -510,66 +524,6 @@ function renderDetalleSolicitante(detalle, datosExperian) {
         html += '</tbody></table>';
     }
 
-    // --- 8.2.1 Ingresos por arriendos ---
-    if (detalle.ingresos_arriendo && detalle.ingresos_arriendo.length > 0) {
-        html += '<div class="section-title">Ingresos por Arriendos (8.2.1)</div>';
-        for (let i = 0; i < detalle.ingresos_arriendo.length; i++) {
-            const arr = detalle.ingresos_arriendo[i];
-            const aprobado = arr.ingreso_aceptado > 0;
-            html += `<div class="metric-card ${aprobado ? 'success' : 'danger'}" style="margin-bottom:12px">
-                <div class="summary-grid" style="margin-bottom:0">
-                    <div>
-                        <div class="metric-label">Inmueble ${i + 1} &mdash; Ingreso Aceptado</div>
-                        <div class="metric-value">${formatCOP(arr.ingreso_aceptado)}</div>
-                    </div>
-                    <div>
-                        <div class="metric-label">Declarado por Cliente</div>
-                        <div class="metric-value" style="font-size:18px">${formatCOP(arr.ingreso_declarado)}</div>
-                    </div>
-                    <div>
-                        <div class="metric-label">Valor de Referencia</div>
-                        <div class="metric-value" style="font-size:18px">${formatCOP(arr.valor_referencia)}</div>
-                        <div class="metric-detail">${arr.metodo_referencia}</div>
-                    </div>
-                </div>`;
-            if (arr.validaciones && arr.validaciones.length > 0) {
-                html += '<div style="margin-top:8px; font-size:12px; color:#6b7280">';
-                for (const v of arr.validaciones) {
-                    const icon = v.startsWith('RECHAZADO') ? '&#10007;' : '&#10003;';
-                    const color = v.startsWith('RECHAZADO') ? '#e74c3c' : '#27ae60';
-                    html += `<div style="color:${color}">${icon} ${v}</div>`;
-                }
-                html += '</div>';
-            }
-            if (arr.observaciones && arr.observaciones.length > 0) {
-                html += '<ul class="obs-list" style="margin-top:8px">';
-                for (const o of arr.observaciones) html += `<li>${o}</li>`;
-                html += '</ul>';
-            }
-            html += '</div>';
-        }
-    }
-
-    // --- Ingreso Bruto (8.3 = 8.1 + 8.2) ---
-    if (detalle.ingreso_bruto !== undefined && detalle.total_ingreso_arriendo > 0) {
-        html += '<div class="summary-grid" style="margin-top:16px">';
-        html += `
-            <div class="metric-card">
-                <div class="metric-label">Ingreso Actividad Principal (8.1)</div>
-                <div class="metric-value">${formatCOP(detalle.ingreso_calculado)}</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Total Arriendos (8.2)</div>
-                <div class="metric-value">${formatCOP(detalle.total_ingreso_arriendo)}</div>
-            </div>
-            <div class="metric-card success">
-                <div class="metric-label">Ingreso Bruto (8.3)</div>
-                <div class="metric-value">${formatCOP(detalle.ingreso_bruto)}</div>
-                <div class="metric-detail">8.1 + 8.2</div>
-            </div>`;
-        html += '</div>';
-    }
-
     // Observations
     if (detalle.observaciones && detalle.observaciones.length > 0) {
         html += '<div class="section-title">Observaciones</div>';
@@ -583,41 +537,34 @@ function renderDetalleSolicitante(detalle, datosExperian) {
     return html;
 }
 
-function htmlRechazados(rechazados) {
-    if (!rechazados || rechazados.length === 0) return '';
-    var html = '<div class="section-title" style="margin-top:16px">Arriendos No Considerados</div>';
-    for (var i = 0; i < rechazados.length; i++) {
-        var r = rechazados[i];
-        html += '<div style="background:#f8d7da; border-left:3px solid #e74c3c; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:8px;">';
-        html += '<div style="font-size:13px; font-weight:600; color:#721c24;">Inmueble ' + r.inmueble + ' &mdash; Ingreso declarado: ' + formatCOP(r.declarado) + '</div>';
-        html += '<div style="font-size:12px; color:#721c24; margin-top:4px;">';
-        for (var j = 0; j < r.motivos.length; j++) {
-            html += '&#10007; ' + r.motivos[j] + '<br>';
-        }
-        html += '</div>';
-        html += '<div style="font-size:12px; font-weight:600; color:#721c24; margin-top:6px;">No se tienen en cuenta los ingresos por arrendamiento: la informaci&oacute;n no se carg&oacute; o no es v&aacute;lida</div>';
-        html += '</div>';
-    }
-    return html;
-}
-
-function renderRechazados(arriendosRechazados) {
-    var rechP = htmlRechazados(arriendosRechazados.principal);
-    var rechS = htmlRechazados(arriendosRechazados.secundario);
-    if (rechP) document.getElementById('summaryPrincipal').innerHTML += rechP;
-    if (rechS) document.getElementById('summarySecundario').innerHTML += rechS;
-}
-
 function renderAnalista(data, payload) {
     var haySeg = !!data.solicitante_secundario;
 
-    // Ingreso total arriba
+    var antPrincipal = calcularAntiguedad(payload.solicitante_principal);
+    var antSecundario = haySeg ? calcularAntiguedad(payload.solicitante_secundario) : null;
+
+    var ingPrincipal = data.solicitante_principal.ingreso_calculado;
+    var ingSecundario = haySeg ? data.solicitante_secundario.ingreso_calculado : 0;
+
+    var ingresoTotal = 0;
+    var notas = [];
+    if (antPrincipal.cumple) { ingresoTotal += ingPrincipal; }
+    else { notas.push('Principal: no cumple antigüedad (8.1.4) — ingreso excluido'); }
+    if (haySeg) {
+        if (antSecundario.cumple) { ingresoTotal += ingSecundario; }
+        else { notas.push('Secundario: no cumple antigüedad (8.1.4) — ingreso excluido'); }
+    }
+
+    var detalleTotal = notas.length > 0
+        ? notas.join('<br>') : (haySeg ? 'Suma de ambos solicitantes' : 'Solicitante único');
+    var colorTotal = ingresoTotal > 0 ? 'success' : 'danger';
+
     var totalHtml = `
         <div class="summary-grid">
-            <div class="metric-card success">
+            <div class="metric-card ${colorTotal}">
                 <div class="metric-label">Ingreso Total</div>
-                <div class="metric-value">${formatCOP(data.ingreso_total)}</div>
-                <div class="metric-detail">${haySeg ? 'Suma de ambos solicitantes' : 'Solicitante único'}</div>
+                <div class="metric-value">${formatCOP(ingresoTotal)}</div>
+                <div class="metric-detail">${detalleTotal}</div>
             </div>
         </div>`;
     document.getElementById('resumenTotal').innerHTML = totalHtml;

@@ -883,7 +883,7 @@ async function subirContratos(tipo, numeroId) {
             var fd = new FormData();
             fd.append('numero_identificacion', numeroId);
             fd.append('pin_certificado', pinInput ? pinInput.value.trim() : '');
-            fd.append('indice_inmueble', i + 1);
+            fd.append('indice_inmueble', i);
             fd.append('archivo', fileInput.files[0]);
             try {
                 await fetch('/documentos/subir-contrato', { method: 'POST', body: fd });

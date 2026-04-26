@@ -265,11 +265,23 @@
         </div>
     </div>
 
+    <div id="tituloInmueble" style="font-size:16px; font-weight:700; color:#0f3460; margin-bottom:16px; display:none;"></div>
+
+    <div class="resultado" id="resultadoContrato" style="display:none;">
+        <div class="card">
+            <div class="section-title" style="margin-top:0;">Informaci&oacute;n General Contrato Arrendamiento</div>
+            <div id="contratoContent"></div>
+        </div>
+    </div>
+
     <div class="card" id="cardPendiente" style="display:none;">
+        <div class="section-title" style="margin-top:0;">Informaci&oacute;n General CTL</div>
         <div style="text-align:center; padding:16px 0;">
             <p style="font-size:14px; color:#6b7280; margin-bottom:4px;" id="pendienteMsg"></p>
             <p style="font-size:13px; color:#9ca3af; margin-bottom:16px;" id="pendientePin"></p>
-            <button class="btn-consultar-inm" onclick="consultarInmuebleActivo()">Consultar Certificado</button>
+            <div id="pendienteAlerta" style="display:none; margin-bottom:16px;"></div>
+            <button class="btn-consultar-inm" id="btnConsultarCTL" onclick="consultarInmuebleActivo()" disabled style="opacity:0.5; cursor:not-allowed;">Consultar Certificado</button>
+            <p id="pendienteBtnMsg" style="font-size:12px; color:#9ca3af; margin-top:8px;">Pendiente: cargue el Contrato de Arrendamiento para habilitar</p>
         </div>
     </div>
 
@@ -286,9 +298,7 @@
 
     <div class="resultado" id="resultado">
         <div class="card">
-            <div id="tituloInmueble" style="font-size:16px; font-weight:700; color:#0f3460; margin-bottom:16px; display:none;"></div>
-
-            <div class="section-title">Informaci&oacute;n General</div>
+            <div class="section-title" style="margin-top:0;">Informaci&oacute;n General CTL</div>
             <div class="info-grid">
                 <span class="info-label">PIN</span>
                 <span class="info-value" id="rPin"></span>
@@ -324,38 +334,18 @@
             <div class="section-title">Verificaci&oacute;n de Embargos (2 a&ntilde;os)</div>
             <div id="embargoContent"></div>
 
-            <div id="simuladorInmueble" style="display:none;">
-                <div class="section-title">Valores de Referencia &mdash; Simulador</div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                    <div>
-                        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Valor Arriendo Simulador</label>
-                        <input type="text" id="simArrActual" placeholder="Ej: 1.500.000"
-                            style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; font-family:inherit; background:#fff;"
-                            onkeyup="formatearMonto(this); guardarSimuladorActual()" onchange="guardarSimuladorActual()">
-                    </div>
-                    <div>
-                        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Valor Inmueble Simulador</label>
-                        <input type="text" id="simInmActual" placeholder="Ej: 250.000.000"
-                            style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; font-family:inherit; background:#fff;"
-                            onkeyup="formatearMonto(this); guardarSimuladorActual()" onchange="guardarSimuladorActual()">
-                    </div>
-                </div>
-                <div style="font-size:12px; color:#6b7280; margin-top:8px;" id="simDeclarado"></div>
-            </div>
+            <div id="simProyecciones" style="margin-top:16px;"></div>
+            <div style="font-size:12px; color:#6b7280; margin-top:12px;" id="simDeclarado"></div>
         </div>
     </div>
 
-    <div id="cardEvaluar" class="card" style="display:none;">
-        <button class="btn-consultar" style="width:100%; margin-bottom:0;" onclick="guardarYEvaluar()">
-            Guardar y Evaluar Ingresos &rarr;
-        </button>
-    </div>
 </div>
 
 <script>
 var todosInmuebles = [];
 var inmuebleActivo = null;
 var cacheCTL = {};
+var dataCTLActual = null;
 
 function cargarCache() {
     cacheCTL = {};
@@ -392,7 +382,6 @@ function cargarInmuebles() {
 
     renderTabs();
     document.getElementById('cardInmuebles').style.display = 'block';
-    document.getElementById('cardEvaluar').style.display = 'block';
 }
 
 function renderTabs() {
@@ -405,6 +394,10 @@ function renderTabs() {
         html += 'Inmueble ' + (i + 1);
         if (consultado) html += '<span class="tab-check">&#10003;</span>';
         html += '<span class="tab-sub">' + inm.tipoLabel + ' &mdash; $' + inm.declarado.toLocaleString('es-CO') + '/mes</span>';
+        if (inm.valor_aceptado !== undefined) {
+            var colorVA = inm.valor_aceptado > 0 ? '#27ae60' : '#dc2626';
+            html += '<span class="tab-sub" style="color:' + colorVA + '; font-weight:600;">Valor Aceptado: $' + inm.valor_aceptado.toLocaleString('es-CO') + '</span>';
+        }
         html += '</button>';
     }
     tabsEl.innerHTML = html;
@@ -422,10 +415,27 @@ function seleccionarInmueble(idx) {
     document.getElementById('cardPendiente').style.display = 'none';
     document.getElementById('errorCard').classList.remove('visible');
     document.getElementById('resultado').classList.remove('visible');
+    document.getElementById('resultadoContrato').style.display = 'none';
+    document.getElementById('simProyecciones').innerHTML = '';
+
+    renderContrato(idx);
 
     if (!inm.pin) {
-        document.getElementById('errorMsg').textContent = 'Este inmueble no tiene PIN de certificado registrado.';
-        document.getElementById('errorCard').classList.add('visible');
+        document.getElementById('cardPendiente').style.display = 'block';
+        document.getElementById('pendienteMsg').innerHTML =
+            '<span class="badge badge-danger">PIN no cargado</span>';
+        var htmlPin = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:left; margin-top:8px;">';
+        htmlPin += '<div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">';
+        htmlPin += '<div style="flex:1; min-width:180px;"><label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:4px;">PIN Certificado de Tradición</label>';
+        htmlPin += '<input type="text" id="pinInline" placeholder="Ej: 050C12345678" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"></div>';
+        htmlPin += '<div style="min-width:150px;"><label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Fecha emisión certificado</label>';
+        htmlPin += '<input type="date" id="fechaCertInline" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"></div>';
+        htmlPin += '<div><button class="btn-consultar-inm" style="font-size:13px; padding:8px 20px;" onclick="guardarPinInline()">Guardar</button></div>';
+        htmlPin += '</div></div>';
+        document.getElementById('pendientePin').innerHTML = htmlPin;
+        document.getElementById('pendienteAlerta').style.display = 'none';
+        document.getElementById('btnConsultarCTL').style.display = 'none';
+        document.getElementById('pendienteBtnMsg').style.display = 'none';
         return;
     }
 
@@ -434,13 +444,12 @@ function seleccionarInmueble(idx) {
     } else {
         document.getElementById('pendienteMsg').textContent = 'Aún no se ha consultado el certificado de este inmueble';
         document.getElementById('pendientePin').textContent = 'PIN: ' + inm.pin;
+        document.getElementById('pendienteAlerta').style.display = 'none';
+        document.getElementById('btnConsultarCTL').style.display = '';
+        document.getElementById('pendienteBtnMsg').style.display = '';
         document.getElementById('cardPendiente').style.display = 'block';
     }
 
-    var simArr = document.getElementById('simArrActual');
-    var simInm = document.getElementById('simInmActual');
-    simArr.value = inm.valor_arriendo_simulador ? inm.valor_arriendo_simulador.toLocaleString('es-CO') : '';
-    simInm.value = inm.valor_inmueble_simulador ? inm.valor_inmueble_simulador.toLocaleString('es-CO') : '';
     document.getElementById('simDeclarado').textContent = 'Ingreso declarado por el cliente: $' + inm.declarado.toLocaleString('es-CO') + '/mes';
 }
 
@@ -490,8 +499,14 @@ function renderResultado(data, idx) {
         embEl.innerHTML = html;
     }
 
-    document.getElementById('simuladorInmueble').style.display = (idx !== undefined && idx !== null) ? 'block' : 'none';
+    dataCTLActual = data;
     document.getElementById('resultado').classList.add('visible');
+
+    if (idx !== undefined && idx !== null) {
+        renderContrato(idx);
+    } else {
+        document.getElementById('resultadoContrato').style.display = 'none';
+    }
 }
 
 function consultarCTL(pin, idx) {
@@ -558,7 +573,559 @@ function parsearMonto(val) {
     return parseInt(limpio, 10) || 0;
 }
 
-function guardarSimuladorActual() {
+function obtenerNombreSolicitante(tipo) {
+    var carpetaRaw = sessionStorage.getItem('morada_carpeta');
+    if (!carpetaRaw) return { nombre: '', cedula: '' };
+    var carpeta = JSON.parse(carpetaRaw);
+    var sol = tipo === 'principal' ? carpeta.principal : carpeta.secundario;
+    if (!sol) return { nombre: '', cedula: '' };
+    return { nombre: (sol.nombre || '').toUpperCase(), cedula: (sol.numero_id || '').replace(/\./g, '') };
+}
+
+function verificarCoincidencia(arrendadorStr, solicitante) {
+    if (!arrendadorStr || !solicitante.cedula) return { coincide: false, razon: 'no_datos' };
+    var arrNorm = arrendadorStr.toUpperCase().replace(/\./g, '');
+    var cedulaSol = solicitante.cedula.replace(/\./g, '');
+    var coincideCedula = arrNorm.indexOf(cedulaSol) !== -1;
+    var palabrasNombre = solicitante.nombre.split(/\s+/).filter(function(p) { return p.length > 2; });
+    var coincideNombre = palabrasNombre.length > 0 && palabrasNombre.some(function(p) { return arrNorm.indexOf(p) !== -1; });
+    if (coincideCedula) return { coincide: true };
+    if (coincideNombre) return { coincide: true };
+    return { coincide: false, razon: 'no_coincide' };
+}
+
+function normalizarDireccion(dir) {
+    if (!dir) return '';
+    return dir.toUpperCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^A-Z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function verificarDirecciones(dirContrato, direccionesCTL) {
+    if (!dirContrato || !direccionesCTL || direccionesCTL.length === 0) {
+        return { coincide: false, razon: 'no_datos' };
+    }
+    var normContrato = normalizarDireccion(dirContrato.split('|')[0]);
+    if (!normContrato) return { coincide: false, razon: 'no_datos' };
+    var numerosContrato = normContrato.match(/\d+/g) || [];
+    if (numerosContrato.length === 0) return { coincide: false, razon: 'no_numeros' };
+
+    for (var i = 0; i < direccionesCTL.length; i++) {
+        var normCTL = normalizarDireccion(direccionesCTL[i]);
+        if (!normCTL) continue;
+        var numerosCTL = normCTL.match(/\d+/g) || [];
+        var comunes = 0;
+        for (var j = 0; j < numerosContrato.length; j++) {
+            if (numerosCTL.indexOf(numerosContrato[j]) !== -1) comunes++;
+        }
+        if (comunes >= 2) return { coincide: true };
+        if (normCTL.indexOf(normContrato) !== -1 || normContrato.indexOf(normCTL) !== -1) {
+            return { coincide: true };
+        }
+    }
+    return { coincide: false, razon: 'no_coincide' };
+}
+
+function habilitarBotonCTL() {
+    var btn = document.getElementById('btnConsultarCTL');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    document.getElementById('pendienteBtnMsg').style.display = 'none';
+    document.getElementById('pendienteAlerta').style.display = 'none';
+}
+
+function deshabilitarBotonCTL(msg) {
+    var btn = document.getElementById('btnConsultarCTL');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    document.getElementById('pendienteBtnMsg').textContent = msg;
+    document.getElementById('pendienteBtnMsg').style.display = 'block';
+}
+
+function calcularValorProyeccionContrato(canonOriginal, fechaFirmaStr) {
+    var partes = fechaFirmaStr.split('/');
+    var fechaContrato = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+    var hoy = new Date();
+    if (hoy <= fechaContrato) return canonOriginal;
+    var valor = canonOriginal;
+    var cursor = new Date(fechaContrato);
+    while (cursor < hoy) {
+        var anio = cursor.getFullYear();
+        var tasaAnio = ipcDelAnio(anio) + SPREAD;
+        var inicioAnio = new Date(anio, 0, 1);
+        var finAnio = new Date(anio + 1, 0, 1);
+        var diasAnio = (finAnio - inicioAnio) / (24 * 60 * 60 * 1000);
+        var desde = cursor > inicioAnio ? cursor : inicioAnio;
+        var hasta = hoy < finAnio ? hoy : finAnio;
+        var fraccion = (hasta - desde) / (24 * 60 * 60 * 1000) / diasAnio;
+        valor = valor * Math.pow(1 + tasaAnio / 100, fraccion);
+        cursor = finAnio;
+    }
+    return Math.round(valor);
+}
+
+function actualizarValorAceptado(idx, valor) {
+    todosInmuebles[idx].valor_aceptado = valor;
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (raw) {
+        var arriendos = JSON.parse(raw);
+        var inm = todosInmuebles[idx];
+        var lista = inm.tipo === 'principal' ? arriendos.arriendos_principal : arriendos.arriendos_secundario;
+        if (lista && lista[inm.indice]) {
+            lista[inm.indice].valor_aceptado = valor;
+            sessionStorage.setItem('morada_arriendos', JSON.stringify(arriendos));
+        }
+    }
+    renderTabs();
+}
+
+function renderContrato(idx) {
+    var inm = todosInmuebles[idx];
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (!raw) return;
+    var arriendos = JSON.parse(raw);
+    var lista = inm.tipo === 'principal' ? arriendos.arriendos_principal : arriendos.arriendos_secundario;
+    if (!lista || !lista[inm.indice]) return;
+    var a = lista[inm.indice];
+
+    if (!a.contrato_cargado || !a.propietario_cedula) {
+        var htmlC = '<p style="color:#6b7280; font-size:14px; margin-bottom:16px;"><span class="badge badge-danger">Contrato no cargado</span></p>';
+        htmlC += '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">';
+        htmlC += '<label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:8px;">Cargar Contrato de Arrendamiento</label>';
+        htmlC += '<input type="file" id="contratoFileInline" accept=".pdf,image/*" style="font-size:13px; margin-bottom:12px; display:block; width:100%;">';
+        htmlC += '<button class="btn-consultar-inm" style="font-size:13px; padding:8px 20px;" onclick="subirContratoInline()">Subir Contrato</button>';
+        htmlC += '</div>';
+        document.getElementById('contratoContent').innerHTML = htmlC;
+        document.getElementById('resultadoContrato').style.display = 'block';
+        deshabilitarBotonCTL('Pendiente: cargue el Contrato de Arrendamiento para habilitar');
+        return;
+    }
+
+    document.getElementById('contratoContent').innerHTML =
+        '<div style="text-align:center; padding:20px; color:#6b7280;"><div class="spinner"></div>Analizando contrato...</div>';
+    document.getElementById('resultadoContrato').style.display = 'block';
+
+    var solicitante = obtenerNombreSolicitante(inm.tipo);
+
+    fetch('/documentos/analizar-contrato', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            numero_identificacion: a.propietario_cedula,
+            indice_inmueble: inm.indice
+        })
+    })
+    .then(function(resp) {
+        if (!resp.ok) return resp.json().then(function(d) { throw new Error(d.detail || 'Error'); });
+        return resp.json();
+    })
+    .then(function(data) {
+        var html = '<div class="info-grid">';
+
+        html += '<span class="info-label">Fecha de Firma</span>';
+        html += '<span class="info-value">' + (data.fecha_firma || '<span style="color:#e74c3c">No detectada</span>') + '</span>';
+
+        html += '<span class="info-label">Direcci&oacute;n Inmueble</span>';
+        html += '<span class="info-value">' + (data.direccion || '<span style="color:#6b7280">No detectada</span>') + '</span>';
+
+        if (data.nomenclatura) {
+            html += '<span class="info-label">Nomenclatura</span>';
+            html += '<span class="info-value">' + data.nomenclatura + '</span>';
+        }
+
+        html += '<span class="info-label">Arrendador(es)</span>';
+        html += '<span class="info-value">' + (data.arrendadores || '<span style="color:#6b7280">No detectado</span>') + '</span>';
+
+        html += '<span class="info-label">Canon Mensual (Contrato)</span>';
+        if (data.canon_mensual) {
+            html += '<span class="info-value" style="font-weight:700;">$' + data.canon_mensual.toLocaleString('es-CO') + '</span>';
+        } else {
+            html += '<span class="info-value"><span style="color:#e74c3c">No detectado</span></span>';
+        }
+
+        html += '<span class="info-label">Ingreso Declarado</span>';
+        html += '<span class="info-value">$' + (a.ingreso_arriendo_declarado || 0).toLocaleString('es-CO') + ' / mes</span>';
+
+        html += '</div>';
+
+        var verif = verificarCoincidencia(data.arrendadores, solicitante);
+
+        if (!verif.coincide) {
+            // Regla 1: No coincide arrendador/solicitante → aviso en lugar de proyección
+            html += '<div style="margin-top:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">';
+            html += '<div style="font-size:14px; font-weight:700; color:#991b1b; margin-bottom:8px;">No hay coincidencia entre Arrendador y Solicitante</div>';
+            html += '<div style="font-size:13px; color:#991b1b; line-height:1.6;">';
+            html += '<strong>Solicitante:</strong> ' + solicitante.nombre + ' &mdash; CC ' + solicitante.cedula + '<br>';
+            html += '<strong>Arrendador (contrato):</strong> ' + (data.arrendadores || 'No detectado') + '</div>';
+            html += '</div>';
+
+            // Regla 2: Botón CTL apagado
+            deshabilitarBotonCTL('La consulta del CTL requiere que el arrendador coincida con el solicitante');
+            document.getElementById('simProyecciones').innerHTML = '';
+
+            // Regla 5: Valor aceptado = 0
+            actualizarValorAceptado(idx, 0);
+        } else {
+            // Regla 3: Coinciden → proyección contrato + habilitar CTL
+            habilitarBotonCTL();
+
+            var proyContrato = 0;
+            if (data.canon_mensual && data.fecha_firma) {
+                proyContrato = calcularValorProyeccionContrato(data.canon_mensual, data.fecha_firma);
+                html += renderProyeccionContrato(data.canon_mensual, data.fecha_firma);
+            }
+
+            if (dataCTLActual) {
+                // Regla 4: Verificar direcciones y comprador del CTL
+                var alertasCTL = [];
+
+                if (dataCTLActual.direcciones && dataCTLActual.direcciones.length > 0 && data.direccion) {
+                    var matchDir = verificarDirecciones(data.direccion, dataCTLActual.direcciones);
+                    if (!matchDir.coincide) {
+                        alertasCTL.push('<div style="margin-top:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">'
+                            + '<div style="font-size:14px; font-weight:700; color:#991b1b; margin-bottom:8px;">No hay coincidencia en las direcciones</div>'
+                            + '<div style="font-size:13px; color:#991b1b; line-height:1.6;">'
+                            + '<strong>Dirección Contrato:</strong> ' + (data.direccion || 'No detectada') + '<br>'
+                            + '<strong>Dirección CTL:</strong> ' + dataCTLActual.direcciones.join(' | ') + '</div></div>');
+                    }
+                }
+
+                if (dataCTLActual.ultima_compraventa) {
+                    var cv = dataCTLActual.ultima_compraventa;
+                    var compradorStr = (cv.comprador || '') + ' ' + (cv.identificacion_comprador || '');
+                    var verifComp = verificarCoincidencia(compradorStr, solicitante);
+                    if (!verifComp.coincide) {
+                        alertasCTL.push('<div style="margin-top:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">'
+                            + '<div style="font-size:14px; font-weight:700; color:#991b1b; margin-bottom:8px;">No hay coincidencia entre Comprador (CTL) y Solicitante</div>'
+                            + '<div style="font-size:13px; color:#991b1b; line-height:1.6;">'
+                            + '<strong>Solicitante:</strong> ' + solicitante.nombre + ' &mdash; CC ' + solicitante.cedula + '<br>'
+                            + '<strong>Comprador (CTL):</strong> ' + (cv.comprador || 'No registrado') + ' &mdash; ' + (cv.identificacion_comprador || 'Sin identificación') + '</div></div>');
+                    }
+                }
+
+                if (alertasCTL.length === 0) {
+                    // Todo coincide → calcular proyecciones CTL
+                    calcularProyecciones();
+
+                    // Regla 5: valor aceptado = min(declarado, proyContrato, proyCTL)
+                    var inmAct = todosInmuebles[idx];
+                    var valorCTL = inmAct.valor_arriendo_simulador || 0;
+                    var candidatos = [inmAct.declarado];
+                    if (proyContrato > 0) candidatos.push(proyContrato);
+                    if (valorCTL > 0) candidatos.push(valorCTL);
+                    actualizarValorAceptado(idx, Math.min.apply(null, candidatos));
+                } else {
+                    // Alertas CTL → no se calculan proyecciones, valor aceptado = 0
+                    document.getElementById('simProyecciones').innerHTML = alertasCTL.join('');
+                    actualizarValorAceptado(idx, 0);
+                }
+            }
+        }
+
+        document.getElementById('contratoContent').innerHTML = html;
+    })
+    .catch(function(err) {
+        document.getElementById('contratoContent').innerHTML =
+            '<p style="color:#dc2626; font-size:13px;">Error al analizar contrato: ' + err.message + '</p>';
+        deshabilitarBotonCTL('No se pudo analizar el contrato');
+    });
+}
+
+function subirContratoInline() {
+    var fileInput = document.getElementById('contratoFileInline');
+    if (!fileInput || !fileInput.files.length) {
+        alert('Seleccione un archivo');
+        return;
+    }
+    var inm = todosInmuebles[inmuebleActivo];
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (!raw) return;
+    var arriendos = JSON.parse(raw);
+    var lista = inm.tipo === 'principal' ? arriendos.arriendos_principal : arriendos.arriendos_secundario;
+    var a = lista[inm.indice];
+    var cedula = a.propietario_cedula || obtenerNombreSolicitante(inm.tipo).cedula;
+
+    if (!cedula) {
+        alert('No se encontró la identificación del solicitante');
+        return;
+    }
+
+    var fd = new FormData();
+    fd.append('numero_identificacion', cedula);
+    fd.append('pin_certificado', inm.pin || '');
+    fd.append('indice_inmueble', inm.indice);
+    fd.append('archivo', fileInput.files[0]);
+
+    document.getElementById('contratoContent').innerHTML =
+        '<div style="text-align:center; padding:20px; color:#6b7280;"><div class="spinner"></div>Subiendo contrato...</div>';
+
+    fetch('/documentos/subir-contrato', { method: 'POST', body: fd })
+    .then(function(resp) {
+        if (!resp.ok) throw new Error('Error al subir');
+        return resp.json();
+    })
+    .then(function() {
+        lista[inm.indice].contrato_cargado = true;
+        lista[inm.indice].propietario_cedula = cedula;
+        sessionStorage.setItem('morada_arriendos', JSON.stringify(arriendos));
+        seleccionarInmueble(inmuebleActivo);
+    })
+    .catch(function(err) {
+        document.getElementById('contratoContent').innerHTML =
+            '<p style="color:#dc2626; font-size:13px;">Error: ' + err.message + '</p>';
+    });
+}
+
+function guardarPinInline() {
+    var pin = document.getElementById('pinInline').value.trim();
+    var fecha = document.getElementById('fechaCertInline').value;
+    if (!pin) {
+        alert('Ingrese el PIN del certificado');
+        return;
+    }
+
+    var inm = todosInmuebles[inmuebleActivo];
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (!raw) return;
+    var arriendos = JSON.parse(raw);
+    var lista = inm.tipo === 'principal' ? arriendos.arriendos_principal : arriendos.arriendos_secundario;
+    lista[inm.indice].pin_certificado = pin;
+    lista[inm.indice].fecha_emision_certificado = fecha;
+    sessionStorage.setItem('morada_arriendos', JSON.stringify(arriendos));
+
+    inm.pin = pin;
+    seleccionarInmueble(inmuebleActivo);
+}
+
+function renderProyeccionContrato(canonOriginal, fechaFirmaStr) {
+    var partes = fechaFirmaStr.split('/');
+    var fechaContrato = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+    var hoy = new Date();
+
+    if (hoy <= fechaContrato) {
+        return '<div style="margin-top:16px; background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">' +
+            '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor de Referencia &mdash; Proyecci&oacute;n Contrato Arriendo</div>' +
+            '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + canonOriginal.toLocaleString('es-CO') + '</div>' +
+            '<div style="font-size:11px; color:#6b7280;">Sin ajuste (contrato vigente del a&ntilde;o actual)</div>' +
+            '</div>';
+    }
+
+    var valor = canonOriginal;
+    var pasos = [];
+    var cursor = new Date(fechaContrato);
+
+    while (cursor < hoy) {
+        var anio = cursor.getFullYear();
+        var ipcAnio = ipcDelAnio(anio);
+        var tasaAnio = ipcAnio + SPREAD;
+
+        var inicioAnio = new Date(anio, 0, 1);
+        var finAnio = new Date(anio + 1, 0, 1);
+        var diasAnio = (finAnio - inicioAnio) / (24 * 60 * 60 * 1000);
+
+        var desde = cursor > inicioAnio ? cursor : inicioAnio;
+        var hasta = hoy < finAnio ? hoy : finAnio;
+        var diasAplicados = (hasta - desde) / (24 * 60 * 60 * 1000);
+        var fraccion = diasAplicados / diasAnio;
+
+        var valorAnterior = valor;
+        valor = valor * Math.pow(1 + tasaAnio / 100, fraccion);
+
+        pasos.push({
+            anio: anio,
+            ipc: ipcAnio,
+            tasa: tasaAnio,
+            dias: Math.round(diasAplicados),
+            diasAnio: Math.round(diasAnio),
+            valorFin: Math.round(valor)
+        });
+
+        cursor = finAnio;
+    }
+
+    var valorProyectado = Math.round(valor);
+
+    var html = '<div style="margin-top:16px; background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">';
+    html += '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor de Referencia &mdash; Proyecci&oacute;n Contrato Arriendo</div>';
+    html += '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + valorProyectado.toLocaleString('es-CO') + ' / mes</div>';
+    html += '<a href="#" style="font-size:11px; color:#0f3460; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaContrato\', this); return false;">Ver fórmula</a>';
+    html += '<div id="formulaContrato" style="display:none; margin-top:8px; font-size:12px; color:#374151; background:#fff; padding:12px; border-radius:6px; line-height:1.8;">';
+    html += '<strong>Canon original (contrato):</strong> $' + canonOriginal.toLocaleString('es-CO') + '<br>';
+    html += '<strong>Fecha firma:</strong> ' + fechaFirmaStr + '<br>';
+    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
+    html += '<strong>Incremento IPC DANE + 1.5% a&ntilde;o por a&ntilde;o:</strong><br>';
+    html += '<table style="width:100%; margin-top:6px; font-size:11px; border-collapse:collapse;">';
+    html += '<tr style="background:#16213e; color:white;"><th style="padding:4px 8px; text-align:left;">A&ntilde;o</th><th style="padding:4px 8px;">IPC</th><th style="padding:4px 8px;">Tasa</th><th style="padding:4px 8px;">Fracci&oacute;n</th><th style="padding:4px 8px; text-align:right;">Canon</th></tr>';
+    for (var i = 0; i < pasos.length; i++) {
+        var p = pasos[i];
+        html += '<tr style="border-bottom:1px solid #e8ecf1;">';
+        html += '<td style="padding:4px 8px; font-weight:600;">' + p.anio + '</td>';
+        html += '<td style="padding:4px 8px; text-align:center;">' + p.ipc.toFixed(2) + '%</td>';
+        html += '<td style="padding:4px 8px; text-align:center; font-weight:600;">' + p.tasa.toFixed(2) + '%</td>';
+        html += '<td style="padding:4px 8px; text-align:center; color:#6b7280;">' + p.dias + '/' + p.diasAnio + ' d</td>';
+        html += '<td style="padding:4px 8px; text-align:right;">$' + p.valorFin.toLocaleString('es-CO') + '</td>';
+        html += '</tr>';
+    }
+    html += '</table>';
+    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
+    html += '<strong style="color:#0f3460;">Canon proyectado = $' + valorProyectado.toLocaleString('es-CO') + ' / mes</strong>';
+    html += '</div>';
+    html += '</div>';
+
+    return html;
+}
+
+function toggleFormula(id, link) {
+    var el = document.getElementById(id);
+    if (el.style.display === 'none') {
+        el.style.display = 'block';
+        link.textContent = 'Ocultar fórmula';
+    } else {
+        el.style.display = 'none';
+        link.textContent = 'Ver fórmula';
+    }
+}
+
+var IPC_DANE = {
+    2010: 3.17, 2011: 3.73, 2012: 2.44, 2013: 1.94, 2014: 3.66,
+    2015: 6.77, 2016: 5.75, 2017: 4.09, 2018: 3.18, 2019: 3.80,
+    2020: 1.61, 2021: 5.62, 2022: 13.12, 2023: 9.28, 2024: 5.20,
+    2025: 5.10, 2026: 5.35
+};
+var SPREAD = 1.5;
+
+function ipcDelAnio(anio) {
+    if (IPC_DANE[anio] !== undefined) return IPC_DANE[anio];
+    var keys = Object.keys(IPC_DANE).map(Number).sort();
+    return IPC_DANE[keys[keys.length - 1]];
+}
+
+function calcularProyecciones() {
+    var container = document.getElementById('simProyecciones');
+
+    if (!dataCTLActual || !dataCTLActual.ultima_compraventa) {
+        container.innerHTML = '<p style="color:#6b7280; font-size:13px;">No hay datos de compraventa para calcular proyecciones</p>';
+        return;
+    }
+
+    var cv = dataCTLActual.ultima_compraventa;
+    var valorActoStr = (cv.valor_acto || '').replace(/[^0-9]/g, '');
+    var valorActo = parseInt(valorActoStr, 10) || 0;
+
+    if (valorActo === 0) {
+        container.innerHTML = '<p style="color:#6b7280; font-size:13px;">Valor del acto no registrado en el certificado</p>';
+        return;
+    }
+
+    var partes = cv.fecha.split('-');
+    var fechaCV = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+    var hoy = new Date();
+    if (hoy <= fechaCV) {
+        container.innerHTML = '<p style="color:#6b7280; font-size:13px;">La fecha de compraventa es posterior a la fecha actual</p>';
+        return;
+    }
+
+    var valor = valorActo;
+    var pasos = [];
+    var cursor = new Date(fechaCV);
+
+    while (cursor < hoy) {
+        var anio = cursor.getFullYear();
+        var ipcAnio = ipcDelAnio(anio);
+        var tasaAnio = ipcAnio + SPREAD;
+
+        var inicioAnio = new Date(anio, 0, 1);
+        var finAnio = new Date(anio + 1, 0, 1);
+        var diasAnio = (finAnio - inicioAnio) / (24 * 60 * 60 * 1000);
+
+        var desde = cursor > inicioAnio ? cursor : inicioAnio;
+        var hasta = hoy < finAnio ? hoy : finAnio;
+        var diasAplicados = (hasta - desde) / (24 * 60 * 60 * 1000);
+        var fraccion = diasAplicados / diasAnio;
+
+        var valorAnterior = valor;
+        valor = valor * Math.pow(1 + tasaAnio / 100, fraccion);
+
+        pasos.push({
+            anio: anio,
+            ipc: ipcAnio,
+            tasa: tasaAnio,
+            fraccion: fraccion,
+            dias: Math.round(diasAplicados),
+            diasAnio: Math.round(diasAnio),
+            valorInicio: Math.round(valorAnterior),
+            valorFin: Math.round(valor)
+        });
+
+        cursor = finAnio;
+    }
+
+    var valorProyectado = Math.round(valor);
+    var tasaArriendo = 0.55;
+    var valorArriendo = Math.round(valorProyectado * tasaArriendo / 100);
+
+    var html = '<div class="section-title">Valores de Referencia &mdash; Proyecci&oacute;n CTL</div>';
+    html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">';
+
+    // Valor Proyectado Inmueble
+    html += '<div style="background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">';
+    html += '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor Proyectado Inmueble por CTL</div>';
+    html += '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + valorProyectado.toLocaleString('es-CO') + '</div>';
+    html += '<a href="#" style="font-size:11px; color:#0f3460; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaInm\', this); return false;">Ver fórmula</a>';
+    html += '<div id="formulaInm" style="display:none; margin-top:8px; font-size:12px; color:#374151; background:#fff; padding:12px; border-radius:6px; line-height:1.8;">';
+    html += '<strong>Valor Acto (Compraventa):</strong> $' + valorActo.toLocaleString('es-CO') + '<br>';
+    html += '<strong>Fecha Compraventa:</strong> ' + cv.fecha + '<br>';
+    html += '<strong>Fecha Actual:</strong> ' + hoy.toLocaleDateString('es-CO') + '<br>';
+    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
+    html += '<strong>Incremento aplicado a&ntilde;o por a&ntilde;o (IPC DANE + 1.5%):</strong><br>';
+    html += '<table style="width:100%; margin-top:6px; font-size:11px; border-collapse:collapse;">';
+    html += '<tr style="background:#16213e; color:white;"><th style="padding:4px 8px; text-align:left;">A&ntilde;o</th><th style="padding:4px 8px;">IPC DANE</th><th style="padding:4px 8px;">+Spread</th><th style="padding:4px 8px;">Tasa</th><th style="padding:4px 8px;">Fracci&oacute;n</th><th style="padding:4px 8px; text-align:right;">Valor</th></tr>';
+    for (var i = 0; i < pasos.length; i++) {
+        var p = pasos[i];
+        html += '<tr style="border-bottom:1px solid #e8ecf1;">';
+        html += '<td style="padding:4px 8px; font-weight:600;">' + p.anio + '</td>';
+        html += '<td style="padding:4px 8px; text-align:center;">' + p.ipc.toFixed(2) + '%</td>';
+        html += '<td style="padding:4px 8px; text-align:center;">+' + SPREAD.toFixed(1) + '%</td>';
+        html += '<td style="padding:4px 8px; text-align:center; font-weight:600;">' + p.tasa.toFixed(2) + '%</td>';
+        html += '<td style="padding:4px 8px; text-align:center; color:#6b7280;">' + p.dias + '/' + p.diasAnio + ' d&iacute;as</td>';
+        html += '<td style="padding:4px 8px; text-align:right;">$' + p.valorFin.toLocaleString('es-CO') + '</td>';
+        html += '</tr>';
+    }
+    html += '</table>';
+    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
+    html += '<strong style="color:#0f3460;">Valor Proyectado = $' + valorProyectado.toLocaleString('es-CO') + '</strong>';
+    html += '</div>';
+    html += '</div>';
+
+    // Valor Arriendo Proyectado
+    html += '<div style="background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">';
+    html += '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor Arriendo Proyectado CTL</div>';
+    html += '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + valorArriendo.toLocaleString('es-CO') + '</div>';
+    html += '<div style="font-size:11px; color:#6b7280; margin-top:2px;">Mensual</div>';
+    html += '<a href="#" style="font-size:11px; color:#0f3460; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaArr\', this); return false;">Ver fórmula</a>';
+    html += '<div id="formulaArr" style="display:none; margin-top:8px; font-size:12px; color:#374151; background:#fff; padding:12px; border-radius:6px; line-height:1.8;">';
+    html += '<strong>Valor Proyectado Inmueble:</strong> $' + valorProyectado.toLocaleString('es-CO') + '<br>';
+    html += '<strong>Tasa arriendo mensual:</strong> ' + tasaArriendo.toFixed(2) + '%<br>';
+    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:6px 0;">';
+    html += '<strong>F&oacute;rmula:</strong><br>';
+    html += '$' + valorProyectado.toLocaleString('es-CO') + ' &times; ' + tasaArriendo.toFixed(2) + '%<br>';
+    html += '<strong style="color:#0f3460;">= $' + valorArriendo.toLocaleString('es-CO') + ' / mes</strong>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '</div>';
+
+    html += '<p style="font-size:11px; color:#9ca3af; margin-top:12px; text-align:right;">Fuente IPC: DANE &mdash; Variaci&oacute;n anual dic-dic (2025: 5.10%, 2026: ene 5.35%)</p>';
+
+    container.innerHTML = html;
+    guardarValoresProyectados(valorProyectado, valorArriendo);
+}
+
+function guardarValoresProyectados(valorInmueble, valorArriendo) {
     if (inmuebleActivo === null) return;
     var raw = sessionStorage.getItem('morada_arriendos');
     if (!raw) return;
@@ -567,21 +1134,12 @@ function guardarSimuladorActual() {
     var lista = inm.tipo === 'principal' ? arriendos.arriendos_principal : arriendos.arriendos_secundario;
     if (!lista || !lista[inm.indice]) return;
 
-    var valArr = parsearMonto(document.getElementById('simArrActual').value);
-    var valInm = parsearMonto(document.getElementById('simInmActual').value);
-
-    lista[inm.indice].valor_arriendo_simulador = valArr;
-    lista[inm.indice].valor_inmueble_simulador = valInm;
-    inm.valor_arriendo_simulador = valArr;
-    inm.valor_inmueble_simulador = valInm;
+    lista[inm.indice].valor_inmueble_simulador = valorInmueble;
+    lista[inm.indice].valor_arriendo_simulador = valorArriendo;
+    inm.valor_inmueble_simulador = valorInmueble;
+    inm.valor_arriendo_simulador = valorArriendo;
 
     sessionStorage.setItem('morada_arriendos', JSON.stringify(arriendos));
-}
-
-function guardarYEvaluar() {
-    guardarSimuladorActual();
-    sessionStorage.setItem('morada_autoevaluar', 'true');
-    window.location.href = '/analista';
 }
 
 window.addEventListener('load', function() {

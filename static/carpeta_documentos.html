@@ -273,20 +273,12 @@ function renderSolicitante(sol, tipo, arriendos) {
             html += '<div class="inmueble-card" id="' + inmId + '">' +
                 '<div class="inmueble-titulo">Inmueble ' + (idx + 1) + '</div>';
 
-            if (arr.pin_certificado) {
-                html += '<div class="ctl-resumen" id="ctl_' + inmId + '">' +
-                    '<p class="loading-inline">Consultando Certificado de Tradici&oacute;n (PIN: ' + arr.pin_certificado + ')...</p>' +
-                '</div>';
-            } else {
-                html += '<div class="ctl-resumen"><p style="color:#9ca3af;">Sin PIN de certificado registrado</p></div>';
-            }
-
             html += '<div id="contrato_doc_' + inmId + '">';
             if (arr.contrato_cargado) {
                 html += '<div class="doc-item">' +
                     '<div class="doc-icon pdf">PDF</div>' +
                     '<span class="doc-nombre">Contrato de Arrendamiento</span>' +
-                    '<span class="doc-estado estado-ok">Cargado</span>' +
+                    '<span class="doc-estado estado-ok" style="font-style:italic;">Buscando archivo...</span>' +
                 '</div>';
             } else {
                 html += '<div class="doc-item">' +
@@ -295,7 +287,17 @@ function renderSolicitante(sol, tipo, arriendos) {
                     '<span class="doc-estado estado-pendiente">Pendiente</span>' +
                 '</div>';
             }
-            html += '</div></div>';
+            html += '</div>';
+
+            if (arr.pin_certificado) {
+                html += '<div class="ctl-resumen" id="ctl_' + inmId + '">' +
+                    '<p class="loading-inline">Consultando Certificado de Tradici&oacute;n (PIN: ' + arr.pin_certificado + ')...</p>' +
+                '</div>';
+            } else {
+                html += '<div class="ctl-resumen"><p style="color:#9ca3af;">Sin PIN de certificado registrado</p></div>';
+            }
+
+            html += '</div>';
         });
 
         html += '</div></div>';
@@ -311,6 +313,31 @@ function renderSolicitante(sol, tipo, arriendos) {
             }
         });
     }
+
+    cargarDocumentosArriendos(tipo, sol.numero_id);
+}
+
+function cargarDocumentosArriendos(tipo, numeroId) {
+    fetch('/documentos/listar/' + numeroId)
+    .then(function(resp) { return resp.json(); })
+    .then(function(docs) {
+        if (!docs.arriendos) return;
+        docs.arriendos.forEach(function(arrDoc) {
+            if (!arrDoc.contrato) return;
+            var match = arrDoc.contrato.nombre.match(/contrato_inmueble_(\d+)/);
+            if (!match) return;
+            var idx = parseInt(match[1]);
+            var elId = 'contrato_doc_' + tipo + '_inm_' + idx;
+            var el = document.getElementById(elId);
+            if (!el) return;
+            var ext = arrDoc.contrato.nombre.split('.').pop().toUpperCase();
+            el.innerHTML = '<a href="' + arrDoc.contrato.ruta + '" target="_blank" class="doc-item" style="text-decoration:none; color:inherit;">' +
+                '<div class="doc-icon pdf">' + ext + '</div>' +
+                '<span class="doc-nombre">Contrato de Arrendamiento</span>' +
+                '<span class="doc-link">Abrir documento &rarr;</span>' +
+                '</a>';
+        });
+    });
 }
 
 function consultarCTL(inmId, pin) {
