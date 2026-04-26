@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morada Capital — Filtro de Originación</title>
+    <title>Morada Capital — Solicitud</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -12,30 +12,44 @@
             background: #f0f2f5;
             color: #1a1a2e;
             line-height: 1.6;
+            min-height: 100vh;
         }
 
         .header {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: white;
             padding: 24px 32px;
+        }
+
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header span { font-size: 14px; opacity: 0.7; }
+
+        .nav {
+            background: #16213e;
+            padding: 0 32px;
             display: flex;
-            align-items: center;
-            gap: 16px;
+            gap: 0;
         }
 
-        .header h1 {
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .header span {
+        .nav a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            padding: 12px 20px;
             font-size: 14px;
-            opacity: 0.7;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav a:hover { color: white; }
+        .nav a.active {
+            color: white;
+            border-bottom-color: #4fc3f7;
         }
 
         .container {
-            max-width: 1100px;
-            margin: 24px auto;
+            max-width: 600px;
+            margin: 40px auto;
             padding: 0 16px;
         }
 
@@ -43,595 +57,881 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            padding: 24px;
-            margin-bottom: 20px;
+            padding: 32px;
         }
 
         .card h2 {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
-            margin-bottom: 16px;
             color: #16213e;
-            border-bottom: 2px solid #e8ecf1;
-            padding-bottom: 8px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 280px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 12px;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 12px;
-            resize: vertical;
-            background: #fafbfc;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #0f3460;
-            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn:hover { transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
-
-        .btn-primary {
-            background: #0f3460;
-            color: white;
-        }
-
-        .btn-primary:hover { background: #1a4a7a; }
-
-        .btn-secondary {
-            background: #e8ecf1;
-            color: #16213e;
-        }
-
-        .btn-secondary:hover { background: #d1d5db; }
-
-        .btn-active {
-            background: #0f3460;
-            color: white;
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 0;
-            margin-bottom: 20px;
-        }
-
-        .view-toggle .btn {
-            border-radius: 0;
-            border: 1px solid #d1d5db;
-        }
-
-        .view-toggle .btn:first-child { border-radius: 8px 0 0 8px; }
-        .view-toggle .btn:last-child { border-radius: 0 8px 8px 0; }
-
-        .results { display: none; }
-        .results.visible { display: block; }
-
-        /* --- Vista Analista --- */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .metric-card {
-            background: #f8f9fb;
-            border-radius: 10px;
-            padding: 16px;
-            border-left: 4px solid #0f3460;
-        }
-
-        .metric-card.success { border-left-color: #27ae60; }
-        .metric-card.warning { border-left-color: #f39c12; }
-        .metric-card.danger { border-left-color: #e74c3c; }
-
-        .metric-label {
-            font-size: 12px;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
 
-        .metric-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #16213e;
-        }
-
-        .metric-detail {
-            font-size: 12px;
+        .card .subtitle {
+            font-size: 14px;
             color: #6b7280;
-            margin-top: 4px;
+            margin-bottom: 24px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        th {
-            background: #16213e;
-            color: white;
-            padding: 10px 14px;
-            text-align: left;
+        .form-group label {
+            display: block;
             font-size: 13px;
             font-weight: 600;
-        }
-
-        td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #e8ecf1;
-            font-size: 13px;
-        }
-
-        tr:hover td { background: #f8f9fb; }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-si {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-no {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        /* --- Vista Técnica --- */
-        .json-view {
-            background: #1e1e2e;
-            color: #cdd6f4;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .obs-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .obs-list li {
-            padding: 8px 12px;
-            background: #fff3cd;
-            border-left: 3px solid #f39c12;
+            color: #374151;
             margin-bottom: 6px;
-            border-radius: 0 6px 6px 0;
-            font-size: 13px;
         }
 
-        .section-title {
+        .form-group label .required {
+            color: #e74c3c;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #0f3460;
+            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+            background: white;
+        }
+
+        .form-group input.error,
+        .form-group select.error {
+            border-color: #e74c3c;
+        }
+
+        .form-group .error-msg {
+            font-size: 12px;
+            color: #e74c3c;
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* --- Segundo solicitante --- */
+        .segundo-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e8ecf1;
+        }
+
+        .segundo-section .section-label {
             font-size: 14px;
             font-weight: 600;
             color: #16213e;
-            margin: 20px 0 8px 0;
+            margin-bottom: 12px;
         }
 
-        .error-msg {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px 16px;
-            border-radius: 8px;
-            font-size: 13px;
+        .radio-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
+        .radio-row label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #374151;
+            cursor: pointer;
         }
 
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #d1d5db;
-            border-top-color: #0f3460;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-left: 8px;
-            vertical-align: middle;
+        .radio-row input[type="radio"] {
+            accent-color: #0f3460;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .segundo-fields {
+            display: none;
+            margin-top: 16px;
+            padding: 20px;
+            background: #f8f9fb;
+            border-radius: 10px;
+            border: 1px solid #e8ecf1;
+        }
 
-        .segundo-solicitante-section {
+        .segundo-fields.visible { display: block; }
+
+        .segundo-fields h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #16213e;
+            margin-bottom: 16px;
+        }
+
+        /* --- Checkbox de autorizacion --- */
+        .auth-section {
             margin-top: 24px;
             padding-top: 20px;
-            border-top: 2px dashed #d1d5db;
+            border-top: 1px solid #e8ecf1;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            cursor: pointer;
+            accent-color: #0f3460;
+            flex-shrink: 0;
+        }
+
+        .checkbox-row label {
+            font-size: 14px;
+            color: #374151;
+            cursor: pointer;
+            line-height: 1.5;
+        }
+
+        .ver-mas {
+            color: #0f3460;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 13px;
+            display: inline-block;
+            margin-top: 8px;
+            margin-left: 28px;
+        }
+
+        .ver-mas:hover { color: #1a4a7a; }
+
+        .auth-detail {
+            display: none;
+            margin-top: 12px;
+            margin-left: 28px;
+            padding: 16px;
+            background: #f8f9fb;
+            border-radius: 8px;
+            border-left: 3px solid #0f3460;
+            font-size: 13px;
+            color: #4b5563;
+            line-height: 1.7;
+        }
+
+        .auth-detail p { margin-bottom: 12px; }
+
+        .auth-detail ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .auth-detail ul li {
+            margin-bottom: 4px;
+        }
+
+        .auth-detail.visible { display: block; }
+
+        /* --- Arriendos --- */
+        .arriendos-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px dashed #d1d5db;
+        }
+
+        .arriendo-card {
+            background: #f8f9fb;
+            border: 1px solid #e8ecf1;
+            border-radius: 10px;
+            padding: 16px 16px 4px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .arriendo-card h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #16213e;
+            margin-bottom: 12px;
+        }
+
+        .btn-eliminar-arr {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .btn-eliminar-arr:hover { color: #c0392b; }
+
+        .btn-agregar {
+            display: inline-block;
+            padding: 8px 16px;
+            background: white;
+            color: #16213e;
+            border: 1px dashed #9ca3af;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+
+        .btn-agregar:hover { background: #e8ecf1; border-color: #6b7280; }
+
+        /* --- Boton --- */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #0f3460;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 28px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #1a4a7a;
+            transform: translateY(-1px);
+        }
+
+        .btn-submit:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* --- Resultado --- */
+        .result-card {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-card.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+
+        .result-card.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+
+        .result-card h3 {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .result-card p {
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
-        <h1>Morada Capital</h1>
-        <span>Filtro de Originaci&oacute;n &mdash; Evaluaci&oacute;n de Capacidad de Pago</span>
-    </div>
+    <h1>Morada Capital</h1>
+    <span>Solicitud de Producto de Vivienda</span>
+</div>
+
+<div class="nav">
+    <a href="/muestra">Muestra</a>
+    <a href="/" class="active">Solicitud</a>
+    <a href="/analista">An&aacute;lisis de Ingresos</a>
+    <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/carpeta">Carpeta</a>
 </div>
 
 <div class="container">
-    <!-- Input -->
     <div class="card">
-        <h2>Datos de Entrada (JSON de Experian)</h2>
-        <textarea id="jsonInput"></textarea>
-        <div class="btn-row">
-            <button class="btn btn-primary" onclick="evaluar()">Evaluar Ingreso</button>
-            <button class="btn btn-secondary" onclick="cargarEjemplo()">Cargar Ejemplo</button>
-        </div>
-    </div>
+        <h2>Datos del Solicitante</h2>
+        <p class="subtitle">Ingrese la informaci&oacute;n b&aacute;sica para iniciar la evaluaci&oacute;n</p>
 
-    <!-- Results -->
-    <div id="results" class="results">
-        <!-- View Toggle -->
-        <div class="view-toggle">
-            <button id="btnAnalista" class="btn btn-active" onclick="cambiarVista('analista')">
-                Resumen Analista
-            </button>
-            <button id="btnTecnico" class="btn btn-secondary" onclick="cambiarVista('tecnico')">
-                Detalle T&eacute;cnico
-            </button>
-        </div>
-
-        <!-- Analyst View -->
-        <div id="vistaAnalista" class="card">
-            <h2>Evaluaci&oacute;n de Ingreso &mdash; Solicitante Principal</h2>
-            <div id="summaryPrincipal"></div>
-
-            <div id="secondarySection" class="segundo-solicitante-section" style="display:none;">
-                <h2>Solicitante Secundario</h2>
-                <div id="summarySecundario"></div>
+        <form id="formCliente" onsubmit="return enviarDatos(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Primer Nombre <span class="required">*</span></label>
+                    <input type="text" id="primerNombre" required placeholder="Ej: Juan">
+                    <div class="error-msg" id="errNombre">Este campo es obligatorio</div>
+                </div>
+                <div class="form-group">
+                    <label>Primer Apellido <span class="required">*</span></label>
+                    <input type="text" id="primerApellido" required placeholder="Ej: P&eacute;rez">
+                    <div class="error-msg" id="errApellido">Este campo es obligatorio</div>
+                </div>
             </div>
 
-            <div id="obsGenerales" style="margin-top: 20px;"></div>
-        </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tipo de Identificaci&oacute;n <span class="required">*</span></label>
+                    <select id="tipoId" required>
+                        <option value="">Seleccione...</option>
+                        <option value="CC">CC &mdash; C&eacute;dula de Ciudadan&iacute;a</option>
+                        <option value="CE">CE &mdash; C&eacute;dula de Extranjer&iacute;a</option>
+                    </select>
+                    <div class="error-msg" id="errTipoId">Seleccione un tipo de identificaci&oacute;n</div>
+                </div>
+                <div class="form-group">
+                    <label>N&uacute;mero de Identificaci&oacute;n <span class="required">*</span></label>
+                    <input type="text" id="numeroId" required placeholder="Ej: 1024490001"
+                           pattern="[0-9]+" inputmode="numeric">
+                    <div class="error-msg" id="errNumeroId">Ingrese un n&uacute;mero v&aacute;lido</div>
+                </div>
+            </div>
 
-        <!-- Technical View -->
-        <div id="vistaTecnica" class="card" style="display:none;">
-            <h2>Respuesta Completa del Servicio</h2>
-            <div id="jsonOutput" class="json-view"></div>
-        </div>
+            <!-- Ingresos por arriendos - Principal -->
+            <div class="arriendos-section">
+                <div class="section-label" style="font-size:14px; font-weight:600; color:#16213e; margin-bottom:12px;">&iquest;Desea incluir otros ingresos por arriendos?</div>
+                <div class="radio-row">
+                    <label><input type="radio" name="hayArriendosPrincipal" value="no" checked onchange="toggleArriendos('principal'); guardarArriendosEnSesion()"> No</label>
+                    <label><input type="radio" name="hayArriendosPrincipal" value="si" onchange="toggleArriendos('principal'); guardarArriendosEnSesion()"> S&iacute;</label>
+                </div>
+                <div id="arriendosPrincipal" style="display:none;">
+                    <div id="listaArriendosPrincipal"></div>
+                    <button type="button" class="btn-agregar" onclick="agregarArriendo('principal')">+ Agregar inmueble</button>
+                </div>
+            </div>
+
+            <!-- Segundo solicitante -->
+            <div class="segundo-section">
+                <div class="section-label">&iquest;Hay un segundo solicitante?</div>
+                <div class="radio-row">
+                    <label>
+                        <input type="radio" name="haySegundo" value="no" checked onchange="toggleSegundo()">
+                        No
+                    </label>
+                    <label>
+                        <input type="radio" name="haySegundo" value="si" onchange="toggleSegundo()">
+                        S&iacute;
+                    </label>
+                </div>
+
+                <div class="segundo-fields" id="segundoFields">
+                    <h3>Datos del Segundo Solicitante</h3>
+
+                    <div class="form-group">
+                        <label>Parentesco con el solicitante principal <span class="required">*</span></label>
+                        <select id="parentesco">
+                            <option value="">Seleccione...</option>
+                            <option value="conyuge">C&oacute;nyuge</option>
+                            <option value="companero_permanente">Compa&ntilde;ero(a) Permanente</option>
+                            <option value="padre">Padre / Madre</option>
+                            <option value="hijo">Hijo(a)</option>
+                            <option value="hermano">Hermano(a)</option>
+                            <option value="abuelo">Abuelo(a)</option>
+                            <option value="nieto">Nieto(a)</option>
+                            <option value="suegro">Suegro(a)</option>
+                            <option value="hijastro">Hijastro(a)</option>
+                            <option value="yerno_nuera">Yerno / Nuera</option>
+                            <option value="hijo_adoptivo">Hijo(a) Adoptivo(a)</option>
+                            <option value="padre_adoptivo">Padre / Madre Adoptivo(a)</option>
+                        </select>
+                        <div class="error-msg" id="errParentesco">Seleccione el parentesco</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Primer Nombre <span class="required">*</span></label>
+                            <input type="text" id="primerNombre2" placeholder="Ej: Mar&iacute;a">
+                            <div class="error-msg" id="errNombre2">Este campo es obligatorio</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Primer Apellido <span class="required">*</span></label>
+                            <input type="text" id="primerApellido2" placeholder="Ej: G&oacute;mez">
+                            <div class="error-msg" id="errApellido2">Este campo es obligatorio</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tipo de Identificaci&oacute;n <span class="required">*</span></label>
+                            <select id="tipoId2">
+                                <option value="">Seleccione...</option>
+                                <option value="CC">CC &mdash; C&eacute;dula de Ciudadan&iacute;a</option>
+                                <option value="CE">CE &mdash; C&eacute;dula de Extranjer&iacute;a</option>
+                            </select>
+                            <div class="error-msg" id="errTipoId2">Seleccione un tipo de identificaci&oacute;n</div>
+                        </div>
+                        <div class="form-group">
+                            <label>N&uacute;mero de Identificaci&oacute;n <span class="required">*</span></label>
+                            <input type="text" id="numeroId2" placeholder="Ej: 52890001"
+                                   pattern="[0-9]+" inputmode="numeric">
+                            <div class="error-msg" id="errNumeroId2">Ingrese un n&uacute;mero v&aacute;lido</div>
+                        </div>
+                    </div>
+
+                    <!-- Arriendos Secundario -->
+                    <div class="arriendos-section">
+                        <div style="font-size:14px; font-weight:600; color:#16213e; margin-bottom:12px;">&iquest;Incluir ingresos por arriendos?</div>
+                        <div class="radio-row">
+                            <label><input type="radio" name="hayArriendosSecundario" value="no" checked onchange="toggleArriendos('secundario'); guardarArriendosEnSesion()"> No</label>
+                            <label><input type="radio" name="hayArriendosSecundario" value="si" onchange="toggleArriendos('secundario'); guardarArriendosEnSesion()"> S&iacute;</label>
+                        </div>
+                        <div id="arriendosSecundario" style="display:none;">
+                            <div id="listaArriendosSecundario"></div>
+                            <button type="button" class="btn-agregar" onclick="agregarArriendo('secundario')">+ Agregar inmueble</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Autorizacion -->
+            <div class="auth-section">
+                <div class="section-label" style="font-size:14px; font-weight:600; color:#16213e; margin-bottom:12px;">Autorizaci&oacute;n de consulta y tratamiento de datos</div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="checkAuth" onchange="toggleSubmit()">
+                    <label for="checkAuth">
+                        <strong>Solicitante principal:</strong> He le&iacute;do y autorizo la consulta y tratamiento de mis datos personales y crediticios
+                    </label>
+                </div>
+
+                <div class="checkbox-row" id="checkAuth2Row" style="display:none; margin-top:12px;">
+                    <input type="checkbox" id="checkAuth2" onchange="toggleSubmit()">
+                    <label for="checkAuth2">
+                        <strong>Segundo solicitante:</strong> He le&iacute;do y autorizo la consulta y tratamiento de mis datos personales y crediticios
+                    </label>
+                </div>
+
+                <span class="ver-mas" onclick="toggleDetalle()">Ver m&aacute;s</span>
+
+                <div class="auth-detail" id="authDetail">
+                    <p>Al continuar con este proceso, autorizas de manera previa, expresa e informada a
+                    <strong>Morada Capital SAS</strong> para que consulte, reporte, actualice y procese tu
+                    informaci&oacute;n personal, financiera y crediticia en centrales de riesgo, operadores de
+                    informaci&oacute;n y otras bases de datos autorizadas conforme a la normatividad vigente.</p>
+
+                    <p>As&iacute; mismo autorizas el tratamiento de tus datos personales de acuerdo con la
+                    Pol&iacute;tica de Tratamiento de Datos de Morada Capital SAS, la cual puedes consultar en
+                    <a href="https://www.moradacapital.com" target="_blank">www.moradacapital.com</a>.</p>
+
+                    <p>La informaci&oacute;n ser&aacute; utilizada para:</p>
+                    <ul>
+                        <li>Evaluar tu solicitud de producto o servicio</li>
+                        <li>Analizar tu comportamiento crediticio</li>
+                        <li>Gestionar la relaci&oacute;n comercial contigo</li>
+                        <li>Cumplir obligaciones legales y regulatorias</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSubmit" disabled>
+                Continuar
+            </button>
+        </form>
+
+        <div class="result-card" id="resultCard"></div>
     </div>
 </div>
 
+<script src="/static/solicitantes.js"></script>
 <script>
-const EJEMPLO = {
-    solicitante_principal: {
-        id: "3332a0dc-de98-4848-9922-a1bae54cab9f",
-        status: "APPROVED",
-        data: {
-            fecha: "04/23/2026 04:58:50 PM",
-            numero_identificacion_persona_natural: "1024490001",
-            primer_nombre_persona_natural: "JUAN",
-            primer_apellido_persona_natural: "PEREZ",
-            aportantes: [{
-                tipo_identificacion_aportante_id: 2,
-                numero_identificacion_aportante: "901800001",
-                razon_social_aportante: "EMPRESA EJEMPLO SAS",
-                tipo_cotizante_persona_natural: 1,
-                descripcion_cotizante_persona_natural: "Empleado",
-                tiene_novedad_retiro_actualmente_empleado: false,
-                tiene_licencia_no_remunerada_actualmente_empleador: false,
-                resultado_pagos: [
-                    {ano_periodo_validado:2026, mes_periodo_validado:3, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2026, mes_periodo_validado:2, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2026, mes_periodo_validado:1, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:12, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:11, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:10, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:9, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:8, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:7, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:6, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:5, realizo_pago:true, ingresos:2000000},
-                    {ano_periodo_validado:2025, mes_periodo_validado:4, realizo_pago:false, ingresos:0}
-                ]
-            }]
-        }
-    },
-    score_principal: 600,
-    arriendos_principal: [
-        {
-            pin_certificado: "XYZ789",
-            fecha_emision_certificado: "2026-04-15",
-            propietario_cedula: "1024490001",
-            ingreso_arriendo_declarado: 1200000,
-            valor_arriendo_simulador: 1300000,
-            valor_inmueble_simulador: 250000000,
-            meses_contrato: 8
-        }
-    ]
-};
-
-function formatCOP(val) {
-    return '$' + Math.round(val).toLocaleString('es-CO');
-}
-
-function mesNombre(m) {
-    const meses = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-    return meses[m] || m;
-}
-
-function cargarEjemplo() {
-    document.getElementById('jsonInput').value = JSON.stringify(EJEMPLO, null, 2);
-}
-
-async function evaluar() {
-    const input = document.getElementById('jsonInput').value.trim();
-    if (!input) { alert('Pega el JSON de entrada primero'); return; }
-
-    let payload;
+function cargarDesdeMuestra() {
+    var raw = sessionStorage.getItem('morada_seleccion');
+    if (!raw) return;
     try {
-        payload = JSON.parse(input);
-    } catch(e) {
-        alert('El JSON no es válido: ' + e.message);
-        return;
+        var sel = JSON.parse(raw);
+        var p = SOLICITANTES[sel.principalIdx];
+        var d = p.data.data;
+        document.getElementById('primerNombre').value = d.primer_nombre_persona_natural;
+        document.getElementById('primerApellido').value = d.primer_apellido_persona_natural;
+        document.getElementById('tipoId').value = 'CC';
+        document.getElementById('numeroId').value = d.numero_identificacion_persona_natural;
+        document.getElementById('checkAuth').checked = true;
+
+        if (sel.secundarioIdx !== null) {
+            document.querySelector('input[name="haySegundo"][value="si"]').checked = true;
+            toggleSegundo();
+            var s = SOLICITANTES[sel.secundarioIdx];
+            var ds = s.data.data;
+            document.getElementById('parentesco').value = sel.parentesco;
+            document.getElementById('primerNombre2').value = ds.primer_nombre_persona_natural;
+            document.getElementById('primerApellido2').value = ds.primer_apellido_persona_natural;
+            document.getElementById('tipoId2').value = 'CC';
+            document.getElementById('numeroId2').value = ds.numero_identificacion_persona_natural;
+            document.getElementById('checkAuth2').checked = true;
+        }
+        toggleSubmit();
+    } catch(e) {}
+}
+
+var contadorArriendos = { principal: 0, secundario: 0 };
+
+function toggleArriendos(tipo) {
+    var radioName = tipo === 'principal' ? 'hayArriendosPrincipal' : 'hayArriendosSecundario';
+    var containerId = tipo === 'principal' ? 'arriendosPrincipal' : 'arriendosSecundario';
+    var listaId = tipo === 'principal' ? 'listaArriendosPrincipal' : 'listaArriendosSecundario';
+    var si = document.querySelector('input[name="' + radioName + '"][value="si"]').checked;
+    document.getElementById(containerId).style.display = si ? 'block' : 'none';
+    if (si && document.getElementById(listaId).children.length === 0) {
+        agregarArriendo(tipo);
+    }
+}
+
+function parsearMonto(val) {
+    if (!val) return 0;
+    var limpio = val.replace(/[^0-9]/g, '');
+    return parseInt(limpio, 10) || 0;
+}
+
+function formatearMonto(input) {
+    var pos = input.selectionStart;
+    var original = input.value;
+    var limpio = original.replace(/[^0-9]/g, '');
+    if (!limpio) { input.value = ''; return; }
+    var formateado = parseInt(limpio, 10).toLocaleString('es-CO');
+    input.value = formateado;
+    var diff = formateado.length - original.length;
+    input.setSelectionRange(pos + diff, pos + diff);
+}
+
+function agregarArriendo(tipo) {
+    var listaId = tipo === 'principal' ? 'listaArriendosPrincipal' : 'listaArriendosSecundario';
+    var lista = document.getElementById(listaId);
+    contadorArriendos[tipo]++;
+    var id = tipo + '_' + contadorArriendos[tipo];
+    var num = lista.children.length + 1;
+
+    var card = document.createElement('div');
+    card.className = 'arriendo-card';
+    card.id = 'arriendo_' + id;
+    card.innerHTML =
+        '<h4>Inmueble ' + num + '</h4>' +
+        '<button type="button" class="btn-eliminar-arr" onclick="eliminarArriendo(\'' + id + '\',\'' + tipo + '\')" title="Eliminar">&times;</button>' +
+        '<div class="form-row">' +
+            '<div class="form-group">' +
+                '<label>PIN Certificado de Tradici&oacute;n</label>' +
+                '<input type="text" id="pin_' + id + '" placeholder="Ej: 050C12345678" onchange="guardarArriendosEnSesion()">' +
+            '</div>' +
+            '<div class="form-group">' +
+                '<label>Fecha emisi&oacute;n certificado</label>' +
+                '<input type="date" id="fechaCert_' + id + '" onchange="guardarArriendosEnSesion()">' +
+            '</div>' +
+        '</div>' +
+        '<div class="form-group">' +
+            '<label>Ingreso mensual por arriendo (declarado) <span class="required">*</span></label>' +
+            '<input type="text" inputmode="numeric" id="ingresoDeclarado_' + id + '" placeholder="Ej: 1.500.000" oninput="formatearMonto(this)" onchange="guardarArriendosEnSesion()">' +
+        '</div>' +
+        '<div class="form-group">' +
+            '<label>Cargar Contrato de Arrendamiento</label>' +
+            '<input type="file" id="contrato_' + id + '" accept=".pdf,image/*" style="font-size:13px">' +
+        '</div>';
+    lista.appendChild(card);
+}
+
+function guardarArriendosEnSesion() {
+    var data = {
+        arriendos_principal: recogerArriendos('principal'),
+        arriendos_secundario: recogerArriendos('secundario')
+    };
+    sessionStorage.setItem('morada_arriendos', JSON.stringify(data));
+}
+
+function eliminarArriendo(id, tipo) {
+    var card = document.getElementById('arriendo_' + id);
+    if (card) card.remove();
+    renumerarArriendos(tipo);
+    guardarArriendosEnSesion();
+}
+
+function renumerarArriendos(tipo) {
+    var listaId = tipo === 'principal' ? 'listaArriendosPrincipal' : 'listaArriendosSecundario';
+    var cards = document.getElementById(listaId).children;
+    for (var i = 0; i < cards.length; i++) {
+        cards[i].querySelector('h4').textContent = 'Inmueble ' + (i + 1);
+    }
+}
+
+function recogerArriendos(tipo) {
+    var radioName = tipo === 'principal' ? 'hayArriendosPrincipal' : 'hayArriendosSecundario';
+    var hayRadio = document.querySelector('input[name="' + radioName + '"][value="si"]');
+    if (!hayRadio || !hayRadio.checked) return [];
+
+    var listaId = tipo === 'principal' ? 'listaArriendosPrincipal' : 'listaArriendosSecundario';
+    var cards = document.getElementById(listaId).children;
+    var cedulaField = tipo === 'principal' ? 'numeroId' : 'numeroId2';
+    var cedula = document.getElementById(cedulaField).value.trim();
+    var arriendos = [];
+    for (var i = 0; i < cards.length; i++) {
+        var cardId = cards[i].id.replace('arriendo_', '');
+        var arriendo = {
+            pin_certificado: document.getElementById('pin_' + cardId).value.trim(),
+            fecha_emision_certificado: document.getElementById('fechaCert_' + cardId).value,
+            propietario_cedula: cedula,
+            ingreso_arriendo_declarado: parsearMonto(document.getElementById('ingresoDeclarado_' + cardId).value),
+            contrato_cargado: document.getElementById('contrato_' + cardId).files.length > 0
+        };
+        arriendos.push(arriendo);
+    }
+    return arriendos;
+}
+
+function toggleDetalle() {
+    const det = document.getElementById('authDetail');
+    det.classList.toggle('visible');
+    const link = det.previousElementSibling;
+    link.textContent = det.classList.contains('visible') ? 'Ver menos' : 'Ver más';
+}
+
+function haySegundoSolicitante() {
+    return document.querySelector('input[name="haySegundo"][value="si"]').checked;
+}
+
+function toggleSegundo() {
+    const si = document.querySelector('input[name="haySegundo"][value="si"]').checked;
+    const campos = document.getElementById('segundoFields');
+    const auth2Row = document.getElementById('checkAuth2Row');
+    const check2 = document.getElementById('checkAuth2');
+    if (si) {
+        campos.classList.add('visible');
+        auth2Row.style.display = 'flex';
+    } else {
+        campos.classList.remove('visible');
+        auth2Row.style.display = 'none';
+        check2.checked = false;
+        ['primerNombre2','primerApellido2','tipoId2','numeroId2','parentesco'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = '';
+            el.classList.remove('error');
+        });
+        ['errNombre2','errApellido2','errTipoId2','errNumeroId2','errParentesco'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+        // Limpiar arriendos del secundario
+        document.querySelector('input[name="hayArriendosSecundario"][value="no"]').checked = true;
+        document.getElementById('arriendosSecundario').style.display = 'none';
+        document.getElementById('listaArriendosSecundario').innerHTML = '';
+    }
+    toggleSubmit();
+}
+
+function toggleSubmit() {
+    const check1 = document.getElementById('checkAuth').checked;
+    const necesitaCheck2 = haySegundoSolicitante();
+    const check2 = document.getElementById('checkAuth2').checked;
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = !(check1 && (!necesitaCheck2 || check2));
+}
+
+function validarCampo(input, errorId) {
+    const err = document.getElementById(errorId);
+    if (!input.value.trim()) {
+        input.classList.add('error');
+        err.style.display = 'block';
+        return false;
+    }
+    input.classList.remove('error');
+    err.style.display = 'none';
+    return true;
+}
+
+async function enviarDatos(e) {
+    e.preventDefault();
+
+    const nombre = document.getElementById('primerNombre');
+    const apellido = document.getElementById('primerApellido');
+    const tipoId = document.getElementById('tipoId');
+    const numeroId = document.getElementById('numeroId');
+
+    let valido = true;
+    valido = validarCampo(nombre, 'errNombre') && valido;
+    valido = validarCampo(apellido, 'errApellido') && valido;
+    valido = validarCampo(tipoId, 'errTipoId') && valido;
+    valido = validarCampo(numeroId, 'errNumeroId') && valido;
+
+    // Validar segundo solicitante si aplica
+    if (haySegundoSolicitante()) {
+        valido = validarCampo(document.getElementById('parentesco'), 'errParentesco') && valido;
+        valido = validarCampo(document.getElementById('primerNombre2'), 'errNombre2') && valido;
+        valido = validarCampo(document.getElementById('primerApellido2'), 'errApellido2') && valido;
+        valido = validarCampo(document.getElementById('tipoId2'), 'errTipoId2') && valido;
+        valido = validarCampo(document.getElementById('numeroId2'), 'errNumeroId2') && valido;
     }
 
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.classList.add('visible');
-    document.getElementById('summaryPrincipal').innerHTML = '<div class="loading">Evaluando</div>';
+    if (!valido) return false;
+
+    const payload = {
+        primer_nombre: nombre.value.trim(),
+        primer_apellido: apellido.value.trim(),
+        tipo_identificacion: tipoId.value,
+        numero_identificacion: numeroId.value.trim(),
+        autorizacion_aceptada: document.getElementById('checkAuth').checked
+    };
+
+    if (haySegundoSolicitante()) {
+        payload.segundo_solicitante = {
+            primer_nombre: document.getElementById('primerNombre2').value.trim(),
+            primer_apellido: document.getElementById('primerApellido2').value.trim(),
+            tipo_identificacion: document.getElementById('tipoId2').value,
+            numero_identificacion: document.getElementById('numeroId2').value.trim(),
+        };
+        payload.parentesco = document.getElementById('parentesco').value;
+    }
+
+    const resultCard = document.getElementById('resultCard');
 
     try {
-        const resp = await fetch('/filtro/evaluar-ingreso', {
+        const resp = await fetch('/cliente/registrar', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
 
-        if (!resp.ok) {
-            const err = await resp.json();
-            document.getElementById('summaryPrincipal').innerHTML =
-                '<div class="error-msg">Error: ' + JSON.stringify(err.detail || err) + '</div>';
-            return;
-        }
-
         const data = await resp.json();
-        renderAnalista(data, payload);
-        document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
 
-    } catch(e) {
-        document.getElementById('summaryPrincipal').innerHTML =
-            '<div class="error-msg">Error de conexión: ' + e.message + '</div>';
-    }
-}
+        if (resp.ok) {
+            var arriendosData = {
+                arriendos_principal: recogerArriendos('principal'),
+                arriendos_secundario: recogerArriendos('secundario')
+            };
+            sessionStorage.setItem('morada_arriendos', JSON.stringify(arriendosData));
 
-function renderDetalleSolicitante(detalle, datosExperian) {
-    const nombre = datosExperian?.data
-        ? `${datosExperian.data.primer_nombre_persona_natural || ''} ${datosExperian.data.primer_apellido_persona_natural || ''}`.trim()
-        : '';
-    const cedula = datosExperian?.data?.numero_identificacion_persona_natural || '';
-    const ingreso = detalle.ingreso_calculado;
-    const esPositivo = ingreso > 0;
-
-    let html = '';
-
-    // Metrics
-    html += '<div class="summary-grid">';
-    html += `
-        <div class="metric-card ${esPositivo ? 'success' : 'danger'}">
-            <div class="metric-label">Ingreso Calculado</div>
-            <div class="metric-value">${formatCOP(ingreso)}</div>
-            <div class="metric-detail">Actividad principal</div>
-        </div>`;
-
-    if (nombre) {
-        html += `
-        <div class="metric-card">
-            <div class="metric-label">Solicitante</div>
-            <div class="metric-value" style="font-size:18px">${nombre}</div>
-            <div class="metric-detail">C.C. ${cedula}</div>
-        </div>`;
-    }
-
-    html += `
-        <div class="metric-card">
-            <div class="metric-label">Decisi&oacute;n Aplicada</div>
-            <div class="metric-value" style="font-size:14px; line-height:1.4">${detalle.decision_aplicada}</div>
-        </div>`;
-
-    html += '</div>';
-
-    // Vector table
-    if (detalle.vector_consolidado && detalle.vector_consolidado.length > 0) {
-        html += '<div class="section-title">Historial de Pagos (Vector Consolidado)</div>';
-        html += '<table><thead><tr><th>Periodo</th><th>Pago</th><th>Ingreso</th></tr></thead><tbody>';
-        for (const v of detalle.vector_consolidado) {
-            const badge = v.realizo_pago
-                ? '<span class="badge badge-si">SI</span>'
-                : '<span class="badge badge-no">NO</span>';
-            html += `<tr>
-                <td>${mesNombre(v.mes)} ${v.anio}</td>
-                <td>${badge}</td>
-                <td>${formatCOP(v.ingresos)}</td>
-            </tr>`;
-        }
-        html += '</tbody></table>';
-    }
-
-    // --- 8.2.1 Ingresos por arriendos ---
-    if (detalle.ingresos_arriendo && detalle.ingresos_arriendo.length > 0) {
-        html += '<div class="section-title">Ingresos por Arriendos (8.2.1)</div>';
-        for (let i = 0; i < detalle.ingresos_arriendo.length; i++) {
-            const arr = detalle.ingresos_arriendo[i];
-            const aprobado = arr.ingreso_aceptado > 0;
-            html += `<div class="metric-card ${aprobado ? 'success' : 'danger'}" style="margin-bottom:12px">
-                <div class="summary-grid" style="margin-bottom:0">
-                    <div>
-                        <div class="metric-label">Inmueble ${i + 1} &mdash; Ingreso Aceptado</div>
-                        <div class="metric-value">${formatCOP(arr.ingreso_aceptado)}</div>
-                    </div>
-                    <div>
-                        <div class="metric-label">Declarado por Cliente</div>
-                        <div class="metric-value" style="font-size:18px">${formatCOP(arr.ingreso_declarado)}</div>
-                    </div>
-                    <div>
-                        <div class="metric-label">Valor de Referencia</div>
-                        <div class="metric-value" style="font-size:18px">${formatCOP(arr.valor_referencia)}</div>
-                        <div class="metric-detail">${arr.metodo_referencia}</div>
-                    </div>
-                </div>`;
-            if (arr.validaciones && arr.validaciones.length > 0) {
-                html += '<div style="margin-top:8px; font-size:12px; color:#6b7280">';
-                for (const v of arr.validaciones) {
-                    const icon = v.startsWith('RECHAZADO') ? '&#10007;' : '&#10003;';
-                    const color = v.startsWith('RECHAZADO') ? '#e74c3c' : '#27ae60';
-                    html += `<div style="color:${color}">${icon} ${v}</div>`;
+            var carpetaData = {
+                principal: {
+                    nombre: data.cliente.nombre,
+                    tipo_id: data.cliente.tipo_identificacion,
+                    numero_id: data.cliente.numero_identificacion
                 }
-                html += '</div>';
+            };
+            if (data.segundo_solicitante) {
+                carpetaData.secundario = {
+                    nombre: data.segundo_solicitante.nombre,
+                    tipo_id: data.segundo_solicitante.tipo_identificacion,
+                    numero_id: data.segundo_solicitante.numero_identificacion,
+                    parentesco: data.parentesco
+                };
             }
-            if (arr.observaciones && arr.observaciones.length > 0) {
-                html += '<ul class="obs-list" style="margin-top:8px">';
-                for (const o of arr.observaciones) html += `<li>${o}</li>`;
-                html += '</ul>';
+            sessionStorage.setItem('morada_carpeta', JSON.stringify(carpetaData));
+
+            await subirContratos('principal', data.cliente.numero_identificacion);
+            if (data.segundo_solicitante) {
+                await subirContratos('secundario', data.segundo_solicitante.numero_identificacion);
             }
-            html += '</div>';
+
+            var selRaw = sessionStorage.getItem('morada_seleccion');
+            if (selRaw) {
+                var sel = JSON.parse(selRaw);
+                var centralesData = { principal: SOLICITANTES[sel.principalIdx].data };
+                if (sel.secundarioIdx !== null) {
+                    centralesData.secundario = SOLICITANTES[sel.secundarioIdx].data;
+                }
+                sessionStorage.setItem('morada_centrales', JSON.stringify(centralesData));
+            }
+
+            sessionStorage.setItem('morada_autoevaluar', 'true');
+            window.location.href = '/analista';
+            return false;
+        } else {
+            resultCard.className = 'result-card error';
+            resultCard.innerHTML = `<h3>Error</h3><p>${data.detail || 'Error desconocido'}</p>`;
         }
+    } catch(err) {
+        resultCard.className = 'result-card error';
+        resultCard.innerHTML = `<h3>Error de conexi&oacute;n</h3><p>${err.message}</p>`;
     }
 
-    // --- Ingreso Bruto (8.3 = 8.1 + 8.2) ---
-    if (detalle.ingreso_bruto !== undefined && detalle.total_ingreso_arriendo > 0) {
-        html += '<div class="summary-grid" style="margin-top:16px">';
-        html += `
-            <div class="metric-card">
-                <div class="metric-label">Ingreso Actividad Principal (8.1)</div>
-                <div class="metric-value">${formatCOP(detalle.ingreso_calculado)}</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Total Arriendos (8.2)</div>
-                <div class="metric-value">${formatCOP(detalle.total_ingreso_arriendo)}</div>
-            </div>
-            <div class="metric-card success">
-                <div class="metric-label">Ingreso Bruto (8.3)</div>
-                <div class="metric-value">${formatCOP(detalle.ingreso_bruto)}</div>
-                <div class="metric-detail">8.1 + 8.2</div>
-            </div>`;
-        html += '</div>';
-    }
-
-    // Observations
-    if (detalle.observaciones && detalle.observaciones.length > 0) {
-        html += '<div class="section-title">Observaciones</div>';
-        html += '<ul class="obs-list">';
-        for (const o of detalle.observaciones) {
-            html += `<li>${o}</li>`;
-        }
-        html += '</ul>';
-    }
-
-    return html;
+    return false;
 }
 
-function renderAnalista(data, payload) {
-    // Principal
-    document.getElementById('summaryPrincipal').innerHTML =
-        renderDetalleSolicitante(data.solicitante_principal, payload.solicitante_principal);
+async function subirContratos(tipo, numeroId) {
+    var radioName = tipo === 'principal' ? 'hayArriendosPrincipal' : 'hayArriendosSecundario';
+    var hayRadio = document.querySelector('input[name="' + radioName + '"][value="si"]');
+    if (!hayRadio || !hayRadio.checked) return;
 
-    // Secondary
-    const secSection = document.getElementById('secondarySection');
-    if (data.solicitante_secundario) {
-        secSection.style.display = 'block';
-        document.getElementById('summarySecundario').innerHTML =
-            renderDetalleSolicitante(data.solicitante_secundario, payload.solicitante_secundario);
-    } else {
-        secSection.style.display = 'none';
-    }
+    var listaId = tipo === 'principal' ? 'listaArriendosPrincipal' : 'listaArriendosSecundario';
+    var cards = document.getElementById(listaId).children;
 
-    // General observations & total
-    let obsHtml = '';
+    for (var i = 0; i < cards.length; i++) {
+        var cardId = cards[i].id.replace('arriendo_', '');
+        var fileInput = document.getElementById('contrato_' + cardId);
+        var pinInput = document.getElementById('pin_' + cardId);
 
-    // Total income summary
-    obsHtml += '<div class="summary-grid">';
-    obsHtml += `
-        <div class="metric-card success">
-            <div class="metric-label">Ingreso Total</div>
-            <div class="metric-value">${formatCOP(data.ingreso_total)}</div>
-            <div class="metric-detail">${data.solicitante_secundario ? 'Suma de ambos solicitantes' : 'Solicitante único'}</div>
-        </div>`;
-
-    if (data.segundo_solicitante_aceptado !== null && data.segundo_solicitante_aceptado !== undefined) {
-        const aceptado = data.segundo_solicitante_aceptado;
-        obsHtml += `
-        <div class="metric-card ${aceptado ? 'success' : 'danger'}">
-            <div class="metric-label">Segundo Solicitante</div>
-            <div class="metric-value" style="font-size:18px">${aceptado ? 'Aceptado' : 'Rechazado'}</div>
-        </div>`;
-    }
-    obsHtml += '</div>';
-
-    if (data.observaciones_generales && data.observaciones_generales.length > 0) {
-        obsHtml += '<div class="section-title">Observaciones Generales</div>';
-        obsHtml += '<ul class="obs-list">';
-        for (const o of data.observaciones_generales) {
-            obsHtml += `<li>${o}</li>`;
+        if (fileInput && fileInput.files.length > 0) {
+            var fd = new FormData();
+            fd.append('numero_identificacion', numeroId);
+            fd.append('pin_certificado', pinInput ? pinInput.value.trim() : '');
+            fd.append('indice_inmueble', i + 1);
+            fd.append('archivo', fileInput.files[0]);
+            try {
+                await fetch('/documentos/subir-contrato', { method: 'POST', body: fd });
+            } catch(e) {}
         }
-        obsHtml += '</ul>';
-    }
-
-    document.getElementById('obsGenerales').innerHTML = obsHtml;
-}
-
-function cambiarVista(vista) {
-    const analista = document.getElementById('vistaAnalista');
-    const tecnica = document.getElementById('vistaTecnica');
-    const btnA = document.getElementById('btnAnalista');
-    const btnT = document.getElementById('btnTecnico');
-
-    if (vista === 'analista') {
-        analista.style.display = 'block';
-        tecnica.style.display = 'none';
-        btnA.className = 'btn btn-active';
-        btnT.className = 'btn btn-secondary';
-    } else {
-        analista.style.display = 'none';
-        tecnica.style.display = 'block';
-        btnA.className = 'btn btn-secondary';
-        btnT.className = 'btn btn-active';
     }
 }
 
-// Load example on page load
-window.addEventListener('load', cargarEjemplo);
+function restaurarArriendos() {
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (!raw) return;
+    try {
+        var data = JSON.parse(raw);
+        restaurarArriendosTipo('principal', data.arriendos_principal);
+        restaurarArriendosTipo('secundario', data.arriendos_secundario);
+    } catch(e) {}
+}
+
+function restaurarArriendosTipo(tipo, arriendos) {
+    if (!arriendos || arriendos.length === 0) return;
+
+    var radioName = tipo === 'principal' ? 'hayArriendosPrincipal' : 'hayArriendosSecundario';
+    document.querySelector('input[name="' + radioName + '"][value="si"]').checked = true;
+    toggleArriendos(tipo);
+
+    var listaId = tipo === 'principal' ? 'listaArriendosPrincipal' : 'listaArriendosSecundario';
+    var lista = document.getElementById(listaId);
+    lista.innerHTML = '';
+    contadorArriendos[tipo] = 0;
+
+    for (var i = 0; i < arriendos.length; i++) {
+        agregarArriendo(tipo);
+        var cards = lista.children;
+        var cardId = cards[cards.length - 1].id.replace('arriendo_', '');
+        var a = arriendos[i];
+        if (a.pin_certificado) document.getElementById('pin_' + cardId).value = a.pin_certificado;
+        if (a.fecha_emision_certificado) document.getElementById('fechaCert_' + cardId).value = a.fecha_emision_certificado;
+        if (a.ingreso_arriendo_declarado) {
+            var input = document.getElementById('ingresoDeclarado_' + cardId);
+            input.value = parseInt(a.ingreso_arriendo_declarado, 10).toLocaleString('es-CO');
+        }
+    }
+}
+
+window.addEventListener('load', function() {
+    cargarDesdeMuestra();
+    restaurarArriendos();
+});
 </script>
 
 </body>

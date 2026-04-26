@@ -55,12 +55,15 @@ def calcular_ingreso_arriendo(
     validaciones.append("Propiedad verificada (coincide con solicitante)")
 
     # --- 3. Contrato mínimo 4 meses ---
-    if arriendo.meses_contrato < MESES_MINIMOS_CONTRATO:
+    if arriendo.meses_contrato is not None and arriendo.meses_contrato < MESES_MINIMOS_CONTRATO:
         return _rechazar(
             f"RECHAZADO: Contrato con {arriendo.meses_contrato} meses "
             f"(mínimo {MESES_MINIMOS_CONTRATO})"
         )
-    validaciones.append(f"Antigüedad del contrato: {arriendo.meses_contrato} meses")
+    if arriendo.meses_contrato is not None:
+        validaciones.append(f"Antigüedad del contrato: {arriendo.meses_contrato} meses")
+    else:
+        validaciones.append("Antigüedad del contrato: pendiente de verificación")
 
     # --- 4. Valor de referencia ---
     valor_ref = 0.0

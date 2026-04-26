@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morada Capital &mdash; Carpeta de Documentos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 24px 32px;
+        }
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header span { font-size: 14px; opacity: 0.7; }
+        .nav {
+            background: #16213e;
+            padding: 0 32px;
+            display: flex;
+            gap: 0;
+        }
+        .nav a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav a:hover { color: white; }
+        .nav a.active { color: white; border-bottom-color: #4fc3f7; }
+        .container { max-width: 900px; margin: 40px auto; padding: 0 16px; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 28px 32px;
+            margin-bottom: 20px;
+        }
+
+        .solicitante-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .solicitante-icon {
+            width: 44px; height: 44px;
+            background: #e8ecf1;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #16213e;
+            flex-shrink: 0;
+        }
+        .solicitante-info h2 {
+            font-size: 17px;
+            font-weight: 600;
+            color: #16213e;
+        }
+        .solicitante-info p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .seccion {
+            margin-bottom: 24px;
+        }
+        .seccion:last-child { margin-bottom: 0; }
+
+        .seccion-titulo {
+            font-size: 14px;
+            font-weight: 700;
+            color: #16213e;
+            padding: 10px 14px;
+            background: #f0f2f5;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .seccion-titulo .icono { font-size: 16px; }
+
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border: 1px solid #e8ecf1;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            transition: background 0.15s;
+        }
+        .doc-item:hover { background: #fafbfc; }
+        .doc-icon {
+            width: 32px; height: 32px;
+            background: #e8ecf1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .doc-icon.pdf { background: #fee2e2; color: #dc2626; }
+        .doc-icon.central { background: #dbeafe; color: #2563eb; }
+        .doc-icon.ctl { background: #d1fae5; color: #059669; }
+        .doc-nombre { flex: 1; font-weight: 500; }
+        .doc-estado {
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .estado-ok { background: #d4edda; color: #155724; }
+        .estado-pendiente { background: #fff3cd; color: #856404; }
+        .doc-link {
+            font-size: 13px;
+            color: #0f3460;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .doc-link:hover { text-decoration: underline; }
+
+        .inmueble-card {
+            border: 1px solid #e8ecf1;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .inmueble-titulo {
+            font-size: 14px;
+            font-weight: 700;
+            color: #16213e;
+            margin-bottom: 12px;
+        }
+
+        .ctl-resumen {
+            background: #f8fafb;
+            border: 1px solid #e0e7ee;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .ctl-resumen .ctl-row {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            gap: 4px 12px;
+            margin-bottom: 4px;
+        }
+        .ctl-resumen .ctl-label { font-weight: 600; color: #374151; }
+        .ctl-resumen .ctl-value { color: #1a1a2e; }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-ok { background: #d4edda; color: #155724; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .loading-inline {
+            font-size: 13px;
+            color: #6b7280;
+            padding: 8px 14px;
+            font-style: italic;
+        }
+
+        .subir-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #d1d5db;
+        }
+        .subir-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .subir-row input[type="file"] { font-size: 13px; }
+        .btn-subir {
+            padding: 6px 16px;
+            background: #0f3460;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-subir:hover { background: #1a4a7a; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Morada Capital</h1>
+    <span>Carpeta de Documentos del Solicitante</span>
+</div>
+
+<div class="nav">
+    <a href="/muestra">Muestra</a>
+    <a href="/">Solicitud</a>
+    <a href="/analista">An&aacute;lisis de Ingresos</a>
+    <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/carpeta" class="active">Carpeta</a>
+</div>
+
+<div class="container" id="contenido">
+    <div class="empty-state" id="emptyState">
+        <p>No hay datos de solicitantes registrados.</p>
+        <p style="margin-top:8px">Complete primero el formulario de <a href="/" style="color:#0f3460; font-weight:600;">Solicitud</a>.</p>
+    </div>
+</div>
+
+<script>
+function iniciales(nombre) {
+    return nombre.split(' ').map(function(p) { return p[0]; }).join('').substring(0, 2).toUpperCase();
+}
+
+function renderSolicitante(sol, tipo, arriendos) {
+    var contenido = document.getElementById('contenido');
+    var card = document.createElement('div');
+    card.className = 'card';
+    card.id = 'card_' + tipo;
+
+    var etiqueta = tipo === 'principal' ? 'Solicitante Principal' : 'Segundo Solicitante';
+    var parentescoTxt = sol.parentesco ? ' &mdash; ' + sol.parentesco : '';
+
+    var html = '<div class="solicitante-header">' +
+        '<div class="solicitante-icon">' + iniciales(sol.nombre) + '</div>' +
+        '<div class="solicitante-info">' +
+            '<h2>' + sol.nombre + '</h2>' +
+            '<p>' + etiqueta + parentescoTxt + ' &mdash; ' + sol.tipo_id + ' ' + sol.numero_id + '</p>' +
+        '</div></div>';
+
+    html += '<div class="seccion">' +
+        '<div class="seccion-titulo"><span class="icono">&#128196;</span> Documentos de Ingresos por Centrales</div>' +
+        '<div id="centrales_' + tipo + '">' +
+            '<p class="loading-inline">Sin datos de centrales. Ejecute el An&aacute;lisis de Ingresos para cargar la informaci&oacute;n.</p>' +
+        '</div></div>';
+
+    if (arriendos && arriendos.length > 0) {
+        html += '<div class="seccion">' +
+            '<div class="seccion-titulo"><span class="icono">&#127968;</span> Documentos de Ingresos por Arriendos</div>' +
+            '<div id="arriendos_' + tipo + '">';
+
+        arriendos.forEach(function(arr, idx) {
+            var inmId = tipo + '_inm_' + idx;
+            html += '<div class="inmueble-card" id="' + inmId + '">' +
+                '<div class="inmueble-titulo">Inmueble ' + (idx + 1) + '</div>';
+
+            if (arr.pin_certificado) {
+                html += '<div class="ctl-resumen" id="ctl_' + inmId + '">' +
+                    '<p class="loading-inline">Consultando Certificado de Tradici&oacute;n (PIN: ' + arr.pin_certificado + ')...</p>' +
+                '</div>';
+            } else {
+                html += '<div class="ctl-resumen"><p style="color:#9ca3af;">Sin PIN de certificado registrado</p></div>';
+            }
+
+            html += '<div id="contrato_doc_' + inmId + '">';
+            if (arr.contrato_cargado) {
+                html += '<div class="doc-item">' +
+                    '<div class="doc-icon pdf">PDF</div>' +
+                    '<span class="doc-nombre">Contrato de Arrendamiento</span>' +
+                    '<span class="doc-estado estado-ok">Cargado</span>' +
+                '</div>';
+            } else {
+                html += '<div class="doc-item">' +
+                    '<div class="doc-icon pdf">PDF</div>' +
+                    '<span class="doc-nombre">Contrato de Arrendamiento</span>' +
+                    '<span class="doc-estado estado-pendiente">Pendiente</span>' +
+                '</div>';
+            }
+            html += '</div></div>';
+        });
+
+        html += '</div></div>';
+    }
+
+    card.innerHTML = html;
+    contenido.appendChild(card);
+
+    if (arriendos) {
+        arriendos.forEach(function(arr, idx) {
+            if (arr.pin_certificado) {
+                consultarCTL(tipo + '_inm_' + idx, arr.pin_certificado);
+            }
+        });
+    }
+}
+
+function consultarCTL(inmId, pin) {
+    fetch('/certificado/analizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pin })
+    })
+    .then(function(resp) {
+        if (!resp.ok) return resp.json().then(function(d) { throw new Error(d.detail); });
+        return resp.json();
+    })
+    .then(function(data) {
+        var el = document.getElementById('ctl_' + inmId);
+        if (!el) return;
+
+        var html = '<div style="font-size:13px; font-weight:600; color:#16213e; margin-bottom:8px;">Certificado de Tradici&oacute;n y Libertad</div>';
+
+        html += '<div class="ctl-row"><span class="ctl-label">Fecha Impresi&oacute;n</span><span class="ctl-value">' + (data.fecha_expedicion || '-') + '</span></div>';
+        html += '<div class="ctl-row"><span class="ctl-label">Matr&iacute;cula</span><span class="ctl-value">' + data.matricula + '</span></div>';
+        html += '<div class="ctl-row"><span class="ctl-label">Oficina</span><span class="ctl-value">' + data.oficina_registro + '</span></div>';
+        html += '<div class="ctl-row"><span class="ctl-label">Nomenclatura</span><span class="ctl-value">' + data.nomenclatura.split('\n')[0] + '</span></div>';
+
+        if (data.direcciones.length > 0) {
+            html += '<div class="ctl-row"><span class="ctl-label">Direcci&oacute;n</span><span class="ctl-value">' + data.direcciones.join(' | ') + '</span></div>';
+        }
+
+        html += '<div class="ctl-row"><span class="ctl-label">&Aacute;rea Construida</span><span class="ctl-value">' + (data.area_construida ? data.area_construida + ' m&sup2;' : '-') + '</span></div>';
+        html += '<div class="ctl-row"><span class="ctl-label">&Aacute;rea Privada</span><span class="ctl-value">' + (data.area_privada ? data.area_privada + ' m&sup2;' : '-') + '</span></div>';
+
+        if (data.ultima_compraventa) {
+            var cv = data.ultima_compraventa;
+            html += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid #e0e7ee;">';
+            html += '<div class="ctl-row"><span class="ctl-label">Compraventa</span><span class="ctl-value">Anotaci&oacute;n ' + cv.numero_anotacion + ' (' + cv.fecha + ')</span></div>';
+            html += '<div class="ctl-row"><span class="ctl-label">Comprador (A:)</span><span class="ctl-value">' + cv.comprador + ' &mdash; ' + cv.identificacion_comprador + '</span></div>';
+            html += '<div class="ctl-row"><span class="ctl-label">Valor Acto</span><span class="ctl-value">$' + cv.valor_acto + '</span></div>';
+            html += '</div>';
+        }
+
+        html += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid #e0e7ee;">';
+        if (!data.tiene_embargo) {
+            html += '<span class="badge badge-ok">Sin embargos en los &uacute;ltimos 2 a&ntilde;os</span>';
+        } else {
+            html += '<span class="badge badge-danger">Embargos encontrados</span>';
+            data.detalle_embargos.forEach(function(e) {
+                html += '<p style="font-size:12px; color:#721c24; margin-top:4px;">' + e + '</p>';
+            });
+        }
+        html += ' <span style="font-size:12px; color:#9ca3af;">(' + data.total_anotaciones + ' anotaciones revisadas)</span>';
+        html += '</div>';
+
+        if (data.texto_completo) {
+            var ctlTextId = 'ctlTexto_' + inmId;
+            html += '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #e0e7ee;">';
+            html += '<a href="#" style="font-size:12px; color:#0f3460; font-weight:600; text-decoration:none;" onclick="toggleCTLTexto(\'' + ctlTextId + '\', this); return false;">Ver certificado completo</a>';
+            html += '<pre id="' + ctlTextId + '" style="display:none; margin-top:8px; background:#1e1e2e; color:#cdd6f4; padding:16px; border-radius:8px; font-size:11px; max-height:500px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + data.texto_completo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            html += '</div>';
+        }
+
+        el.innerHTML = html;
+    })
+    .catch(function(err) {
+        var el = document.getElementById('ctl_' + inmId);
+        if (el) el.innerHTML = '<p style="color:#dc2626; font-size:13px;">Error al consultar CTL: ' + err.message + '</p>';
+    });
+}
+
+function toggleJsonOriginal(id, link) {
+    var el = document.getElementById(id);
+    if (el.style.display === 'none') {
+        el.style.display = 'block';
+        link.textContent = 'Ocultar JSON original de Experian';
+    } else {
+        el.style.display = 'none';
+        link.textContent = 'Ver JSON original de Experian';
+    }
+}
+
+function toggleCTLTexto(id, link) {
+    var el = document.getElementById(id);
+    if (el.style.display === 'none') {
+        el.style.display = 'block';
+        link.textContent = 'Ocultar certificado completo';
+    } else {
+        el.style.display = 'none';
+        link.textContent = 'Ver certificado completo';
+    }
+}
+
+function formatCOP(val) {
+    return '$' + Math.round(val).toLocaleString('es-CO');
+}
+
+function renderCentrales(tipo, datosExperian) {
+    var el = document.getElementById('centrales_' + tipo);
+    if (!datosExperian || !datosExperian.data) {
+        el.innerHTML = '<p class="loading-inline">Sin datos de centrales. Ejecute el An&aacute;lisis de Ingresos para cargar la informaci&oacute;n.</p>';
+        return;
+    }
+
+    var d = datosExperian.data;
+    var nombre = (d.primer_nombre_persona_natural || '') + ' ' + (d.primer_apellido_persona_natural || '');
+    var cedula = d.numero_identificacion_persona_natural || '';
+    var fecha = datosExperian.data.fecha || d.fecha || '';
+
+    var html = '<div class="ctl-resumen" style="margin-bottom:12px;">';
+    html += '<div style="font-size:13px; font-weight:600; color:#16213e; margin-bottom:10px;">Datos de la consulta</div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Nombre</span><span class="ctl-value">' + nombre.trim() + '</span></div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Identificaci&oacute;n</span><span class="ctl-value">' + cedula + '</span></div>';
+    if (fecha) html += '<div class="ctl-row"><span class="ctl-label">Fecha consulta</span><span class="ctl-value">' + fecha + '</span></div>';
+    html += '</div>';
+
+    if (d.aportantes && d.aportantes.length > 0) {
+        for (var i = 0; i < d.aportantes.length; i++) {
+            var ap = d.aportantes[i];
+            html += '<div class="inmueble-card">';
+            html += '<div class="inmueble-titulo">' + (ap.razon_social_aportante || 'Aportante ' + (i+1)) + '</div>';
+            html += '<div class="ctl-resumen">';
+            html += '<div class="ctl-row"><span class="ctl-label">NIT</span><span class="ctl-value">' + (ap.numero_identificacion_aportante || '-') + '</span></div>';
+            html += '<div class="ctl-row"><span class="ctl-label">Tipo cotizante</span><span class="ctl-value">' + (ap.descripcion_cotizante_persona_natural || '-') + '</span></div>';
+
+            if (ap.resultados_pago && ap.resultados_pago.length > 0) {
+                html += '<div style="margin-top:10px; font-size:12px; font-weight:600; color:#374151;">Historial de pagos</div>';
+                html += '<table style="width:100%; font-size:12px; margin-top:6px; border-collapse:collapse;">';
+                html += '<thead><tr style="background:#e8ecf1;">';
+                html += '<th style="padding:4px 8px; text-align:left;">Periodo</th>';
+                html += '<th style="padding:4px 8px; text-align:center;">Pago</th>';
+                html += '<th style="padding:4px 8px; text-align:right;">IBC</th></tr></thead><tbody>';
+
+                for (var j = 0; j < ap.resultados_pago.length; j++) {
+                    var rp = ap.resultados_pago[j];
+                    var pago = rp.realizo_pago ? 'SI' : 'NO';
+                    var colorPago = rp.realizo_pago ? '#155724' : '#721c24';
+                    var bgPago = rp.realizo_pago ? '#d4edda' : '#f8d7da';
+                    html += '<tr style="border-bottom:1px solid #e8ecf1;">';
+                    html += '<td style="padding:4px 8px;">' + (rp.mes || '-') + '/' + (rp.anio || '-') + '</td>';
+                    html += '<td style="padding:4px 8px; text-align:center;"><span style="background:' + bgPago + '; color:' + colorPago + '; padding:2px 8px; border-radius:10px; font-weight:600; font-size:11px;">' + pago + '</span></td>';
+                    html += '<td style="padding:4px 8px; text-align:right;">' + formatCOP(rp.ingresos || 0) + '</td>';
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+            }
+
+            html += '</div></div>';
+        }
+    }
+
+    var jsonId = 'jsonOriginal_' + tipo;
+    html += '<div style="margin-top:12px;">';
+    html += '<span onclick="toggleJsonOriginal(\'' + jsonId + '\', this)" style="color:#0f3460; font-weight:600; cursor:pointer; text-decoration:underline; font-size:13px;">Ver JSON original de Experian</span>';
+    html += '<pre id="' + jsonId + '" style="display:none; margin-top:8px; background:#1a1a2e; color:#e0e0e0; padding:16px; border-radius:8px; font-size:12px; max-height:400px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + JSON.stringify(datosExperian, null, 2) + '</pre>';
+    html += '</div>';
+
+    el.innerHTML = html;
+}
+
+function cargarPagina() {
+    var raw = sessionStorage.getItem('morada_carpeta');
+    if (!raw) return;
+
+    document.getElementById('emptyState').style.display = 'none';
+
+    var carpeta = JSON.parse(raw);
+    var arriendosRaw = sessionStorage.getItem('morada_arriendos');
+    var arriendos = arriendosRaw ? JSON.parse(arriendosRaw) : {};
+
+    renderSolicitante(carpeta.principal, 'principal', arriendos.arriendos_principal || []);
+
+    if (carpeta.secundario) {
+        renderSolicitante(carpeta.secundario, 'secundario', arriendos.arriendos_secundario || []);
+    }
+
+    var centralesRaw = sessionStorage.getItem('morada_centrales');
+    if (centralesRaw) {
+        var centrales = JSON.parse(centralesRaw);
+        if (centrales.principal) renderCentrales('principal', centrales.principal);
+        if (centrales.secundario) renderCentrales('secundario', centrales.secundario);
+    }
+}
+
+window.addEventListener('load', cargarPagina);
+</script>
+
+</body>
+</html>

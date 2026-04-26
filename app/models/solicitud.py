@@ -32,7 +32,7 @@ class IngresoArriendoInput(BaseModel):
     ingreso_arriendo_declarado: float
     valor_arriendo_simulador: Optional[float] = None
     valor_inmueble_simulador: Optional[float] = None
-    meses_contrato: int
+    meses_contrato: Optional[int] = None
 
 
 class EvaluarIngresoRequest(BaseModel):

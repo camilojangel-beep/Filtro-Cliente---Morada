@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morada Capital — Filtro de Originación</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .header span {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #16213e;
+            border-bottom: 2px solid #e8ecf1;
+            padding-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 280px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            resize: vertical;
+            background: #fafbfc;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #0f3460;
+            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-primary {
+            background: #0f3460;
+            color: white;
+        }
+
+        .btn-primary:hover { background: #1a4a7a; }
+
+        .btn-secondary {
+            background: #e8ecf1;
+            color: #16213e;
+        }
+
+        .btn-secondary:hover { background: #d1d5db; }
+
+        .btn-active {
+            background: #0f3460;
+            color: white;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+
+        .view-toggle .btn {
+            border-radius: 0;
+            border: 1px solid #d1d5db;
+        }
+
+        .view-toggle .btn:first-child { border-radius: 8px 0 0 8px; }
+        .view-toggle .btn:last-child { border-radius: 0 8px 8px 0; }
+
+        .results { display: none; }
+        .results.visible { display: block; }
+
+        /* --- Vista Analista --- */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #f8f9fb;
+            border-radius: 10px;
+            padding: 16px;
+            border-left: 4px solid #0f3460;
+        }
+
+        .metric-card.success { border-left-color: #27ae60; }
+        .metric-card.warning { border-left-color: #f39c12; }
+        .metric-card.danger { border-left-color: #e74c3c; }
+
+        .metric-label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #16213e;
+        }
+
+        .metric-detail {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th {
+            background: #16213e;
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e8ecf1;
+            font-size: 13px;
+        }
+
+        tr:hover td { background: #f8f9fb; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-si {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-no {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* --- Vista Técnica --- */
+        .json-view {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .obs-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .obs-list li {
+            padding: 8px 12px;
+            background: #fff3cd;
+            border-left: 3px solid #f39c12;
+            margin-bottom: 6px;
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #16213e;
+            margin: 20px 0 8px 0;
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #d1d5db;
+            border-top-color: #0f3460;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .segundo-solicitante-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px dashed #d1d5db;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1>Morada Capital</h1>
+        <span>Filtro de Originaci&oacute;n &mdash; Evaluaci&oacute;n de Capacidad de Pago</span>
+    </div>
+</div>
+
+<div style="background:#16213e; padding:0 32px; display:flex; gap:0;">
+    <a href="/muestra" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">Muestra</a>
+    <a href="/" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">Solicitud</a>
+    <a href="/analista" style="color:white; text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid #4fc3f7;">An&aacute;lisis de Ingresos</a>
+    <a href="/analisis-ctl" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">An&aacute;lisis Arriendos</a>
+    <a href="/carpeta" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">Carpeta</a>
+</div>
+
+<div class="container">
+    <!-- Hidden elements needed by evaluar() -->
+    <div style="display:none;">
+        <input type="number" id="scorePrincipalAnalista" value="600">
+        <input type="number" id="scoreSegundoAnalista" value="600">
+        <select id="parentescoAnalista"><option value="conyuge">C&oacute;nyuge</option></select>
+        <div id="segundoInputSection"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="results">
+        <div id="cardResumenTotal" class="card" style="display:none;">
+            <div id="resumenTotal"></div>
+        </div>
+
+        <div class="card">
+            <h2>Solicitante Principal &mdash; Ingresos Experian</h2>
+            <div id="summaryPrincipal"></div>
+        </div>
+
+        <div id="secondarySection" class="card" style="display:none;">
+            <h2>Solicitante Secundario &mdash; Ingresos Experian</h2>
+            <div id="summarySecundario"></div>
+        </div>
+
+        <div id="obsGenerales"></div>
+    </div>
+
+</div>
+
+<script src="/static/solicitantes.js"></script>
+<script>
+function formatCOP(val) {
+    return '$' + Math.round(val).toLocaleString('es-CO');
+}
+
+function parsearMonto(val) {
+    if (!val) return 0;
+    var limpio = val.replace(/[^0-9]/g, '');
+    return parseInt(limpio, 10) || 0;
+}
+
+function mesNombre(m) {
+    const meses = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    return meses[m] || m;
+}
+
+function cargarParentesco() {
+    var carpetaRaw = sessionStorage.getItem('morada_carpeta');
+    if (!carpetaRaw) return;
+    var carpeta = JSON.parse(carpetaRaw);
+    if (carpeta.secundario && carpeta.secundario.parentesco) {
+        document.getElementById('parentescoAnalista').value = carpeta.secundario.parentesco;
+    }
+}
+
+async function evaluar() {
+    var centralesRaw = sessionStorage.getItem('morada_centrales');
+    if (!centralesRaw) { alert('No hay datos de centrales. Vuelva a Solicitud.'); return; }
+
+    var centrales = JSON.parse(centralesRaw);
+    var experianPrincipal = centrales.principal;
+
+    var carpetaRaw = sessionStorage.getItem('morada_carpeta');
+    var carpeta = carpetaRaw ? JSON.parse(carpetaRaw) : {};
+
+    const payload = {
+        solicitante_principal: experianPrincipal,
+        score_principal: parseFloat(document.getElementById('scorePrincipalAnalista').value) || 600
+    };
+
+    if (centrales.secundario) {
+        payload.solicitante_secundario = centrales.secundario;
+        payload.parentesco = carpeta.secundario ? carpeta.secundario.parentesco || 'conyuge' : 'conyuge';
+        payload.score_secundario = parseFloat(document.getElementById('scoreSegundoAnalista').value) || 600;
+    }
+
+    var haySeg = !!centrales.secundario;
+
+    // Validar e incluir arriendos de sessionStorage
+    var arriendosRechazados = { principal: [], secundario: [] };
+    var arriendosRaw = sessionStorage.getItem('morada_arriendos');
+    if (arriendosRaw) {
+        try {
+            var arriendos = JSON.parse(arriendosRaw);
+            function procesarArriendos(lista, tipo) {
+                if (!lista || lista.length === 0) return [];
+                var validos = [];
+                var hoy = new Date();
+                for (var i = 0; i < lista.length; i++) {
+                    var a = lista[i];
+                    var motivos = [];
+
+                    if (!a.pin_certificado)
+                        motivos.push('No se proporcionó el PIN del Certificado de Tradición');
+
+                    if (!a.fecha_emision_certificado) {
+                        motivos.push('No se proporcionó la fecha de emisión del certificado');
+                    } else {
+                        var fecha = new Date(a.fecha_emision_certificado + 'T00:00:00');
+                        var dias = Math.floor((hoy - fecha) / (1000 * 60 * 60 * 24));
+                        if (dias > 30) motivos.push('Certificado vencido (' + dias + ' días, máximo 30)');
+                        if (dias < 0) motivos.push('Fecha de emisión del certificado es futura');
+                    }
+
+                    if (!a.contrato_cargado)
+                        motivos.push('No se cargó el contrato de arrendamiento');
+
+                    if (motivos.length > 0) {
+                        arriendosRechazados[tipo].push({
+                            inmueble: i + 1,
+                            declarado: a.ingreso_arriendo_declarado,
+                            motivos: motivos
+                        });
+                    } else {
+                        var simArr = document.getElementById('simArr_' + tipo + '_' + i);
+                        var simInm = document.getElementById('simInm_' + tipo + '_' + i);
+                        if (simArr && simArr.value) a.valor_arriendo_simulador = parsearMonto(simArr.value);
+                        if (simInm && simInm.value) a.valor_inmueble_simulador = parsearMonto(simInm.value);
+                        delete a.contrato_cargado;
+                        validos.push(a);
+                    }
+                }
+                return validos;
+            }
+            var validosPrincipal = procesarArriendos(arriendos.arriendos_principal, 'principal');
+            var validosSecundario = procesarArriendos(arriendos.arriendos_secundario, 'secundario');
+            if (validosPrincipal.length > 0) payload.arriendos_principal = validosPrincipal;
+            if (validosSecundario.length > 0) payload.arriendos_secundario = validosSecundario;
+        } catch(e) {}
+    }
+
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.classList.add('visible');
+    document.getElementById('summaryPrincipal').innerHTML = '<div class="loading">Evaluando</div>';
+
+    try {
+        const resp = await fetch('/filtro/evaluar-ingreso', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            document.getElementById('summaryPrincipal').innerHTML =
+                '<div class="error-msg">Error: ' + JSON.stringify(err.detail || err) + '</div>';
+            return;
+        }
+
+        const data = await resp.json();
+        renderAnalista(data, payload);
+        renderRechazados(arriendosRechazados);
+    } catch(e) {
+        document.getElementById('summaryPrincipal').innerHTML =
+            '<div class="error-msg">Error de conexión: ' + e.message + '</div>';
+    }
+}
+
+function renderDetalleSolicitante(detalle, datosExperian) {
+    const nombre = datosExperian?.data
+        ? `${datosExperian.data.primer_nombre_persona_natural || ''} ${datosExperian.data.primer_apellido_persona_natural || ''}`.trim()
+        : '';
+    const cedula = datosExperian?.data?.numero_identificacion_persona_natural || '';
+    const ingreso = detalle.ingreso_calculado;
+    const esPositivo = ingreso > 0;
+
+    let html = '';
+
+    // Metrics
+    html += '<div class="summary-grid">';
+    html += `
+        <div class="metric-card ${esPositivo ? 'success' : 'danger'}">
+            <div class="metric-label">Ingreso Calculado</div>
+            <div class="metric-value">${formatCOP(ingreso)}</div>
+            <div class="metric-detail">Actividad principal</div>
+        </div>`;
+
+    if (nombre) {
+        html += `
+        <div class="metric-card">
+            <div class="metric-label">Solicitante</div>
+            <div class="metric-value" style="font-size:18px">${nombre}</div>
+            <div class="metric-detail">C.C. ${cedula}</div>
+        </div>`;
+    }
+
+    html += `
+        <div class="metric-card">
+            <div class="metric-label">Decisi&oacute;n Aplicada</div>
+            <div class="metric-value" style="font-size:14px; line-height:1.4">${detalle.decision_aplicada}</div>
+        </div>`;
+
+    html += '</div>';
+
+    // Vector table
+    if (detalle.vector_consolidado && detalle.vector_consolidado.length > 0) {
+        html += '<div class="section-title">Historial de Pagos (Vector Consolidado)</div>';
+        html += '<table><thead><tr><th>Periodo</th><th>Pago</th><th>Ingreso</th></tr></thead><tbody>';
+        for (const v of detalle.vector_consolidado) {
+            const badge = v.realizo_pago
+                ? '<span class="badge badge-si">SI</span>'
+                : '<span class="badge badge-no">NO</span>';
+            html += `<tr>
+                <td>${mesNombre(v.mes)} ${v.anio}</td>
+                <td>${badge}</td>
+                <td>${formatCOP(v.ingresos)}</td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+    }
+
+    // --- 8.2.1 Ingresos por arriendos ---
+    if (detalle.ingresos_arriendo && detalle.ingresos_arriendo.length > 0) {
+        html += '<div class="section-title">Ingresos por Arriendos (8.2.1)</div>';
+        for (let i = 0; i < detalle.ingresos_arriendo.length; i++) {
+            const arr = detalle.ingresos_arriendo[i];
+            const aprobado = arr.ingreso_aceptado > 0;
+            html += `<div class="metric-card ${aprobado ? 'success' : 'danger'}" style="margin-bottom:12px">
+                <div class="summary-grid" style="margin-bottom:0">
+                    <div>
+                        <div class="metric-label">Inmueble ${i + 1} &mdash; Ingreso Aceptado</div>
+                        <div class="metric-value">${formatCOP(arr.ingreso_aceptado)}</div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Declarado por Cliente</div>
+                        <div class="metric-value" style="font-size:18px">${formatCOP(arr.ingreso_declarado)}</div>
+                    </div>
+                    <div>
+                        <div class="metric-label">Valor de Referencia</div>
+                        <div class="metric-value" style="font-size:18px">${formatCOP(arr.valor_referencia)}</div>
+                        <div class="metric-detail">${arr.metodo_referencia}</div>
+                    </div>
+                </div>`;
+            if (arr.validaciones && arr.validaciones.length > 0) {
+                html += '<div style="margin-top:8px; font-size:12px; color:#6b7280">';
+                for (const v of arr.validaciones) {
+                    const icon = v.startsWith('RECHAZADO') ? '&#10007;' : '&#10003;';
+                    const color = v.startsWith('RECHAZADO') ? '#e74c3c' : '#27ae60';
+                    html += `<div style="color:${color}">${icon} ${v}</div>`;
+                }
+                html += '</div>';
+            }
+            if (arr.observaciones && arr.observaciones.length > 0) {
+                html += '<ul class="obs-list" style="margin-top:8px">';
+                for (const o of arr.observaciones) html += `<li>${o}</li>`;
+                html += '</ul>';
+            }
+            html += '</div>';
+        }
+    }
+
+    // --- Ingreso Bruto (8.3 = 8.1 + 8.2) ---
+    if (detalle.ingreso_bruto !== undefined && detalle.total_ingreso_arriendo > 0) {
+        html += '<div class="summary-grid" style="margin-top:16px">';
+        html += `
+            <div class="metric-card">
+                <div class="metric-label">Ingreso Actividad Principal (8.1)</div>
+                <div class="metric-value">${formatCOP(detalle.ingreso_calculado)}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Arriendos (8.2)</div>
+                <div class="metric-value">${formatCOP(detalle.total_ingreso_arriendo)}</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-label">Ingreso Bruto (8.3)</div>
+                <div class="metric-value">${formatCOP(detalle.ingreso_bruto)}</div>
+                <div class="metric-detail">8.1 + 8.2</div>
+            </div>`;
+        html += '</div>';
+    }
+
+    // Observations
+    if (detalle.observaciones && detalle.observaciones.length > 0) {
+        html += '<div class="section-title">Observaciones</div>';
+        html += '<ul class="obs-list">';
+        for (const o of detalle.observaciones) {
+            html += `<li>${o}</li>`;
+        }
+        html += '</ul>';
+    }
+
+    return html;
+}
+
+function htmlRechazados(rechazados) {
+    if (!rechazados || rechazados.length === 0) return '';
+    var html = '<div class="section-title" style="margin-top:16px">Arriendos No Considerados</div>';
+    for (var i = 0; i < rechazados.length; i++) {
+        var r = rechazados[i];
+        html += '<div style="background:#f8d7da; border-left:3px solid #e74c3c; padding:12px 16px; border-radius:0 8px 8px 0; margin-bottom:8px;">';
+        html += '<div style="font-size:13px; font-weight:600; color:#721c24;">Inmueble ' + r.inmueble + ' &mdash; Ingreso declarado: ' + formatCOP(r.declarado) + '</div>';
+        html += '<div style="font-size:12px; color:#721c24; margin-top:4px;">';
+        for (var j = 0; j < r.motivos.length; j++) {
+            html += '&#10007; ' + r.motivos[j] + '<br>';
+        }
+        html += '</div>';
+        html += '<div style="font-size:12px; font-weight:600; color:#721c24; margin-top:6px;">No se tienen en cuenta los ingresos por arrendamiento: la informaci&oacute;n no se carg&oacute; o no es v&aacute;lida</div>';
+        html += '</div>';
+    }
+    return html;
+}
+
+function renderRechazados(arriendosRechazados) {
+    var rechP = htmlRechazados(arriendosRechazados.principal);
+    var rechS = htmlRechazados(arriendosRechazados.secundario);
+    if (rechP) document.getElementById('summaryPrincipal').innerHTML += rechP;
+    if (rechS) document.getElementById('summarySecundario').innerHTML += rechS;
+}
+
+function renderAnalista(data, payload) {
+    var haySeg = !!data.solicitante_secundario;
+
+    // Ingreso total arriba
+    var totalHtml = `
+        <div class="summary-grid">
+            <div class="metric-card success">
+                <div class="metric-label">Ingreso Total</div>
+                <div class="metric-value">${formatCOP(data.ingreso_total)}</div>
+                <div class="metric-detail">${haySeg ? 'Suma de ambos solicitantes' : 'Solicitante único'}</div>
+            </div>
+        </div>`;
+    document.getElementById('resumenTotal').innerHTML = totalHtml;
+    document.getElementById('cardResumenTotal').style.display = 'block';
+
+    // Principal
+    document.getElementById('summaryPrincipal').innerHTML =
+        renderDetalleSolicitante(data.solicitante_principal, payload.solicitante_principal);
+
+    // Secondary
+    var secSection = document.getElementById('secondarySection');
+    if (haySeg) {
+        secSection.style.display = 'block';
+        document.getElementById('summarySecundario').innerHTML =
+            renderDetalleSolicitante(data.solicitante_secundario, payload.solicitante_secundario);
+    } else {
+        secSection.style.display = 'none';
+    }
+
+    // Segundo solicitante + observaciones al final
+    var footHtml = '';
+    if (haySeg && data.segundo_solicitante_aceptado !== null && data.segundo_solicitante_aceptado !== undefined) {
+        var aceptado = data.segundo_solicitante_aceptado;
+        footHtml += '<div class="card"><div class="summary-grid">';
+        footHtml += '<div class="metric-card ' + (aceptado ? 'success' : 'danger') + '">';
+        footHtml += '<div class="metric-label">Segundo Solicitante</div>';
+        footHtml += '<div class="metric-value" style="font-size:18px">' + (aceptado ? 'Aceptado' : 'Rechazado') + '</div>';
+        footHtml += '</div></div></div>';
+    }
+
+    var obsGenerales = (data.observaciones_generales || []).filter(function(o) {
+        return o.toLowerCase().indexOf('segundo solicitante aceptado') === -1;
+    });
+    if (obsGenerales.length > 0) {
+        footHtml += '<div class="card"><div class="section-title">Observaciones Generales</div>';
+        footHtml += '<ul class="obs-list">';
+        for (var i = 0; i < obsGenerales.length; i++) {
+            footHtml += '<li>' + obsGenerales[i] + '</li>';
+        }
+        footHtml += '</ul></div>';
+    }
+    document.getElementById('obsGenerales').innerHTML = footHtml;
+}
+
+window.addEventListener('load', function() {
+    cargarParentesco();
+
+    if (sessionStorage.getItem('morada_autoevaluar') === 'true') {
+        sessionStorage.removeItem('morada_autoevaluar');
+        setTimeout(evaluar, 300);
+    } else if (sessionStorage.getItem('morada_centrales')) {
+        evaluar();
+    }
+});
+</script>
+
+</body>
+</html>

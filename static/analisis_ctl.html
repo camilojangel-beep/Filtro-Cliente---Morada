@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morada Capital &mdash; An&aacute;lisis Arriendos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 24px 32px;
+        }
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header span { font-size: 14px; opacity: 0.7; }
+        .nav {
+            background: #16213e;
+            padding: 0 32px;
+            display: flex;
+            gap: 0;
+        }
+        .nav a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav a:hover { color: white; }
+        .nav a.active { color: white; border-bottom-color: #4fc3f7; }
+        .container { max-width: 800px; margin: 40px auto; padding: 0 16px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 32px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #16213e;
+            margin-bottom: 4px;
+        }
+        .card .subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+        .form-row-inline {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            flex: 1;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #0f3460;
+            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+            background: white;
+        }
+        .btn-consultar {
+            padding: 10px 24px;
+            background: #0f3460;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            margin-bottom: 20px;
+            height: 42px;
+        }
+        .btn-consultar:hover:not(:disabled) { background: #1a4a7a; }
+        .btn-consultar:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .loading.visible { display: block; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #0f3460;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .resultado { display: none; }
+        .resultado.visible { display: block; }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #16213e;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e8ecf1;
+            margin-bottom: 16px;
+            margin-top: 24px;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 8px 16px;
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        .info-value {
+            color: #1a1a2e;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .badge-ok {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .error-card {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 16px;
+            display: none;
+        }
+        .error-card.visible { display: block; }
+        .error-card h3 { font-size: 15px; margin-bottom: 8px; }
+
+        .inmueble-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .tab-inmueble {
+            padding: 10px 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            background: #fafbfc;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #374151;
+        }
+        .tab-inmueble:hover { border-color: #0f3460; color: #0f3460; }
+        .tab-inmueble.active {
+            background: #0f3460;
+            color: white;
+            border-color: #0f3460;
+        }
+        .tab-inmueble .tab-sub {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+        .tab-inmueble .tab-check {
+            color: #27ae60;
+            font-size: 13px;
+            margin-left: 4px;
+        }
+        .btn-consultar-inm {
+            display: block;
+            margin: 24px auto 0;
+            padding: 12px 32px;
+            background: #0f3460;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-consultar-inm:hover { background: #1a4a7a; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Morada Capital</h1>
+    <span>An&aacute;lisis de Arriendos &mdash; Certificado de Tradici&oacute;n y Libertad</span>
+</div>
+
+<div class="nav">
+    <a href="/muestra">Muestra</a>
+    <a href="/">Solicitud</a>
+    <a href="/analista">An&aacute;lisis de Ingresos</a>
+    <a href="/analisis-ctl" class="active">An&aacute;lisis Arriendos</a>
+    <a href="/carpeta">Carpeta</a>
+</div>
+
+<div class="container">
+
+    <div class="card" id="cardInmuebles" style="display:none;">
+        <h2>Inmuebles Declarados</h2>
+        <p class="subtitle">Seleccione un inmueble para consultar su Certificado de Tradici&oacute;n y Libertad</p>
+        <div class="inmueble-tabs" id="inmuebleTabs"></div>
+    </div>
+
+    <div class="card" id="cardPinManual" style="display:none;">
+        <h2>Consulta Manual</h2>
+        <p class="subtitle">Ingrese un PIN para consultar un certificado adicional</p>
+        <div class="form-row-inline">
+            <div class="form-group">
+                <label>PIN del Certificado</label>
+                <input type="text" id="pinInput" placeholder="Ej: 2604252098133817141" autocomplete="off">
+            </div>
+            <button class="btn-consultar" id="btnConsultar" onclick="consultarPinManual()">Consultar</button>
+        </div>
+    </div>
+
+    <div class="card" id="cardPendiente" style="display:none;">
+        <div style="text-align:center; padding:16px 0;">
+            <p style="font-size:14px; color:#6b7280; margin-bottom:4px;" id="pendienteMsg"></p>
+            <p style="font-size:13px; color:#9ca3af; margin-bottom:16px;" id="pendientePin"></p>
+            <button class="btn-consultar-inm" onclick="consultarInmuebleActivo()">Consultar Certificado</button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Consultando la Superintendencia de Notariado y Registro...</p>
+        <p style="font-size:13px; color:#9ca3af; margin-top:4px;">Esto puede tomar unos segundos</p>
+    </div>
+
+    <div class="error-card" id="errorCard">
+        <h3>Error en la consulta</h3>
+        <p id="errorMsg"></p>
+    </div>
+
+    <div class="resultado" id="resultado">
+        <div class="card">
+            <div id="tituloInmueble" style="font-size:16px; font-weight:700; color:#0f3460; margin-bottom:16px; display:none;"></div>
+
+            <div class="section-title">Informaci&oacute;n General</div>
+            <div class="info-grid">
+                <span class="info-label">PIN</span>
+                <span class="info-value" id="rPin"></span>
+                <span class="info-label">Matr&iacute;cula Inmobiliaria</span>
+                <span class="info-value" id="rMatricula"></span>
+                <span class="info-label">Oficina de Registro</span>
+                <span class="info-value" id="rOficina"></span>
+                <span class="info-label">Fecha Expedici&oacute;n</span>
+                <span class="info-value" id="rFecha"></span>
+            </div>
+
+            <div class="section-title">Descripci&oacute;n: Cabida y Linderos</div>
+            <div class="info-grid">
+                <span class="info-label">Nomenclatura</span>
+                <span class="info-value" id="rNomenclatura"></span>
+                <span class="info-label">Direcci&oacute;n(es)</span>
+                <span class="info-value" id="rDirecciones"></span>
+            </div>
+
+            <div class="section-title">&Aacute;reas</div>
+            <div class="info-grid">
+                <span class="info-label">&Aacute;rea Construida</span>
+                <span class="info-value" id="rAreaConstruida"></span>
+                <span class="info-label">&Aacute;rea Privada</span>
+                <span class="info-value" id="rAreaPrivada"></span>
+                <span class="info-label">Coeficiente</span>
+                <span class="info-value" id="rCoeficiente"></span>
+            </div>
+
+            <div class="section-title">&Uacute;ltima Compraventa</div>
+            <div id="compraventaContent"></div>
+
+            <div class="section-title">Verificaci&oacute;n de Embargos (2 a&ntilde;os)</div>
+            <div id="embargoContent"></div>
+
+            <div id="simuladorInmueble" style="display:none;">
+                <div class="section-title">Valores de Referencia &mdash; Simulador</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Valor Arriendo Simulador</label>
+                        <input type="text" id="simArrActual" placeholder="Ej: 1.500.000"
+                            style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; font-family:inherit; background:#fff;"
+                            onkeyup="formatearMonto(this); guardarSimuladorActual()" onchange="guardarSimuladorActual()">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:600; color:#374151; margin-bottom:4px;">Valor Inmueble Simulador</label>
+                        <input type="text" id="simInmActual" placeholder="Ej: 250.000.000"
+                            style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; font-family:inherit; background:#fff;"
+                            onkeyup="formatearMonto(this); guardarSimuladorActual()" onchange="guardarSimuladorActual()">
+                    </div>
+                </div>
+                <div style="font-size:12px; color:#6b7280; margin-top:8px;" id="simDeclarado"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cardEvaluar" class="card" style="display:none;">
+        <button class="btn-consultar" style="width:100%; margin-bottom:0;" onclick="guardarYEvaluar()">
+            Guardar y Evaluar Ingresos &rarr;
+        </button>
+    </div>
+</div>
+
+<script>
+var todosInmuebles = [];
+var inmuebleActivo = null;
+var cacheCTL = {};
+
+function cargarCache() {
+    cacheCTL = {};
+}
+
+function guardarCache() {
+}
+
+function cargarInmuebles() {
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (!raw) return;
+    var arriendos = JSON.parse(raw);
+    todosInmuebles = [];
+
+    function agregar(lista, tipo, tipoLabel) {
+        if (!lista) return;
+        for (var i = 0; i < lista.length; i++) {
+            todosInmuebles.push({
+                tipo: tipo,
+                indice: i,
+                tipoLabel: tipoLabel,
+                pin: lista[i].pin_certificado || '',
+                declarado: lista[i].ingreso_arriendo_declarado || 0,
+                valor_arriendo_simulador: lista[i].valor_arriendo_simulador || 0,
+                valor_inmueble_simulador: lista[i].valor_inmueble_simulador || 0
+            });
+        }
+    }
+
+    agregar(arriendos.arriendos_principal, 'principal', 'Principal');
+    agregar(arriendos.arriendos_secundario, 'secundario', 'Secundario');
+
+    if (todosInmuebles.length === 0) return;
+
+    renderTabs();
+    document.getElementById('cardInmuebles').style.display = 'block';
+    document.getElementById('cardEvaluar').style.display = 'block';
+}
+
+function renderTabs() {
+    var tabsEl = document.getElementById('inmuebleTabs');
+    var html = '';
+    for (var i = 0; i < todosInmuebles.length; i++) {
+        var inm = todosInmuebles[i];
+        var consultado = inm.pin && cacheCTL[inm.pin];
+        html += '<button class="tab-inmueble' + (inmuebleActivo === i ? ' active' : '') + '" id="tabInm_' + i + '" onclick="seleccionarInmueble(' + i + ')">';
+        html += 'Inmueble ' + (i + 1);
+        if (consultado) html += '<span class="tab-check">&#10003;</span>';
+        html += '<span class="tab-sub">' + inm.tipoLabel + ' &mdash; $' + inm.declarado.toLocaleString('es-CO') + '/mes</span>';
+        html += '</button>';
+    }
+    tabsEl.innerHTML = html;
+}
+
+function seleccionarInmueble(idx) {
+    inmuebleActivo = idx;
+    var inm = todosInmuebles[idx];
+
+    renderTabs();
+
+    document.getElementById('tituloInmueble').textContent = 'Inmueble ' + (idx + 1) + ' — Solicitante ' + inm.tipoLabel;
+    document.getElementById('tituloInmueble').style.display = 'block';
+
+    document.getElementById('cardPendiente').style.display = 'none';
+    document.getElementById('errorCard').classList.remove('visible');
+    document.getElementById('resultado').classList.remove('visible');
+
+    if (!inm.pin) {
+        document.getElementById('errorMsg').textContent = 'Este inmueble no tiene PIN de certificado registrado.';
+        document.getElementById('errorCard').classList.add('visible');
+        return;
+    }
+
+    if (cacheCTL[inm.pin]) {
+        renderResultado(cacheCTL[inm.pin], idx);
+    } else {
+        document.getElementById('pendienteMsg').textContent = 'Aún no se ha consultado el certificado de este inmueble';
+        document.getElementById('pendientePin').textContent = 'PIN: ' + inm.pin;
+        document.getElementById('cardPendiente').style.display = 'block';
+    }
+
+    var simArr = document.getElementById('simArrActual');
+    var simInm = document.getElementById('simInmActual');
+    simArr.value = inm.valor_arriendo_simulador ? inm.valor_arriendo_simulador.toLocaleString('es-CO') : '';
+    simInm.value = inm.valor_inmueble_simulador ? inm.valor_inmueble_simulador.toLocaleString('es-CO') : '';
+    document.getElementById('simDeclarado').textContent = 'Ingreso declarado por el cliente: $' + inm.declarado.toLocaleString('es-CO') + '/mes';
+}
+
+function consultarInmuebleActivo() {
+    if (inmuebleActivo === null) return;
+    var inm = todosInmuebles[inmuebleActivo];
+    if (!inm.pin) return;
+    document.getElementById('cardPendiente').style.display = 'none';
+    consultarCTL(inm.pin, inmuebleActivo);
+}
+
+function renderResultado(data, idx) {
+    document.getElementById('rPin').textContent = data.pin;
+    document.getElementById('rMatricula').textContent = data.matricula;
+    document.getElementById('rOficina').textContent = data.oficina_registro;
+    document.getElementById('rFecha').textContent = data.fecha_expedicion;
+    document.getElementById('rNomenclatura').textContent = data.nomenclatura;
+    document.getElementById('rDirecciones').textContent = data.direcciones.join(' | ');
+    document.getElementById('rAreaConstruida').textContent = data.area_construida ? data.area_construida + ' m²' : 'No registrada';
+    document.getElementById('rAreaPrivada').textContent = data.area_privada ? data.area_privada + ' m²' : 'No registrada';
+    document.getElementById('rCoeficiente').textContent = data.coeficiente ? data.coeficiente + '%' : 'No registrado';
+
+    var cv = data.ultima_compraventa;
+    var cvEl = document.getElementById('compraventaContent');
+    if (cv) {
+        cvEl.innerHTML =
+            '<div class="info-grid">' +
+            '<span class="info-label">Anotación Nro</span><span class="info-value">' + cv.numero_anotacion + '</span>' +
+            '<span class="info-label">Fecha</span><span class="info-value">' + cv.fecha + '</span>' +
+            '<span class="info-label">Comprador (A:)</span><span class="info-value">' + cv.comprador + '</span>' +
+            '<span class="info-label">Identificación</span><span class="info-value">' + cv.identificacion_comprador + '</span>' +
+            '<span class="info-label">Valor Acto</span><span class="info-value">$' + cv.valor_acto + '</span>' +
+            '<span class="info-label">Especificación</span><span class="info-value">' + cv.especificacion + '</span>' +
+            '</div>';
+    } else {
+        cvEl.innerHTML = '<p style="color:#6b7280; font-size:14px;">No se encontró ninguna anotación de compraventa</p>';
+    }
+
+    var embEl = document.getElementById('embargoContent');
+    if (!data.tiene_embargo) {
+        embEl.innerHTML = '<span class="badge badge-ok">Sin embargos en los últimos 2 años</span>' +
+            '<p style="font-size:13px; color:#6b7280; margin-top:8px;">Se revisaron ' + data.total_anotaciones + ' anotaciones del folio</p>';
+    } else {
+        var html = '<span class="badge badge-danger">Se encontraron embargos</span><ul style="margin-top:12px; font-size:14px;">';
+        data.detalle_embargos.forEach(function(e) { html += '<li style="margin-bottom:6px;">' + e + '</li>'; });
+        html += '</ul>';
+        embEl.innerHTML = html;
+    }
+
+    document.getElementById('simuladorInmueble').style.display = (idx !== undefined && idx !== null) ? 'block' : 'none';
+    document.getElementById('resultado').classList.add('visible');
+}
+
+function consultarCTL(pin, idx) {
+    if (!pin) return;
+
+    document.getElementById('loading').classList.add('visible');
+    document.getElementById('resultado').classList.remove('visible');
+    document.getElementById('errorCard').classList.remove('visible');
+    document.getElementById('btnConsultar').disabled = true;
+
+    fetch('/certificado/analizar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pin })
+    })
+    .then(function(resp) {
+        if (!resp.ok) return resp.json().then(function(d) { throw new Error(d.detail || 'Error desconocido'); });
+        return resp.json();
+    })
+    .then(function(data) {
+        cacheCTL[pin] = data;
+        guardarCache();
+        renderTabs();
+        renderResultado(data, idx);
+    })
+    .catch(function(err) {
+        document.getElementById('errorMsg').textContent = err.message;
+        document.getElementById('errorCard').classList.add('visible');
+    })
+    .finally(function() {
+        document.getElementById('loading').classList.remove('visible');
+        document.getElementById('btnConsultar').disabled = false;
+    });
+}
+
+function consultarPinManual() {
+    var pin = document.getElementById('pinInput').value.trim();
+    if (!pin) { document.getElementById('pinInput').focus(); return; }
+    inmuebleActivo = null;
+    document.getElementById('tituloInmueble').style.display = 'none';
+    var tabs = document.querySelectorAll('.tab-inmueble');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    consultarCTL(pin, null);
+}
+
+document.getElementById('pinInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') consultarPinManual();
+});
+
+function formatearMonto(input) {
+    var pos = input.selectionStart;
+    var original = input.value;
+    var limpio = original.replace(/[^0-9]/g, '');
+    if (!limpio) { input.value = ''; return; }
+    var formateado = parseInt(limpio, 10).toLocaleString('es-CO');
+    input.value = formateado;
+    var diff = formateado.length - original.length;
+    input.setSelectionRange(pos + diff, pos + diff);
+}
+
+function parsearMonto(val) {
+    if (!val) return 0;
+    var limpio = val.replace(/[^0-9]/g, '');
+    return parseInt(limpio, 10) || 0;
+}
+
+function guardarSimuladorActual() {
+    if (inmuebleActivo === null) return;
+    var raw = sessionStorage.getItem('morada_arriendos');
+    if (!raw) return;
+    var arriendos = JSON.parse(raw);
+    var inm = todosInmuebles[inmuebleActivo];
+    var lista = inm.tipo === 'principal' ? arriendos.arriendos_principal : arriendos.arriendos_secundario;
+    if (!lista || !lista[inm.indice]) return;
+
+    var valArr = parsearMonto(document.getElementById('simArrActual').value);
+    var valInm = parsearMonto(document.getElementById('simInmActual').value);
+
+    lista[inm.indice].valor_arriendo_simulador = valArr;
+    lista[inm.indice].valor_inmueble_simulador = valInm;
+    inm.valor_arriendo_simulador = valArr;
+    inm.valor_inmueble_simulador = valInm;
+
+    sessionStorage.setItem('morada_arriendos', JSON.stringify(arriendos));
+}
+
+function guardarYEvaluar() {
+    guardarSimuladorActual();
+    sessionStorage.setItem('morada_autoevaluar', 'true');
+    window.location.href = '/analista';
+}
+
+window.addEventListener('load', function() {
+    sessionStorage.removeItem('morada_ctl_cache');
+    cargarCache();
+    cargarInmuebles();
+
+    if (todosInmuebles.length > 0) {
+        seleccionarInmueble(0);
+    } else {
+        document.getElementById('cardPinManual').style.display = 'block';
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morada Capital &mdash; Muestra Aleatoria</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 24px 32px;
+        }
+        .header h1 { font-size: 22px; font-weight: 600; }
+        .header span { font-size: 14px; opacity: 0.7; }
+        .nav {
+            background: #16213e;
+            padding: 0 32px;
+            display: flex;
+            gap: 0;
+        }
+        .nav a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav a:hover { color: white; }
+        .nav a.active { color: white; border-bottom-color: #4fc3f7; }
+        .container {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #16213e;
+            border-bottom: 2px solid #e8ecf1;
+            padding-bottom: 8px;
+        }
+        .temp-badge {
+            display: inline-block;
+            background: #fff3cd;
+            color: #856404;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: #16213e;
+            color: white;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e8ecf1;
+            font-size: 13px;
+        }
+        tr:hover td { background: #f8f9fb; }
+        .perfil-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .tag-ok { background: #d4edda; color: #155724; }
+        .tag-warn { background: #fff3cd; color: #856404; }
+        .tag-block { background: #f8d7da; color: #721c24; }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fafbfc;
+        }
+        .form-group select:focus {
+            outline: none;
+            border-color: #0f3460;
+            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+        }
+        .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #16213e;
+            margin-bottom: 12px;
+        }
+        .radio-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+        .radio-row label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .radio-row input[type="radio"] {
+            accent-color: #0f3460;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .segundo-fields {
+            display: none;
+            margin-top: 16px;
+            padding: 20px;
+            background: #f8f9fb;
+            border-radius: 10px;
+            border: 1px solid #e8ecf1;
+        }
+        .segundo-fields.visible { display: block; }
+        .btn-continuar {
+            width: 100%;
+            padding: 14px;
+            background: #0f3460;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+        .btn-continuar:hover:not(:disabled) {
+            background: #1a4a7a;
+            transform: translateY(-1px);
+        }
+        .btn-continuar:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .preview {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            border: 1px solid #b6d4fe;
+            font-size: 13px;
+            display: none;
+        }
+        .preview.visible { display: block; }
+        .preview strong { color: #16213e; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Morada Capital</h1>
+    <span>Filtro de Originaci&oacute;n &mdash; Evaluaci&oacute;n de Capacidad de Pago</span>
+</div>
+
+<div class="nav">
+    <a href="/muestra" class="active">Muestra <span class="temp-badge">TEMPORAL</span></a>
+    <a href="/">Solicitud</a>
+    <a href="/analista">An&aacute;lisis de Ingresos</a>
+    <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/carpeta">Carpeta</a>
+</div>
+
+<div class="container">
+    <div class="card">
+        <h2>Perfiles de Prueba <span class="temp-badge">Datos ficticios &mdash; se eliminar&aacute; con integraci&oacute;n Experian</span></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nombre</th>
+                    <th>Identificaci&oacute;n</th>
+                    <th>Empresa(s)</th>
+                    <th>Perfil Esperado</th>
+                </tr>
+            </thead>
+            <tbody id="tablaSolicitantes"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>Seleccionar Solicitantes para Evaluaci&oacute;n</h2>
+
+        <div class="form-group">
+            <label>Solicitante Principal <span style="color:#e74c3c">*</span></label>
+            <select id="selectPrincipal" onchange="actualizarPreview()">
+                <option value="">— Seleccionar —</option>
+            </select>
+        </div>
+
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #e8ecf1;">
+            <div class="section-label">&iquest;Hay un segundo solicitante?</div>
+            <div class="radio-row">
+                <label>
+                    <input type="radio" name="haySegundo" value="no" checked onchange="toggleSegundo()"> No
+                </label>
+                <label>
+                    <input type="radio" name="haySegundo" value="si" onchange="toggleSegundo()"> S&iacute;
+                </label>
+            </div>
+
+            <div class="segundo-fields" id="segundoFields">
+                <div class="form-group">
+                    <label>Segundo Solicitante <span style="color:#e74c3c">*</span></label>
+                    <select id="selectSecundario" onchange="actualizarPreview()">
+                        <option value="">— Seleccionar —</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Parentesco con el solicitante principal <span style="color:#e74c3c">*</span></label>
+                    <select id="parentesco" onchange="actualizarPreview()">
+                        <option value="">Seleccione...</option>
+                        <option value="conyuge">C&oacute;nyuge</option>
+                        <option value="companero_permanente">Compa&ntilde;ero(a) Permanente</option>
+                        <option value="padre">Padre / Madre</option>
+                        <option value="hijo">Hijo(a)</option>
+                        <option value="hermano">Hermano(a)</option>
+                        <option value="abuelo">Abuelo(a)</option>
+                        <option value="nieto">Nieto(a)</option>
+                        <option value="suegro">Suegro(a)</option>
+                        <option value="hijastro">Hijastro(a)</option>
+                        <option value="yerno_nuera">Yerno / Nuera</option>
+                        <option value="hijo_adoptivo">Hijo(a) Adoptivo(a)</option>
+                        <option value="padre_adoptivo">Padre / Madre Adoptivo(a)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="preview" id="preview"></div>
+
+        <button class="btn-continuar" id="btnContinuar" disabled onclick="continuar()">
+            Continuar a Solicitud &rarr;
+        </button>
+    </div>
+</div>
+
+<script src="/static/solicitantes.js"></script>
+<script>
+function getPerfilTag(desc) {
+    if (desc.indexOf('Bloqueado') !== -1) return '<span class="perfil-tag tag-block">Bloqueado</span>';
+    if (desc.indexOf('500K') !== -1 || desc.indexOf('2.1M') !== -1 || desc.indexOf('filtrado') !== -1)
+        return '<span class="perfil-tag tag-warn">Reducido</span>';
+    return '<span class="perfil-tag tag-ok">Aprobado</span>';
+}
+
+function getEmpresas(sol) {
+    return sol.data.data.aportantes.map(function(a) { return a.razon_social_aportante; }).join('<br>');
+}
+
+function poblarTabla() {
+    var html = '';
+    for (var i = 0; i < SOLICITANTES.length; i++) {
+        var s = SOLICITANTES[i];
+        var d = s.data.data;
+        html += '<tr>';
+        html += '<td style="font-weight:700; color:#0f3460">' + (i + 1) + '</td>';
+        html += '<td><strong>' + s.nombre + '</strong></td>';
+        html += '<td>CC ' + d.numero_identificacion_persona_natural + '</td>';
+        html += '<td style="font-size:12px">' + getEmpresas(s) + '</td>';
+        html += '<td>' + getPerfilTag(s.descripcion) + ' <span style="font-size:11px;color:#6b7280">' + s.descripcion + '</span></td>';
+        html += '</tr>';
+    }
+    document.getElementById('tablaSolicitantes').innerHTML = html;
+}
+
+function poblarDropdowns() {
+    var selects = ['selectPrincipal', 'selectSecundario'];
+    for (var j = 0; j < selects.length; j++) {
+        var sel = document.getElementById(selects[j]);
+        for (var i = 0; i < SOLICITANTES.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = (i + 1) + '. ' + SOLICITANTES[i].nombre + ' — ' + SOLICITANTES[i].descripcion;
+            sel.appendChild(opt);
+        }
+    }
+}
+
+function haySegundoSolicitante() {
+    return document.querySelector('input[name="haySegundo"][value="si"]').checked;
+}
+
+function toggleSegundo() {
+    var si = haySegundoSolicitante();
+    var campos = document.getElementById('segundoFields');
+    if (si) {
+        campos.classList.add('visible');
+    } else {
+        campos.classList.remove('visible');
+        document.getElementById('selectSecundario').value = '';
+        document.getElementById('parentesco').value = '';
+    }
+    actualizarPreview();
+}
+
+function actualizarPreview() {
+    var pIdx = document.getElementById('selectPrincipal').value;
+    var preview = document.getElementById('preview');
+    var btn = document.getElementById('btnContinuar');
+
+    if (pIdx === '') {
+        preview.classList.remove('visible');
+        btn.disabled = true;
+        return;
+    }
+
+    var p = SOLICITANTES[pIdx];
+    var html = '<strong>Principal:</strong> ' + p.nombre + ' (CC ' + p.data.data.numero_identificacion_persona_natural + ')';
+
+    var listo = true;
+
+    if (haySegundoSolicitante()) {
+        var sIdx = document.getElementById('selectSecundario').value;
+        var par = document.getElementById('parentesco').value;
+
+        if (sIdx === '' || par === '') {
+            listo = false;
+        }
+
+        if (sIdx !== '') {
+            if (sIdx === pIdx) {
+                html += '<br><span style="color:#e74c3c">El segundo solicitante debe ser diferente al principal</span>';
+                listo = false;
+            } else {
+                var s = SOLICITANTES[sIdx];
+                html += '<br><strong>Segundo:</strong> ' + s.nombre + ' (CC ' + s.data.data.numero_identificacion_persona_natural + ')';
+                if (par) html += ' &mdash; Parentesco: ' + par;
+            }
+        } else {
+            html += '<br><span style="color:#6b7280">Seleccione el segundo solicitante</span>';
+        }
+        if (!par && sIdx !== '') {
+            html += '<br><span style="color:#6b7280">Seleccione el parentesco</span>';
+        }
+    }
+
+    preview.innerHTML = html;
+    preview.classList.add('visible');
+    btn.disabled = !listo;
+}
+
+function continuar() {
+    var pIdx = parseInt(document.getElementById('selectPrincipal').value);
+    var seleccion = { principalIdx: pIdx, secundarioIdx: null, parentesco: null };
+
+    if (haySegundoSolicitante()) {
+        seleccion.secundarioIdx = parseInt(document.getElementById('selectSecundario').value);
+        seleccion.parentesco = document.getElementById('parentesco').value;
+    }
+
+    sessionStorage.setItem('morada_seleccion', JSON.stringify(seleccion));
+    window.location.href = '/';
+}
+
+window.addEventListener('load', function() {
+    poblarTabla();
+    poblarDropdowns();
+});
+</script>
+
+</body>
+</html>
