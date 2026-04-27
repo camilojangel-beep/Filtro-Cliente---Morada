@@ -44,6 +44,11 @@ def analisis_ctl():
     return FileResponse(str(STATIC_DIR / "analisis_ctl.html"))
 
 
+@app.get("/gastos-basicos")
+def gastos_basicos():
+    return FileResponse(str(STATIC_DIR / "gastos_basicos.html"))
+
+
 @app.get("/carpeta")
 def carpeta():
     return FileResponse(str(STATIC_DIR / "carpeta_documentos.html"))

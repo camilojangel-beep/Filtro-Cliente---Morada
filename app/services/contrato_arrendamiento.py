@@ -54,19 +54,9 @@ def _buscar_mes(palabra: str) -> Optional[int]:
 
 
 def _parsear_fecha(texto: str) -> Optional[str]:
-    # Patrón para formularios: "Fecha de Inicio del Contrato" seguido de mes y año
+    # Patrón para formularios: "Fecha de Inicio del Contrato" seguido de mes y año (misma o siguiente línea)
     m = re.search(
-        r"(?:Fecha\s+de\s+Inicio|Inicio\s+del\s+Contrato)[^\n]*?([A-Za-záéíóúñÁÉÍÓÚÑ]{3,12})\s+(\d{4})",
-        texto, re.IGNORECASE,
-    )
-    if m:
-        mes = _buscar_mes(m.group(1))
-        if mes:
-            return f"01/{mes:02d}/{m.group(2)}"
-
-    # Variante OCR: "Fecha de Inicio" con ruido entre medio
-    m = re.search(
-        r"Inicio\s+del\s+Contrato[^\n]*?([A-Za-záéíóúñÁÉÍÓÚÑ]{3,12})\s*(\d{4})",
+        r"(?:Fecha\s+de\s+Inicio|Inicio\s+del\s+Contrato)[\s\S]{0,60}?([A-Za-záéíóúñÁÉÍÓÚÑ]{3,12})\s+(\d{4})",
         texto, re.IGNORECASE,
     )
     if m:

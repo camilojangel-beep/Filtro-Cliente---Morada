@@ -4,24 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morada Capital &mdash; An&aacute;lisis Arriendos</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0D0B1A;
+            color: #E2E0EA;
             line-height: 1.6;
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0D0B1A;
             color: white;
-            padding: 24px 32px;
+            padding: 18px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.2);
         }
-        .header h1 { font-size: 22px; font-weight: 600; }
-        .header span { font-size: 14px; opacity: 0.7; }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo {
+            width: 30px;
+            height: 30px;
+        }
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
         .nav {
-            background: #16213e;
+            background: #0D0B1A;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
             padding: 0 32px;
             display: flex;
             gap: 0;
@@ -36,24 +59,25 @@
             transition: all 0.2s;
         }
         .nav a:hover { color: white; }
-        .nav a.active { color: white; border-bottom-color: #4fc3f7; }
+        .nav a.active { color: white; border-bottom-color: #7C3AED; }
         .container { max-width: 800px; margin: 40px auto; padding: 0 16px; }
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: #1A1832;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
             padding: 32px;
             margin-bottom: 20px;
         }
         .card h2 {
             font-size: 18px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 4px;
         }
         .card .subtitle {
             font-size: 14px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
             margin-bottom: 24px;
         }
         .form-row-inline {
@@ -69,28 +93,29 @@
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #374151;
+            color: rgba(255,255,255,0.7);
             margin-bottom: 6px;
         }
         .form-group input {
             width: 100%;
             padding: 10px 14px;
-            border: 1px solid #d1d5db;
+            border: 1px solid rgba(124,58,237,0.3);
             border-radius: 8px;
             font-size: 15px;
             font-family: inherit;
-            background: #fafbfc;
+            background: #161429;
+            color: #E2E0EA;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
         .form-group input:focus {
             outline: none;
-            border-color: #0f3460;
-            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
-            background: white;
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+            background: #161429;
         }
         .btn-consultar {
             padding: 10px 24px;
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
             border: none;
             border-radius: 8px;
@@ -102,20 +127,20 @@
             margin-bottom: 20px;
             height: 42px;
         }
-        .btn-consultar:hover:not(:disabled) { background: #1a4a7a; }
-        .btn-consultar:disabled { background: #9ca3af; cursor: not-allowed; }
+        .btn-consultar:hover:not(:disabled) { background: #6D28D9; }
+        .btn-consultar:disabled { background: rgba(124,58,237,0.3); color: rgba(255,255,255,0.4); cursor: not-allowed; }
 
         .loading {
             display: none;
             text-align: center;
             padding: 40px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
         }
         .loading.visible { display: block; }
         .spinner {
             width: 36px; height: 36px;
-            border: 4px solid #e5e7eb;
-            border-top-color: #0f3460;
+            border: 4px solid rgba(124,58,237,0.15);
+            border-top-color: #7C3AED;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin: 0 auto 16px;
@@ -128,9 +153,9 @@
         .section-title {
             font-size: 15px;
             font-weight: 700;
-            color: #16213e;
+            color: #FFFFFF;
             padding-bottom: 8px;
-            border-bottom: 2px solid #e8ecf1;
+            border-bottom: 2px solid rgba(124,58,237,0.15);
             margin-bottom: 16px;
             margin-top: 24px;
         }
@@ -144,10 +169,10 @@
         }
         .info-label {
             font-weight: 600;
-            color: #374151;
+            color: rgba(255,255,255,0.7);
         }
         .info-value {
-            color: #1a1a2e;
+            color: #FFFFFF;
             word-break: break-word;
         }
 
@@ -159,18 +184,18 @@
             font-weight: 600;
         }
         .badge-ok {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(16,185,129,0.2);
+            color: #10B981;
         }
         .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(239,68,68,0.2);
+            color: #EF4444;
         }
 
         .error-card {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #EF4444;
             border-radius: 10px;
             padding: 20px;
             margin-top: 16px;
@@ -187,20 +212,20 @@
         }
         .tab-inmueble {
             padding: 10px 20px;
-            border: 2px solid #d1d5db;
+            border: 2px solid rgba(124,58,237,0.3);
             border-radius: 10px;
-            background: #fafbfc;
+            background: #1A1832;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            color: #374151;
+            color: #E2E0EA;
         }
-        .tab-inmueble:hover { border-color: #0f3460; color: #0f3460; }
+        .tab-inmueble:hover { border-color: #7C3AED; color: #7C3AED; }
         .tab-inmueble.active {
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
-            border-color: #0f3460;
+            border-color: #7C3AED;
         }
         .tab-inmueble .tab-sub {
             display: block;
@@ -210,7 +235,7 @@
             margin-top: 2px;
         }
         .tab-inmueble .tab-check {
-            color: #27ae60;
+            color: #10B981;
             font-size: 13px;
             margin-left: 4px;
         }
@@ -218,7 +243,7 @@
             display: block;
             margin: 24px auto 0;
             padding: 12px 32px;
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
             border: none;
             border-radius: 8px;
@@ -227,14 +252,21 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-consultar-inm:hover { background: #1a4a7a; }
+        .btn-consultar-inm:hover { background: #6D28D9; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>Morada Capital</h1>
-    <span>An&aacute;lisis de Arriendos &mdash; Certificado de Tradici&oacute;n y Libertad</span>
+    <div class="header-brand">
+        <svg class="brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 22L20 10l12 12" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M12 19v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V19" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M17 32v-7a3 3 0 0 1 6 0v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="brand-name">Morada</span>
+    </div>
+    <span class="header-subtitle">An&aacute;lisis de Arriendos</span>
 </div>
 
 <div class="nav">
@@ -242,6 +274,7 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl" class="active">An&aacute;lisis Arriendos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -265,7 +298,7 @@
         </div>
     </div>
 
-    <div id="tituloInmueble" style="font-size:16px; font-weight:700; color:#0f3460; margin-bottom:16px; display:none;"></div>
+    <div id="tituloInmueble" style="font-size:16px; font-weight:700; color:#7C3AED; margin-bottom:16px; display:none;"></div>
 
     <div class="resultado" id="resultadoContrato" style="display:none;">
         <div class="card">
@@ -277,18 +310,18 @@
     <div class="card" id="cardPendiente" style="display:none;">
         <div class="section-title" style="margin-top:0;">Informaci&oacute;n General CTL</div>
         <div style="text-align:center; padding:16px 0;">
-            <p style="font-size:14px; color:#6b7280; margin-bottom:4px;" id="pendienteMsg"></p>
-            <p style="font-size:13px; color:#9ca3af; margin-bottom:16px;" id="pendientePin"></p>
+            <p style="font-size:14px; color:rgba(255,255,255,0.5); margin-bottom:4px;" id="pendienteMsg"></p>
+            <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-bottom:16px;" id="pendientePin"></p>
             <div id="pendienteAlerta" style="display:none; margin-bottom:16px;"></div>
             <button class="btn-consultar-inm" id="btnConsultarCTL" onclick="consultarInmuebleActivo()" disabled style="opacity:0.5; cursor:not-allowed;">Consultar Certificado</button>
-            <p id="pendienteBtnMsg" style="font-size:12px; color:#9ca3af; margin-top:8px;">Pendiente: cargue el Contrato de Arrendamiento para habilitar</p>
+            <p id="pendienteBtnMsg" style="font-size:12px; color:rgba(255,255,255,0.4); margin-top:8px;">Pendiente: cargue el Contrato de Arrendamiento para habilitar</p>
         </div>
     </div>
 
     <div class="loading" id="loading">
         <div class="spinner"></div>
         <p>Consultando la Superintendencia de Notariado y Registro...</p>
-        <p style="font-size:13px; color:#9ca3af; margin-top:4px;">Esto puede tomar unos segundos</p>
+        <p style="font-size:13px; color:rgba(255,255,255,0.4); margin-top:4px;">Esto puede tomar unos segundos</p>
     </div>
 
     <div class="error-card" id="errorCard">
@@ -335,7 +368,7 @@
             <div id="embargoContent"></div>
 
             <div id="simProyecciones" style="margin-top:16px;"></div>
-            <div style="font-size:12px; color:#6b7280; margin-top:12px;" id="simDeclarado"></div>
+            <div style="font-size:12px; color:rgba(255,255,255,0.5); margin-top:12px;" id="simDeclarado"></div>
         </div>
     </div>
 
@@ -393,9 +426,9 @@ function renderTabs() {
         html += '<button class="tab-inmueble' + (inmuebleActivo === i ? ' active' : '') + '" id="tabInm_' + i + '" onclick="seleccionarInmueble(' + i + ')">';
         html += 'Inmueble ' + (i + 1);
         if (consultado) html += '<span class="tab-check">&#10003;</span>';
-        html += '<span class="tab-sub">' + inm.tipoLabel + ' &mdash; $' + inm.declarado.toLocaleString('es-CO') + '/mes</span>';
+        html += '<span class="tab-sub">' + inm.tipoLabel + '</span>';
         if (inm.valor_aceptado !== undefined) {
-            var colorVA = inm.valor_aceptado > 0 ? '#27ae60' : '#dc2626';
+            var colorVA = inm.valor_aceptado > 0 ? '#10B981' : '#EF4444';
             html += '<span class="tab-sub" style="color:' + colorVA + '; font-weight:600;">Valor Aceptado: $' + inm.valor_aceptado.toLocaleString('es-CO') + '</span>';
         }
         html += '</button>';
@@ -424,12 +457,12 @@ function seleccionarInmueble(idx) {
         document.getElementById('cardPendiente').style.display = 'block';
         document.getElementById('pendienteMsg').innerHTML =
             '<span class="badge badge-danger">PIN no cargado</span>';
-        var htmlPin = '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; text-align:left; margin-top:8px;">';
+        var htmlPin = '<div style="background:#161429; border:1px solid rgba(124,58,237,0.15); border-radius:8px; padding:16px; text-align:left; margin-top:8px;">';
         htmlPin += '<div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">';
-        htmlPin += '<div style="flex:1; min-width:180px;"><label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:4px;">PIN Certificado de Tradición</label>';
-        htmlPin += '<input type="text" id="pinInline" placeholder="Ej: 050C12345678" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"></div>';
-        htmlPin += '<div style="min-width:150px;"><label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:4px;">Fecha emisión certificado</label>';
-        htmlPin += '<input type="date" id="fechaCertInline" style="width:100%; padding:8px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"></div>';
+        htmlPin += '<div style="flex:1; min-width:180px;"><label style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.7); display:block; margin-bottom:4px;">PIN Certificado de Tradición</label>';
+        htmlPin += '<input type="text" id="pinInline" placeholder="Ej: 050C12345678" style="width:100%; padding:8px 10px; border:1px solid rgba(124,58,237,0.3); border-radius:6px; font-size:13px; background:#161429; color:#E2E0EA;"></div>';
+        htmlPin += '<div style="min-width:150px;"><label style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.7); display:block; margin-bottom:4px;">Fecha emisión certificado</label>';
+        htmlPin += '<input type="date" id="fechaCertInline" style="width:100%; padding:8px 10px; border:1px solid rgba(124,58,237,0.3); border-radius:6px; font-size:13px; background:#161429; color:#E2E0EA;"></div>';
         htmlPin += '<div><button class="btn-consultar-inm" style="font-size:13px; padding:8px 20px;" onclick="guardarPinInline()">Guardar</button></div>';
         htmlPin += '</div></div>';
         document.getElementById('pendientePin').innerHTML = htmlPin;
@@ -485,13 +518,13 @@ function renderResultado(data, idx) {
             '<span class="info-label">Especificación</span><span class="info-value">' + cv.especificacion + '</span>' +
             '</div>';
     } else {
-        cvEl.innerHTML = '<p style="color:#6b7280; font-size:14px;">No se encontró ninguna anotación de compraventa</p>';
+        cvEl.innerHTML = '<p style="color:rgba(255,255,255,0.5); font-size:14px;">No se encontró ninguna anotación de compraventa</p>';
     }
 
     var embEl = document.getElementById('embargoContent');
     if (!data.tiene_embargo) {
         embEl.innerHTML = '<span class="badge badge-ok">Sin embargos en los últimos 2 años</span>' +
-            '<p style="font-size:13px; color:#6b7280; margin-top:8px;">Se revisaron ' + data.total_anotaciones + ' anotaciones del folio</p>';
+            '<p style="font-size:13px; color:rgba(255,255,255,0.5); margin-top:8px;">Se revisaron ' + data.total_anotaciones + ' anotaciones del folio</p>';
     } else {
         var html = '<span class="badge badge-danger">Se encontraron embargos</span><ul style="margin-top:12px; font-size:14px;">';
         data.detalle_embargos.forEach(function(e) { html += '<li style="margin-bottom:6px;">' + e + '</li>'; });
@@ -693,9 +726,9 @@ function renderContrato(idx) {
     var a = lista[inm.indice];
 
     if (!a.contrato_cargado || !a.propietario_cedula) {
-        var htmlC = '<p style="color:#6b7280; font-size:14px; margin-bottom:16px;"><span class="badge badge-danger">Contrato no cargado</span></p>';
-        htmlC += '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px;">';
-        htmlC += '<label style="font-size:13px; font-weight:600; color:#374151; display:block; margin-bottom:8px;">Cargar Contrato de Arrendamiento</label>';
+        var htmlC = '<p style="color:rgba(255,255,255,0.5); font-size:14px; margin-bottom:16px;"><span class="badge badge-danger">Contrato no cargado</span></p>';
+        htmlC += '<div style="background:#161429; border:1px solid rgba(124,58,237,0.15); border-radius:8px; padding:16px;">';
+        htmlC += '<label style="font-size:13px; font-weight:600; color:rgba(255,255,255,0.7); display:block; margin-bottom:8px;">Cargar Contrato de Arrendamiento</label>';
         htmlC += '<input type="file" id="contratoFileInline" accept=".pdf,image/*" style="font-size:13px; margin-bottom:12px; display:block; width:100%;">';
         htmlC += '<button class="btn-consultar-inm" style="font-size:13px; padding:8px 20px;" onclick="subirContratoInline()">Subir Contrato</button>';
         htmlC += '</div>';
@@ -706,7 +739,7 @@ function renderContrato(idx) {
     }
 
     document.getElementById('contratoContent').innerHTML =
-        '<div style="text-align:center; padding:20px; color:#6b7280;"><div class="spinner"></div>Analizando contrato...</div>';
+        '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);"><div class="spinner"></div>Analizando contrato...</div>';
     document.getElementById('resultadoContrato').style.display = 'block';
 
     var solicitante = obtenerNombreSolicitante(inm.tipo);
@@ -727,10 +760,10 @@ function renderContrato(idx) {
         var html = '<div class="info-grid">';
 
         html += '<span class="info-label">Fecha de Firma</span>';
-        html += '<span class="info-value">' + (data.fecha_firma || '<span style="color:#e74c3c">No detectada</span>') + '</span>';
+        html += '<span class="info-value">' + (data.fecha_firma || '<span style="color:#EF4444">No detectada</span>') + '</span>';
 
         html += '<span class="info-label">Direcci&oacute;n Inmueble</span>';
-        html += '<span class="info-value">' + (data.direccion || '<span style="color:#6b7280">No detectada</span>') + '</span>';
+        html += '<span class="info-value">' + (data.direccion || '<span style="color:rgba(255,255,255,0.5)">No detectada</span>') + '</span>';
 
         if (data.nomenclatura) {
             html += '<span class="info-label">Nomenclatura</span>';
@@ -738,13 +771,13 @@ function renderContrato(idx) {
         }
 
         html += '<span class="info-label">Arrendador(es)</span>';
-        html += '<span class="info-value">' + (data.arrendadores || '<span style="color:#6b7280">No detectado</span>') + '</span>';
+        html += '<span class="info-value">' + (data.arrendadores || '<span style="color:rgba(255,255,255,0.5)">No detectado</span>') + '</span>';
 
         html += '<span class="info-label">Canon Mensual (Contrato)</span>';
         if (data.canon_mensual) {
             html += '<span class="info-value" style="font-weight:700;">$' + data.canon_mensual.toLocaleString('es-CO') + '</span>';
         } else {
-            html += '<span class="info-value"><span style="color:#e74c3c">No detectado</span></span>';
+            html += '<span class="info-value"><span style="color:#EF4444">No detectado</span></span>';
         }
 
         html += '<span class="info-label">Ingreso Declarado</span>';
@@ -755,22 +788,18 @@ function renderContrato(idx) {
         var verif = verificarCoincidencia(data.arrendadores, solicitante);
 
         if (!verif.coincide) {
-            // Regla 1: No coincide arrendador/solicitante → aviso en lugar de proyección
-            html += '<div style="margin-top:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">';
-            html += '<div style="font-size:14px; font-weight:700; color:#991b1b; margin-bottom:8px;">No hay coincidencia entre Arrendador y Solicitante</div>';
-            html += '<div style="font-size:13px; color:#991b1b; line-height:1.6;">';
+            html += '<div style="margin-top:16px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:16px;">';
+            html += '<div style="font-size:14px; font-weight:700; color:#EF4444; margin-bottom:8px;">No hay coincidencia entre Arrendador y Solicitante</div>';
+            html += '<div style="font-size:13px; color:#EF4444; line-height:1.6;">';
             html += '<strong>Solicitante:</strong> ' + solicitante.nombre + ' &mdash; CC ' + solicitante.cedula + '<br>';
             html += '<strong>Arrendador (contrato):</strong> ' + (data.arrendadores || 'No detectado') + '</div>';
             html += '</div>';
 
-            // Regla 2: Botón CTL apagado
             deshabilitarBotonCTL('La consulta del CTL requiere que el arrendador coincida con el solicitante');
             document.getElementById('simProyecciones').innerHTML = '';
 
-            // Regla 5: Valor aceptado = 0
             actualizarValorAceptado(idx, 0);
         } else {
-            // Regla 3: Coinciden → proyección contrato + habilitar CTL
             habilitarBotonCTL();
 
             var proyContrato = 0;
@@ -780,15 +809,14 @@ function renderContrato(idx) {
             }
 
             if (dataCTLActual) {
-                // Regla 4: Verificar direcciones y comprador del CTL
                 var alertasCTL = [];
 
                 if (dataCTLActual.direcciones && dataCTLActual.direcciones.length > 0 && data.direccion) {
                     var matchDir = verificarDirecciones(data.direccion, dataCTLActual.direcciones);
                     if (!matchDir.coincide) {
-                        alertasCTL.push('<div style="margin-top:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">'
-                            + '<div style="font-size:14px; font-weight:700; color:#991b1b; margin-bottom:8px;">No hay coincidencia en las direcciones</div>'
-                            + '<div style="font-size:13px; color:#991b1b; line-height:1.6;">'
+                        alertasCTL.push('<div style="margin-top:16px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:16px;">'
+                            + '<div style="font-size:14px; font-weight:700; color:#EF4444; margin-bottom:8px;">No hay coincidencia en las direcciones</div>'
+                            + '<div style="font-size:13px; color:#EF4444; line-height:1.6;">'
                             + '<strong>Dirección Contrato:</strong> ' + (data.direccion || 'No detectada') + '<br>'
                             + '<strong>Dirección CTL:</strong> ' + dataCTLActual.direcciones.join(' | ') + '</div></div>');
                     }
@@ -799,19 +827,17 @@ function renderContrato(idx) {
                     var compradorStr = (cv.comprador || '') + ' ' + (cv.identificacion_comprador || '');
                     var verifComp = verificarCoincidencia(compradorStr, solicitante);
                     if (!verifComp.coincide) {
-                        alertasCTL.push('<div style="margin-top:16px; background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:16px;">'
-                            + '<div style="font-size:14px; font-weight:700; color:#991b1b; margin-bottom:8px;">No hay coincidencia entre Comprador (CTL) y Solicitante</div>'
-                            + '<div style="font-size:13px; color:#991b1b; line-height:1.6;">'
+                        alertasCTL.push('<div style="margin-top:16px; background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:16px;">'
+                            + '<div style="font-size:14px; font-weight:700; color:#EF4444; margin-bottom:8px;">No hay coincidencia entre Comprador (CTL) y Solicitante</div>'
+                            + '<div style="font-size:13px; color:#EF4444; line-height:1.6;">'
                             + '<strong>Solicitante:</strong> ' + solicitante.nombre + ' &mdash; CC ' + solicitante.cedula + '<br>'
                             + '<strong>Comprador (CTL):</strong> ' + (cv.comprador || 'No registrado') + ' &mdash; ' + (cv.identificacion_comprador || 'Sin identificación') + '</div></div>');
                     }
                 }
 
                 if (alertasCTL.length === 0) {
-                    // Todo coincide → calcular proyecciones CTL
                     calcularProyecciones();
 
-                    // Regla 5: valor aceptado = min(declarado, proyContrato, proyCTL)
                     var inmAct = todosInmuebles[idx];
                     var valorCTL = inmAct.valor_arriendo_simulador || 0;
                     var candidatos = [inmAct.declarado];
@@ -819,7 +845,6 @@ function renderContrato(idx) {
                     if (valorCTL > 0) candidatos.push(valorCTL);
                     actualizarValorAceptado(idx, Math.min.apply(null, candidatos));
                 } else {
-                    // Alertas CTL → no se calculan proyecciones, valor aceptado = 0
                     document.getElementById('simProyecciones').innerHTML = alertasCTL.join('');
                     actualizarValorAceptado(idx, 0);
                 }
@@ -830,7 +855,7 @@ function renderContrato(idx) {
     })
     .catch(function(err) {
         document.getElementById('contratoContent').innerHTML =
-            '<p style="color:#dc2626; font-size:13px;">Error al analizar contrato: ' + err.message + '</p>';
+            '<p style="color:#EF4444; font-size:13px;">Error al analizar contrato: ' + err.message + '</p>';
         deshabilitarBotonCTL('No se pudo analizar el contrato');
     });
 }
@@ -861,7 +886,7 @@ function subirContratoInline() {
     fd.append('archivo', fileInput.files[0]);
 
     document.getElementById('contratoContent').innerHTML =
-        '<div style="text-align:center; padding:20px; color:#6b7280;"><div class="spinner"></div>Subiendo contrato...</div>';
+        '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);"><div class="spinner"></div>Subiendo contrato...</div>';
 
     fetch('/documentos/subir-contrato', { method: 'POST', body: fd })
     .then(function(resp) {
@@ -876,7 +901,7 @@ function subirContratoInline() {
     })
     .catch(function(err) {
         document.getElementById('contratoContent').innerHTML =
-            '<p style="color:#dc2626; font-size:13px;">Error: ' + err.message + '</p>';
+            '<p style="color:#EF4444; font-size:13px;">Error: ' + err.message + '</p>';
     });
 }
 
@@ -907,10 +932,10 @@ function renderProyeccionContrato(canonOriginal, fechaFirmaStr) {
     var hoy = new Date();
 
     if (hoy <= fechaContrato) {
-        return '<div style="margin-top:16px; background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">' +
-            '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor de Referencia &mdash; Proyecci&oacute;n Contrato Arriendo</div>' +
-            '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + canonOriginal.toLocaleString('es-CO') + '</div>' +
-            '<div style="font-size:11px; color:#6b7280;">Sin ajuste (contrato vigente del a&ntilde;o actual)</div>' +
+        return '<div style="margin-top:16px; background:#161429; border:1px solid rgba(124,58,237,0.15); border-radius:10px; padding:16px;">' +
+            '<div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); margin-bottom:6px;">Valor de Referencia &mdash; Proyecci&oacute;n Contrato Arriendo</div>' +
+            '<div style="font-size:22px; font-weight:700; color:#FFFFFF;">$' + canonOriginal.toLocaleString('es-CO') + '</div>' +
+            '<div style="font-size:11px; color:rgba(255,255,255,0.5);">Sin ajuste (contrato vigente del a&ntilde;o actual)</div>' +
             '</div>';
     }
 
@@ -949,30 +974,30 @@ function renderProyeccionContrato(canonOriginal, fechaFirmaStr) {
 
     var valorProyectado = Math.round(valor);
 
-    var html = '<div style="margin-top:16px; background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">';
-    html += '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor de Referencia &mdash; Proyecci&oacute;n Contrato Arriendo</div>';
-    html += '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + valorProyectado.toLocaleString('es-CO') + ' / mes</div>';
-    html += '<a href="#" style="font-size:11px; color:#0f3460; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaContrato\', this); return false;">Ver fórmula</a>';
-    html += '<div id="formulaContrato" style="display:none; margin-top:8px; font-size:12px; color:#374151; background:#fff; padding:12px; border-radius:6px; line-height:1.8;">';
+    var html = '<div style="margin-top:16px; background:#161429; border:1px solid rgba(124,58,237,0.15); border-radius:10px; padding:16px;">';
+    html += '<div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); margin-bottom:6px;">Valor de Referencia &mdash; Proyecci&oacute;n Contrato Arriendo</div>';
+    html += '<div style="font-size:22px; font-weight:700; color:#FFFFFF;">$' + valorProyectado.toLocaleString('es-CO') + ' / mes</div>';
+    html += '<a href="#" style="font-size:11px; color:#7C3AED; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaContrato\', this); return false;">Ver fórmula</a>';
+    html += '<div id="formulaContrato" style="display:none; margin-top:8px; font-size:12px; color:#E2E0EA; background:#1A1832; border:1px solid rgba(124,58,237,0.15); padding:12px; border-radius:6px; line-height:1.8;">';
     html += '<strong>Canon original (contrato):</strong> $' + canonOriginal.toLocaleString('es-CO') + '<br>';
     html += '<strong>Fecha firma:</strong> ' + fechaFirmaStr + '<br>';
-    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
+    html += '<hr style="border:none; border-top:1px solid rgba(124,58,237,0.15); margin:8px 0;">';
     html += '<strong>Incremento IPC DANE + 1.5% a&ntilde;o por a&ntilde;o:</strong><br>';
     html += '<table style="width:100%; margin-top:6px; font-size:11px; border-collapse:collapse;">';
-    html += '<tr style="background:#16213e; color:white;"><th style="padding:4px 8px; text-align:left;">A&ntilde;o</th><th style="padding:4px 8px;">IPC</th><th style="padding:4px 8px;">Tasa</th><th style="padding:4px 8px;">Fracci&oacute;n</th><th style="padding:4px 8px; text-align:right;">Canon</th></tr>';
+    html += '<tr style="background:#2D1B69; color:white;"><th style="padding:4px 8px; text-align:left;">A&ntilde;o</th><th style="padding:4px 8px;">IPC</th><th style="padding:4px 8px;">Tasa</th><th style="padding:4px 8px;">Fracci&oacute;n</th><th style="padding:4px 8px; text-align:right;">Canon</th></tr>';
     for (var i = 0; i < pasos.length; i++) {
         var p = pasos[i];
-        html += '<tr style="border-bottom:1px solid #e8ecf1;">';
+        html += '<tr style="border-bottom:1px solid rgba(124,58,237,0.1);">';
         html += '<td style="padding:4px 8px; font-weight:600;">' + p.anio + '</td>';
         html += '<td style="padding:4px 8px; text-align:center;">' + p.ipc.toFixed(2) + '%</td>';
         html += '<td style="padding:4px 8px; text-align:center; font-weight:600;">' + p.tasa.toFixed(2) + '%</td>';
-        html += '<td style="padding:4px 8px; text-align:center; color:#6b7280;">' + p.dias + '/' + p.diasAnio + ' d</td>';
+        html += '<td style="padding:4px 8px; text-align:center; color:rgba(255,255,255,0.5);">' + p.dias + '/' + p.diasAnio + ' d</td>';
         html += '<td style="padding:4px 8px; text-align:right;">$' + p.valorFin.toLocaleString('es-CO') + '</td>';
         html += '</tr>';
     }
     html += '</table>';
-    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
-    html += '<strong style="color:#0f3460;">Canon proyectado = $' + valorProyectado.toLocaleString('es-CO') + ' / mes</strong>';
+    html += '<hr style="border:none; border-top:1px solid rgba(124,58,237,0.15); margin:8px 0;">';
+    html += '<strong style="color:#7C3AED;">Canon proyectado = $' + valorProyectado.toLocaleString('es-CO') + ' / mes</strong>';
     html += '</div>';
     html += '</div>';
 
@@ -1008,7 +1033,7 @@ function calcularProyecciones() {
     var container = document.getElementById('simProyecciones');
 
     if (!dataCTLActual || !dataCTLActual.ultima_compraventa) {
-        container.innerHTML = '<p style="color:#6b7280; font-size:13px;">No hay datos de compraventa para calcular proyecciones</p>';
+        container.innerHTML = '<p style="color:rgba(255,255,255,0.5); font-size:13px;">No hay datos de compraventa para calcular proyecciones</p>';
         return;
     }
 
@@ -1017,7 +1042,7 @@ function calcularProyecciones() {
     var valorActo = parseInt(valorActoStr, 10) || 0;
 
     if (valorActo === 0) {
-        container.innerHTML = '<p style="color:#6b7280; font-size:13px;">Valor del acto no registrado en el certificado</p>';
+        container.innerHTML = '<p style="color:rgba(255,255,255,0.5); font-size:13px;">Valor del acto no registrado en el certificado</p>';
         return;
     }
 
@@ -1025,7 +1050,7 @@ function calcularProyecciones() {
     var fechaCV = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
     var hoy = new Date();
     if (hoy <= fechaCV) {
-        container.innerHTML = '<p style="color:#6b7280; font-size:13px;">La fecha de compraventa es posterior a la fecha actual</p>';
+        container.innerHTML = '<p style="color:rgba(255,255,255,0.5); font-size:13px;">La fecha de compraventa es posterior a la fecha actual</p>';
         return;
     }
 
@@ -1072,54 +1097,54 @@ function calcularProyecciones() {
     html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">';
 
     // Valor Proyectado Inmueble
-    html += '<div style="background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">';
-    html += '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor Proyectado Inmueble por CTL</div>';
-    html += '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + valorProyectado.toLocaleString('es-CO') + '</div>';
-    html += '<a href="#" style="font-size:11px; color:#0f3460; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaInm\', this); return false;">Ver fórmula</a>';
-    html += '<div id="formulaInm" style="display:none; margin-top:8px; font-size:12px; color:#374151; background:#fff; padding:12px; border-radius:6px; line-height:1.8;">';
+    html += '<div style="background:#161429; border:1px solid rgba(124,58,237,0.15); border-radius:10px; padding:16px;">';
+    html += '<div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); margin-bottom:6px;">Valor Proyectado Inmueble por CTL</div>';
+    html += '<div style="font-size:22px; font-weight:700; color:#FFFFFF;">$' + valorProyectado.toLocaleString('es-CO') + '</div>';
+    html += '<a href="#" style="font-size:11px; color:#7C3AED; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaInm\', this); return false;">Ver fórmula</a>';
+    html += '<div id="formulaInm" style="display:none; margin-top:8px; font-size:12px; color:#E2E0EA; background:#1A1832; border:1px solid rgba(124,58,237,0.15); padding:12px; border-radius:6px; line-height:1.8;">';
     html += '<strong>Valor Acto (Compraventa):</strong> $' + valorActo.toLocaleString('es-CO') + '<br>';
     html += '<strong>Fecha Compraventa:</strong> ' + cv.fecha + '<br>';
     html += '<strong>Fecha Actual:</strong> ' + hoy.toLocaleDateString('es-CO') + '<br>';
-    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
+    html += '<hr style="border:none; border-top:1px solid rgba(124,58,237,0.15); margin:8px 0;">';
     html += '<strong>Incremento aplicado a&ntilde;o por a&ntilde;o (IPC DANE + 1.5%):</strong><br>';
     html += '<table style="width:100%; margin-top:6px; font-size:11px; border-collapse:collapse;">';
-    html += '<tr style="background:#16213e; color:white;"><th style="padding:4px 8px; text-align:left;">A&ntilde;o</th><th style="padding:4px 8px;">IPC DANE</th><th style="padding:4px 8px;">+Spread</th><th style="padding:4px 8px;">Tasa</th><th style="padding:4px 8px;">Fracci&oacute;n</th><th style="padding:4px 8px; text-align:right;">Valor</th></tr>';
+    html += '<tr style="background:#2D1B69; color:white;"><th style="padding:4px 8px; text-align:left;">A&ntilde;o</th><th style="padding:4px 8px;">IPC DANE</th><th style="padding:4px 8px;">+Spread</th><th style="padding:4px 8px;">Tasa</th><th style="padding:4px 8px;">Fracci&oacute;n</th><th style="padding:4px 8px; text-align:right;">Valor</th></tr>';
     for (var i = 0; i < pasos.length; i++) {
         var p = pasos[i];
-        html += '<tr style="border-bottom:1px solid #e8ecf1;">';
+        html += '<tr style="border-bottom:1px solid rgba(124,58,237,0.1);">';
         html += '<td style="padding:4px 8px; font-weight:600;">' + p.anio + '</td>';
         html += '<td style="padding:4px 8px; text-align:center;">' + p.ipc.toFixed(2) + '%</td>';
         html += '<td style="padding:4px 8px; text-align:center;">+' + SPREAD.toFixed(1) + '%</td>';
         html += '<td style="padding:4px 8px; text-align:center; font-weight:600;">' + p.tasa.toFixed(2) + '%</td>';
-        html += '<td style="padding:4px 8px; text-align:center; color:#6b7280;">' + p.dias + '/' + p.diasAnio + ' d&iacute;as</td>';
+        html += '<td style="padding:4px 8px; text-align:center; color:rgba(255,255,255,0.5);">' + p.dias + '/' + p.diasAnio + ' d&iacute;as</td>';
         html += '<td style="padding:4px 8px; text-align:right;">$' + p.valorFin.toLocaleString('es-CO') + '</td>';
         html += '</tr>';
     }
     html += '</table>';
-    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:8px 0;">';
-    html += '<strong style="color:#0f3460;">Valor Proyectado = $' + valorProyectado.toLocaleString('es-CO') + '</strong>';
+    html += '<hr style="border:none; border-top:1px solid rgba(124,58,237,0.15); margin:8px 0;">';
+    html += '<strong style="color:#7C3AED;">Valor Proyectado = $' + valorProyectado.toLocaleString('es-CO') + '</strong>';
     html += '</div>';
     html += '</div>';
 
     // Valor Arriendo Proyectado
-    html += '<div style="background:#f0f7ff; border:1px solid #b6d4fe; border-radius:10px; padding:16px;">';
-    html += '<div style="font-size:12px; font-weight:600; color:#374151; margin-bottom:6px;">Valor Arriendo Proyectado CTL</div>';
-    html += '<div style="font-size:22px; font-weight:700; color:#16213e;">$' + valorArriendo.toLocaleString('es-CO') + '</div>';
-    html += '<div style="font-size:11px; color:#6b7280; margin-top:2px;">Mensual</div>';
-    html += '<a href="#" style="font-size:11px; color:#0f3460; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaArr\', this); return false;">Ver fórmula</a>';
-    html += '<div id="formulaArr" style="display:none; margin-top:8px; font-size:12px; color:#374151; background:#fff; padding:12px; border-radius:6px; line-height:1.8;">';
+    html += '<div style="background:#161429; border:1px solid rgba(124,58,237,0.15); border-radius:10px; padding:16px;">';
+    html += '<div style="font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); margin-bottom:6px;">Valor Arriendo Proyectado CTL</div>';
+    html += '<div style="font-size:22px; font-weight:700; color:#FFFFFF;">$' + valorArriendo.toLocaleString('es-CO') + '</div>';
+    html += '<div style="font-size:11px; color:rgba(255,255,255,0.5); margin-top:2px;">Mensual</div>';
+    html += '<a href="#" style="font-size:11px; color:#7C3AED; text-decoration:none; display:inline-block; margin-top:8px;" onclick="toggleFormula(\'formulaArr\', this); return false;">Ver fórmula</a>';
+    html += '<div id="formulaArr" style="display:none; margin-top:8px; font-size:12px; color:#E2E0EA; background:#1A1832; border:1px solid rgba(124,58,237,0.15); padding:12px; border-radius:6px; line-height:1.8;">';
     html += '<strong>Valor Proyectado Inmueble:</strong> $' + valorProyectado.toLocaleString('es-CO') + '<br>';
     html += '<strong>Tasa arriendo mensual:</strong> ' + tasaArriendo.toFixed(2) + '%<br>';
-    html += '<hr style="border:none; border-top:1px solid #e8ecf1; margin:6px 0;">';
+    html += '<hr style="border:none; border-top:1px solid rgba(124,58,237,0.15); margin:6px 0;">';
     html += '<strong>F&oacute;rmula:</strong><br>';
     html += '$' + valorProyectado.toLocaleString('es-CO') + ' &times; ' + tasaArriendo.toFixed(2) + '%<br>';
-    html += '<strong style="color:#0f3460;">= $' + valorArriendo.toLocaleString('es-CO') + ' / mes</strong>';
+    html += '<strong style="color:#7C3AED;">= $' + valorArriendo.toLocaleString('es-CO') + ' / mes</strong>';
     html += '</div>';
     html += '</div>';
 
     html += '</div>';
 
-    html += '<p style="font-size:11px; color:#9ca3af; margin-top:12px; text-align:right;">Fuente IPC: DANE &mdash; Variaci&oacute;n anual dic-dic (2025: 5.10%, 2026: ene 5.35%)</p>';
+    html += '<p style="font-size:11px; color:rgba(255,255,255,0.4); margin-top:12px; text-align:right;">Fuente IPC: DANE &mdash; Variaci&oacute;n anual dic-dic (2025: 5.10%, 2026: ene 5.35%)</p>';
 
     container.innerHTML = html;
     guardarValoresProyectados(valorProyectado, valorArriendo);

@@ -5,30 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morada Capital — Solicitud</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0D0B1A;
+            color: #E2E0EA;
             line-height: 1.6;
             min-height: 100vh;
         }
 
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0D0B1A;
             color: white;
-            padding: 24px 32px;
+            padding: 18px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.2);
         }
 
-        .header h1 { font-size: 22px; font-weight: 600; }
-        .header span { font-size: 14px; opacity: 0.7; }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo {
+            width: 30px;
+            height: 30px;
+        }
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
 
         .nav {
-            background: #16213e;
+            background: #0D0B1A;
             padding: 0 32px;
             display: flex;
             gap: 0;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
         }
 
         .nav a {
@@ -44,7 +68,7 @@
         .nav a:hover { color: white; }
         .nav a.active {
             color: white;
-            border-bottom-color: #4fc3f7;
+            border-bottom-color: #7C3AED;
         }
 
         .container {
@@ -54,22 +78,23 @@
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: #1A1832;
+            border-radius: 16px;
+            border: 1px solid rgba(124,58,237,0.15);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
             padding: 32px;
         }
 
         .card h2 {
             font-size: 18px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 4px;
         }
 
         .card .subtitle {
             font-size: 14px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
             margin-bottom: 24px;
         }
 
@@ -81,42 +106,48 @@
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #374151;
+            color: rgba(255,255,255,0.7);
             margin-bottom: 6px;
         }
 
         .form-group label .required {
-            color: #e74c3c;
+            color: #EF4444;
         }
 
         .form-group input,
         .form-group select {
             width: 100%;
             padding: 10px 14px;
-            border: 1px solid #d1d5db;
+            border: 1px solid rgba(124,58,237,0.3);
             border-radius: 8px;
             font-size: 15px;
             font-family: inherit;
-            background: #fafbfc;
+            background: #161429;
+            color: #E2E0EA;
             transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group select option {
+            background: #161429;
+            color: #E2E0EA;
         }
 
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #0f3460;
-            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
-            background: white;
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+            background: #161429;
         }
 
         .form-group input.error,
         .form-group select.error {
-            border-color: #e74c3c;
+            border-color: #EF4444;
         }
 
         .form-group .error-msg {
             font-size: 12px;
-            color: #e74c3c;
+            color: #EF4444;
             margin-top: 4px;
             display: none;
         }
@@ -131,13 +162,13 @@
         .segundo-section {
             margin-top: 24px;
             padding-top: 20px;
-            border-top: 1px solid #e8ecf1;
+            border-top: 1px solid rgba(124,58,237,0.15);
         }
 
         .segundo-section .section-label {
             font-size: 14px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 12px;
         }
 
@@ -152,12 +183,12 @@
             align-items: center;
             gap: 6px;
             font-size: 14px;
-            color: #374151;
+            color: rgba(255,255,255,0.5);
             cursor: pointer;
         }
 
         .radio-row input[type="radio"] {
-            accent-color: #0f3460;
+            accent-color: #7C3AED;
             width: 16px;
             height: 16px;
             cursor: pointer;
@@ -167,9 +198,9 @@
             display: none;
             margin-top: 16px;
             padding: 20px;
-            background: #f8f9fb;
+            background: #161429;
             border-radius: 10px;
-            border: 1px solid #e8ecf1;
+            border: 1px solid rgba(124,58,237,0.15);
         }
 
         .segundo-fields.visible { display: block; }
@@ -177,7 +208,7 @@
         .segundo-fields h3 {
             font-size: 15px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 16px;
         }
 
@@ -185,7 +216,7 @@
         .auth-section {
             margin-top: 24px;
             padding-top: 20px;
-            border-top: 1px solid #e8ecf1;
+            border-top: 1px solid rgba(124,58,237,0.15);
         }
 
         .checkbox-row {
@@ -199,19 +230,19 @@
             height: 18px;
             margin-top: 2px;
             cursor: pointer;
-            accent-color: #0f3460;
+            accent-color: #7C3AED;
             flex-shrink: 0;
         }
 
         .checkbox-row label {
             font-size: 14px;
-            color: #374151;
+            color: rgba(255,255,255,0.5);
             cursor: pointer;
             line-height: 1.5;
         }
 
         .ver-mas {
-            color: #0f3460;
+            color: #8B5CF6;
             font-weight: 600;
             cursor: pointer;
             text-decoration: underline;
@@ -221,18 +252,18 @@
             margin-left: 28px;
         }
 
-        .ver-mas:hover { color: #1a4a7a; }
+        .ver-mas:hover { color: #7C3AED; }
 
         .auth-detail {
             display: none;
             margin-top: 12px;
             margin-left: 28px;
             padding: 16px;
-            background: #f8f9fb;
+            background: #161429;
             border-radius: 8px;
-            border-left: 3px solid #0f3460;
+            border-left: 3px solid #7C3AED;
             font-size: 13px;
-            color: #4b5563;
+            color: rgba(255,255,255,0.5);
             line-height: 1.7;
         }
 
@@ -247,18 +278,25 @@
             margin-bottom: 4px;
         }
 
+        .auth-detail a {
+            color: #8B5CF6;
+        }
+        .auth-detail a:hover {
+            color: #7C3AED;
+        }
+
         .auth-detail.visible { display: block; }
 
         /* --- Arriendos --- */
         .arriendos-section {
             margin-top: 20px;
             padding-top: 16px;
-            border-top: 1px dashed #d1d5db;
+            border-top: 1px dashed rgba(124,58,237,0.15);
         }
 
         .arriendo-card {
-            background: #f8f9fb;
-            border: 1px solid #e8ecf1;
+            background: #161429;
+            border: 1px solid rgba(124,58,237,0.15);
             border-radius: 10px;
             padding: 16px 16px 4px;
             margin-bottom: 12px;
@@ -268,7 +306,7 @@
         .arriendo-card h4 {
             font-size: 13px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 12px;
         }
 
@@ -278,21 +316,21 @@
             right: 12px;
             background: none;
             border: none;
-            color: #e74c3c;
+            color: #EF4444;
             cursor: pointer;
             font-size: 20px;
             line-height: 1;
             padding: 0 4px;
         }
 
-        .btn-eliminar-arr:hover { color: #c0392b; }
+        .btn-eliminar-arr:hover { color: #DC2626; }
 
         .btn-agregar {
             display: inline-block;
             padding: 8px 16px;
-            background: white;
-            color: #16213e;
-            border: 1px dashed #9ca3af;
+            background: transparent;
+            color: #8B5CF6;
+            border: 1px dashed rgba(124,58,237,0.3);
             border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
@@ -301,16 +339,16 @@
             margin-bottom: 8px;
         }
 
-        .btn-agregar:hover { background: #e8ecf1; border-color: #6b7280; }
+        .btn-agregar:hover { background: rgba(124,58,237,0.08); border-color: #7C3AED; }
 
         /* --- Boton --- */
         .btn-submit {
             width: 100%;
             padding: 14px;
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -319,12 +357,13 @@
         }
 
         .btn-submit:hover:not(:disabled) {
-            background: #1a4a7a;
+            background: #6D28D9;
             transform: translateY(-1px);
         }
 
         .btn-submit:disabled {
-            background: #9ca3af;
+            background: rgba(124,58,237,0.3);
+            color: rgba(255,255,255,0.4);
             cursor: not-allowed;
         }
 
@@ -337,16 +376,16 @@
         }
 
         .result-card.success {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: rgba(16,185,129,0.15);
+            border: 1px solid rgba(16,185,129,0.3);
+            color: #10B981;
             display: block;
         }
 
         .result-card.error {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: rgba(239,68,68,0.15);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #EF4444;
             display: block;
         }
 
@@ -363,8 +402,15 @@
 <body>
 
 <div class="header">
-    <h1>Morada Capital</h1>
-    <span>Solicitud de Producto de Vivienda</span>
+    <div class="header-brand">
+        <svg class="brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 22L20 10l12 12" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M12 19v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V19" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M17 32v-7a3 3 0 0 1 6 0v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="brand-name">Morada</span>
+    </div>
+    <span class="header-subtitle">Solicitud de Producto de Vivienda</span>
 </div>
 
 <div class="nav">
@@ -372,6 +418,7 @@
     <a href="/" class="active">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -414,7 +461,7 @@
 
             <!-- Ingresos por arriendos - Principal -->
             <div class="arriendos-section">
-                <div class="section-label" style="font-size:14px; font-weight:600; color:#16213e; margin-bottom:12px;">&iquest;Desea incluir otros ingresos por arriendos?</div>
+                <div class="section-label" style="font-size:14px; font-weight:600; color:#FFFFFF; margin-bottom:12px;">&iquest;Desea incluir otros ingresos por arriendos?</div>
                 <div class="radio-row">
                     <label><input type="radio" name="hayArriendosPrincipal" value="no" checked onchange="toggleArriendos('principal'); guardarArriendosEnSesion()"> No</label>
                     <label><input type="radio" name="hayArriendosPrincipal" value="si" onchange="toggleArriendos('principal'); guardarArriendosEnSesion()"> S&iacute;</label>
@@ -495,7 +542,7 @@
 
                     <!-- Arriendos Secundario -->
                     <div class="arriendos-section">
-                        <div style="font-size:14px; font-weight:600; color:#16213e; margin-bottom:12px;">&iquest;Incluir ingresos por arriendos?</div>
+                        <div style="font-size:14px; font-weight:600; color:#FFFFFF; margin-bottom:12px;">&iquest;Incluir ingresos por arriendos?</div>
                         <div class="radio-row">
                             <label><input type="radio" name="hayArriendosSecundario" value="no" checked onchange="toggleArriendos('secundario'); guardarArriendosEnSesion()"> No</label>
                             <label><input type="radio" name="hayArriendosSecundario" value="si" onchange="toggleArriendos('secundario'); guardarArriendosEnSesion()"> S&iacute;</label>
@@ -510,7 +557,7 @@
 
             <!-- Autorizacion -->
             <div class="auth-section">
-                <div class="section-label" style="font-size:14px; font-weight:600; color:#16213e; margin-bottom:12px;">Autorizaci&oacute;n de consulta y tratamiento de datos</div>
+                <div class="section-label" style="font-size:14px; font-weight:600; color:#FFFFFF; margin-bottom:12px;">Autorizaci&oacute;n de consulta y tratamiento de datos</div>
 
                 <div class="checkbox-row">
                     <input type="checkbox" id="checkAuth" onchange="toggleSubmit()">

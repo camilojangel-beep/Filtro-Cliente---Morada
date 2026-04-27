@@ -4,24 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morada Capital &mdash; Carpeta de Documentos</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0D0B1A;
+            color: #E2E0EA;
             line-height: 1.6;
             min-height: 100vh;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0D0B1A;
             color: white;
-            padding: 24px 32px;
+            padding: 18px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.2);
         }
-        .header h1 { font-size: 22px; font-weight: 600; }
-        .header span { font-size: 14px; opacity: 0.7; }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo {
+            width: 30px;
+            height: 30px;
+        }
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
         .nav {
-            background: #16213e;
+            background: #0D0B1A;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
             padding: 0 32px;
             display: flex;
             gap: 0;
@@ -36,13 +59,14 @@
             transition: all 0.2s;
         }
         .nav a:hover { color: white; }
-        .nav a.active { color: white; border-bottom-color: #4fc3f7; }
+        .nav a.active { color: white; border-bottom-color: #7C3AED; }
         .container { max-width: 900px; margin: 40px auto; padding: 0 16px; }
 
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: #1A1832;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
             padding: 28px 32px;
             margin-bottom: 20px;
         }
@@ -55,24 +79,24 @@
         }
         .solicitante-icon {
             width: 44px; height: 44px;
-            background: #e8ecf1;
+            background: rgba(124,58,237,0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             font-weight: 700;
-            color: #16213e;
+            color: #7C3AED;
             flex-shrink: 0;
         }
         .solicitante-info h2 {
             font-size: 17px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
         }
         .solicitante-info p {
             font-size: 13px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
         }
 
         .seccion {
@@ -83,9 +107,9 @@
         .seccion-titulo {
             font-size: 14px;
             font-weight: 700;
-            color: #16213e;
+            color: #FFFFFF;
             padding: 10px 14px;
-            background: #f0f2f5;
+            background: #161429;
             border-radius: 8px;
             margin-bottom: 12px;
             display: flex;
@@ -99,16 +123,16 @@
             align-items: center;
             gap: 12px;
             padding: 10px 14px;
-            border: 1px solid #e8ecf1;
+            border: 1px solid rgba(124,58,237,0.15);
             border-radius: 8px;
             margin-bottom: 8px;
             font-size: 14px;
             transition: background 0.15s;
         }
-        .doc-item:hover { background: #fafbfc; }
+        .doc-item:hover { background: rgba(124,58,237,0.08); }
         .doc-icon {
             width: 32px; height: 32px;
-            background: #e8ecf1;
+            background: rgba(124,58,237,0.15);
             border-radius: 6px;
             display: flex;
             align-items: center;
@@ -116,42 +140,43 @@
             font-size: 14px;
             flex-shrink: 0;
         }
-        .doc-icon.pdf { background: #fee2e2; color: #dc2626; }
-        .doc-icon.central { background: #dbeafe; color: #2563eb; }
-        .doc-icon.ctl { background: #d1fae5; color: #059669; }
-        .doc-nombre { flex: 1; font-weight: 500; }
+        .doc-icon.pdf { background: rgba(239,68,68,0.15); color: #EF4444; }
+        .doc-icon.central { background: rgba(124,58,237,0.15); color: #7C3AED; }
+        .doc-icon.ctl { background: rgba(16,185,129,0.15); color: #10B981; }
+        .doc-nombre { flex: 1; font-weight: 500; color: #E2E0EA; }
         .doc-estado {
             font-size: 12px;
             padding: 3px 10px;
             border-radius: 12px;
             font-weight: 600;
         }
-        .estado-ok { background: #d4edda; color: #155724; }
-        .estado-pendiente { background: #fff3cd; color: #856404; }
+        .estado-ok { background: rgba(16,185,129,0.2); color: #10B981; }
+        .estado-pendiente { background: rgba(245,158,11,0.15); color: #F59E0B; }
         .doc-link {
             font-size: 13px;
-            color: #0f3460;
+            color: #8B5CF6;
             text-decoration: none;
             font-weight: 600;
         }
         .doc-link:hover { text-decoration: underline; }
 
         .inmueble-card {
-            border: 1px solid #e8ecf1;
+            border: 1px solid rgba(124,58,237,0.15);
             border-radius: 10px;
             padding: 16px;
             margin-bottom: 12px;
+            background: #161429;
         }
         .inmueble-titulo {
             font-size: 14px;
             font-weight: 700;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 12px;
         }
 
         .ctl-resumen {
-            background: #f8fafb;
-            border: 1px solid #e0e7ee;
+            background: #161429;
+            border: 1px solid rgba(124,58,237,0.15);
             border-radius: 8px;
             padding: 14px;
             margin-bottom: 10px;
@@ -163,8 +188,8 @@
             gap: 4px 12px;
             margin-bottom: 4px;
         }
-        .ctl-resumen .ctl-label { font-weight: 600; color: #374151; }
-        .ctl-resumen .ctl-value { color: #1a1a2e; }
+        .ctl-resumen .ctl-label { font-weight: 600; color: rgba(255,255,255,0.7); }
+        .ctl-resumen .ctl-value { color: #FFFFFF; }
 
         .badge {
             display: inline-block;
@@ -173,19 +198,19 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .badge-ok { background: #d4edda; color: #155724; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-ok { background: rgba(16,185,129,0.2); color: #10B981; }
+        .badge-danger { background: rgba(239,68,68,0.2); color: #EF4444; }
 
         .empty-state {
             text-align: center;
             padding: 40px;
-            color: #9ca3af;
+            color: rgba(255,255,255,0.4);
             font-size: 14px;
         }
 
         .loading-inline {
             font-size: 13px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
             padding: 8px 14px;
             font-style: italic;
         }
@@ -193,7 +218,7 @@
         .subir-section {
             margin-top: 12px;
             padding-top: 12px;
-            border-top: 1px dashed #d1d5db;
+            border-top: 1px dashed rgba(124,58,237,0.15);
         }
         .subir-row {
             display: flex;
@@ -203,7 +228,7 @@
         .subir-row input[type="file"] { font-size: 13px; }
         .btn-subir {
             padding: 6px 16px;
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
             border: none;
             border-radius: 6px;
@@ -211,14 +236,21 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .btn-subir:hover { background: #1a4a7a; }
+        .btn-subir:hover { background: #6D28D9; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>Morada Capital</h1>
-    <span>Carpeta de Documentos del Solicitante</span>
+    <div class="header-brand">
+        <svg class="brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 22L20 10l12 12" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M12 19v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V19" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M17 32v-7a3 3 0 0 1 6 0v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="brand-name">Morada</span>
+    </div>
+    <span class="header-subtitle">Carpeta de Documentos</span>
 </div>
 
 <div class="nav">
@@ -226,13 +258,14 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
     <a href="/carpeta" class="active">Carpeta</a>
 </div>
 
 <div class="container" id="contenido">
     <div class="empty-state" id="emptyState">
         <p>No hay datos de solicitantes registrados.</p>
-        <p style="margin-top:8px">Complete primero el formulario de <a href="/" style="color:#0f3460; font-weight:600;">Solicitud</a>.</p>
+        <p style="margin-top:8px">Complete primero el formulario de <a href="/" style="color:#8B5CF6; font-weight:600;">Solicitud</a>.</p>
     </div>
 </div>
 
@@ -294,7 +327,7 @@ function renderSolicitante(sol, tipo, arriendos) {
                     '<p class="loading-inline">Consultando Certificado de Tradici&oacute;n (PIN: ' + arr.pin_certificado + ')...</p>' +
                 '</div>';
             } else {
-                html += '<div class="ctl-resumen"><p style="color:#9ca3af;">Sin PIN de certificado registrado</p></div>';
+                html += '<div class="ctl-resumen"><p style="color:rgba(255,255,255,0.4);">Sin PIN de certificado registrado</p></div>';
             }
 
             html += '</div>';
@@ -354,7 +387,7 @@ function consultarCTL(inmId, pin) {
         var el = document.getElementById('ctl_' + inmId);
         if (!el) return;
 
-        var html = '<div style="font-size:13px; font-weight:600; color:#16213e; margin-bottom:8px;">Certificado de Tradici&oacute;n y Libertad</div>';
+        var html = '<div style="font-size:13px; font-weight:600; color:#FFFFFF; margin-bottom:8px;">Certificado de Tradici&oacute;n y Libertad</div>';
 
         html += '<div class="ctl-row"><span class="ctl-label">Fecha Impresi&oacute;n</span><span class="ctl-value">' + (data.fecha_expedicion || '-') + '</span></div>';
         html += '<div class="ctl-row"><span class="ctl-label">Matr&iacute;cula</span><span class="ctl-value">' + data.matricula + '</span></div>';
@@ -370,30 +403,30 @@ function consultarCTL(inmId, pin) {
 
         if (data.ultima_compraventa) {
             var cv = data.ultima_compraventa;
-            html += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid #e0e7ee;">';
+            html += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(124,58,237,0.15);">';
             html += '<div class="ctl-row"><span class="ctl-label">Compraventa</span><span class="ctl-value">Anotaci&oacute;n ' + cv.numero_anotacion + ' (' + cv.fecha + ')</span></div>';
             html += '<div class="ctl-row"><span class="ctl-label">Comprador (A:)</span><span class="ctl-value">' + cv.comprador + ' &mdash; ' + cv.identificacion_comprador + '</span></div>';
             html += '<div class="ctl-row"><span class="ctl-label">Valor Acto</span><span class="ctl-value">$' + cv.valor_acto + '</span></div>';
             html += '</div>';
         }
 
-        html += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid #e0e7ee;">';
+        html += '<div style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(124,58,237,0.15);">';
         if (!data.tiene_embargo) {
             html += '<span class="badge badge-ok">Sin embargos en los &uacute;ltimos 2 a&ntilde;os</span>';
         } else {
             html += '<span class="badge badge-danger">Embargos encontrados</span>';
             data.detalle_embargos.forEach(function(e) {
-                html += '<p style="font-size:12px; color:#721c24; margin-top:4px;">' + e + '</p>';
+                html += '<p style="font-size:12px; color:#EF4444; margin-top:4px;">' + e + '</p>';
             });
         }
-        html += ' <span style="font-size:12px; color:#9ca3af;">(' + data.total_anotaciones + ' anotaciones revisadas)</span>';
+        html += ' <span style="font-size:12px; color:rgba(255,255,255,0.4);">(' + data.total_anotaciones + ' anotaciones revisadas)</span>';
         html += '</div>';
 
         if (data.texto_completo) {
             var ctlTextId = 'ctlTexto_' + inmId;
-            html += '<div style="margin-top:10px; padding-top:8px; border-top:1px solid #e0e7ee;">';
-            html += '<a href="#" style="font-size:12px; color:#0f3460; font-weight:600; text-decoration:none;" onclick="toggleCTLTexto(\'' + ctlTextId + '\', this); return false;">Ver certificado completo</a>';
-            html += '<pre id="' + ctlTextId + '" style="display:none; margin-top:8px; background:#1e1e2e; color:#cdd6f4; padding:16px; border-radius:8px; font-size:11px; max-height:500px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + data.texto_completo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+            html += '<div style="margin-top:10px; padding-top:8px; border-top:1px solid rgba(124,58,237,0.15);">';
+            html += '<a href="#" style="font-size:12px; color:#8B5CF6; font-weight:600; text-decoration:none;" onclick="toggleCTLTexto(\'' + ctlTextId + '\', this); return false;">Ver certificado completo</a>';
+            html += '<pre id="' + ctlTextId + '" style="display:none; margin-top:8px; background:#161429; color:#E2E0EA; padding:16px; border-radius:8px; border:1px solid rgba(124,58,237,0.15); font-size:11px; max-height:500px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + data.texto_completo.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
             html += '</div>';
         }
 
@@ -401,7 +434,7 @@ function consultarCTL(inmId, pin) {
     })
     .catch(function(err) {
         var el = document.getElementById('ctl_' + inmId);
-        if (el) el.innerHTML = '<p style="color:#dc2626; font-size:13px;">Error al consultar CTL: ' + err.message + '</p>';
+        if (el) el.innerHTML = '<p style="color:#EF4444; font-size:13px;">Error al consultar CTL: ' + err.message + '</p>';
     });
 }
 
@@ -444,7 +477,7 @@ function renderCentrales(tipo, datosExperian) {
     var fecha = datosExperian.data.fecha || d.fecha || '';
 
     var html = '<div class="ctl-resumen" style="margin-bottom:12px;">';
-    html += '<div style="font-size:13px; font-weight:600; color:#16213e; margin-bottom:10px;">Datos de la consulta</div>';
+    html += '<div style="font-size:13px; font-weight:600; color:#FFFFFF; margin-bottom:10px;">Datos de la consulta</div>';
     html += '<div class="ctl-row"><span class="ctl-label">Nombre</span><span class="ctl-value">' + nombre.trim() + '</span></div>';
     html += '<div class="ctl-row"><span class="ctl-label">Identificaci&oacute;n</span><span class="ctl-value">' + cedula + '</span></div>';
     if (fecha) html += '<div class="ctl-row"><span class="ctl-label">Fecha consulta</span><span class="ctl-value">' + fecha + '</span></div>';
@@ -460,19 +493,19 @@ function renderCentrales(tipo, datosExperian) {
             html += '<div class="ctl-row"><span class="ctl-label">Tipo cotizante</span><span class="ctl-value">' + (ap.descripcion_cotizante_persona_natural || '-') + '</span></div>';
 
             if (ap.resultados_pago && ap.resultados_pago.length > 0) {
-                html += '<div style="margin-top:10px; font-size:12px; font-weight:600; color:#374151;">Historial de pagos</div>';
+                html += '<div style="margin-top:10px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.7);">Historial de pagos</div>';
                 html += '<table style="width:100%; font-size:12px; margin-top:6px; border-collapse:collapse;">';
-                html += '<thead><tr style="background:#e8ecf1;">';
-                html += '<th style="padding:4px 8px; text-align:left;">Periodo</th>';
-                html += '<th style="padding:4px 8px; text-align:center;">Pago</th>';
-                html += '<th style="padding:4px 8px; text-align:right;">IBC</th></tr></thead><tbody>';
+                html += '<thead><tr style="background:#2D1B69;">';
+                html += '<th style="padding:4px 8px; text-align:left; color:white; font-weight:600;">Periodo</th>';
+                html += '<th style="padding:4px 8px; text-align:center; color:white; font-weight:600;">Pago</th>';
+                html += '<th style="padding:4px 8px; text-align:right; color:white; font-weight:600;">IBC</th></tr></thead><tbody>';
 
                 for (var j = 0; j < ap.resultados_pago.length; j++) {
                     var rp = ap.resultados_pago[j];
                     var pago = rp.realizo_pago ? 'SI' : 'NO';
-                    var colorPago = rp.realizo_pago ? '#155724' : '#721c24';
-                    var bgPago = rp.realizo_pago ? '#d4edda' : '#f8d7da';
-                    html += '<tr style="border-bottom:1px solid #e8ecf1;">';
+                    var colorPago = rp.realizo_pago ? '#10B981' : '#EF4444';
+                    var bgPago = rp.realizo_pago ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)';
+                    html += '<tr style="border-bottom:1px solid rgba(124,58,237,0.1);">';
                     html += '<td style="padding:4px 8px;">' + (rp.mes || '-') + '/' + (rp.anio || '-') + '</td>';
                     html += '<td style="padding:4px 8px; text-align:center;"><span style="background:' + bgPago + '; color:' + colorPago + '; padding:2px 8px; border-radius:10px; font-weight:600; font-size:11px;">' + pago + '</span></td>';
                     html += '<td style="padding:4px 8px; text-align:right;">' + formatCOP(rp.ingresos || 0) + '</td>';
@@ -487,8 +520,8 @@ function renderCentrales(tipo, datosExperian) {
 
     var jsonId = 'jsonOriginal_' + tipo;
     html += '<div style="margin-top:12px;">';
-    html += '<span onclick="toggleJsonOriginal(\'' + jsonId + '\', this)" style="color:#0f3460; font-weight:600; cursor:pointer; text-decoration:underline; font-size:13px;">Ver JSON original de Experian</span>';
-    html += '<pre id="' + jsonId + '" style="display:none; margin-top:8px; background:#1a1a2e; color:#e0e0e0; padding:16px; border-radius:8px; font-size:12px; max-height:400px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + JSON.stringify(datosExperian, null, 2) + '</pre>';
+    html += '<span onclick="toggleJsonOriginal(\'' + jsonId + '\', this)" style="color:#8B5CF6; font-weight:600; cursor:pointer; text-decoration:underline; font-size:13px;">Ver JSON original de Experian</span>';
+    html += '<pre id="' + jsonId + '" style="display:none; margin-top:8px; background:#161429; color:#E2E0EA; padding:16px; border-radius:8px; border:1px solid rgba(124,58,237,0.15); font-size:12px; max-height:400px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + JSON.stringify(datosExperian, null, 2) + '</pre>';
     html += '</div>';
 
     el.innerHTML = html;

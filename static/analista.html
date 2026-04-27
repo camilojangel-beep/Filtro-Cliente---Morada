@@ -4,45 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morada Capital — Filtro de Originación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0D0B1A;
+            color: #E2E0EA;
             line-height: 1.6;
         }
 
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0D0B1A;
             color: white;
-            padding: 24px 32px;
+            padding: 18px 32px;
             display: flex;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.2);
         }
 
-        .header h1 {
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo {
+            width: 30px;
+            height: 30px;
+        }
+        .brand-name {
             font-size: 22px;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
         }
 
-        .header span {
-            font-size: 14px;
-            opacity: 0.7;
+        .nav {
+            background: #0D0B1A;
+            padding: 0 32px;
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
         }
+        .nav a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav a:hover { color: white; }
+        .nav a.active { color: white; border-bottom-color: #7C3AED; }
 
         .container {
             max-width: 1100px;
             margin: 24px auto;
             padding: 0 16px;
+            color: #E2E0EA;
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: #1A1832;
+            border-radius: 16px;
+            border: 1px solid rgba(124,58,237,0.15);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
             padding: 24px;
             margin-bottom: 20px;
         }
@@ -51,27 +86,28 @@
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 16px;
-            color: #16213e;
-            border-bottom: 2px solid #e8ecf1;
+            color: #FFFFFF;
+            border-bottom: 2px solid rgba(124,58,237,0.15);
             padding-bottom: 8px;
         }
 
         textarea {
             width: 100%;
             height: 280px;
-            border: 1px solid #d1d5db;
+            border: 1px solid rgba(124,58,237,0.3);
             border-radius: 8px;
             padding: 12px;
             font-family: 'SF Mono', 'Fira Code', monospace;
             font-size: 12px;
             resize: vertical;
-            background: #fafbfc;
+            background: #161429;
+            color: #E2E0EA;
         }
 
         textarea:focus {
             outline: none;
-            border-color: #0f3460;
-            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
         }
 
         .btn-row {
@@ -95,21 +131,22 @@
         .btn:active { transform: translateY(0); }
 
         .btn-primary {
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
         }
 
-        .btn-primary:hover { background: #1a4a7a; }
+        .btn-primary:hover { background: #6D28D9; }
 
         .btn-secondary {
-            background: #e8ecf1;
-            color: #16213e;
+            background: #1A1832;
+            color: #7C3AED;
+            border: 1px solid rgba(124,58,237,0.3);
         }
 
-        .btn-secondary:hover { background: #d1d5db; }
+        .btn-secondary:hover { background: rgba(124,58,237,0.08); }
 
         .btn-active {
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
         }
 
@@ -121,7 +158,7 @@
 
         .view-toggle .btn {
             border-radius: 0;
-            border: 1px solid #d1d5db;
+            border: 1px solid rgba(124,58,237,0.3);
         }
 
         .view-toggle .btn:first-child { border-radius: 8px 0 0 8px; }
@@ -139,19 +176,20 @@
         }
 
         .metric-card {
-            background: #f8f9fb;
+            background: #1A1832;
             border-radius: 10px;
             padding: 16px;
-            border-left: 4px solid #0f3460;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-left: 4px solid #7C3AED;
         }
 
-        .metric-card.success { border-left-color: #27ae60; }
-        .metric-card.warning { border-left-color: #f39c12; }
-        .metric-card.danger { border-left-color: #e74c3c; }
+        .metric-card.success { border-left-color: #10B981; }
+        .metric-card.warning { border-left-color: #F59E0B; }
+        .metric-card.danger { border-left-color: #EF4444; }
 
         .metric-label {
             font-size: 12px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 4px;
@@ -160,12 +198,12 @@
         .metric-value {
             font-size: 24px;
             font-weight: 700;
-            color: #16213e;
+            color: #FFFFFF;
         }
 
         .metric-detail {
             font-size: 12px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
             margin-top: 4px;
         }
 
@@ -176,7 +214,7 @@
         }
 
         th {
-            background: #16213e;
+            background: #2D1B69;
             color: white;
             padding: 10px 14px;
             text-align: left;
@@ -186,11 +224,12 @@
 
         td {
             padding: 10px 14px;
-            border-bottom: 1px solid #e8ecf1;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
             font-size: 13px;
+            color: #E2E0EA;
         }
 
-        tr:hover td { background: #f8f9fb; }
+        tr:hover td { background: rgba(124,58,237,0.08); }
 
         .badge {
             display: inline-block;
@@ -201,13 +240,13 @@
         }
 
         .badge-si {
-            background: #d4edda;
-            color: #155724;
+            background: rgba(16,185,129,0.2);
+            color: #10B981;
         }
 
         .badge-no {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(239,68,68,0.2);
+            color: #EF4444;
         }
 
         /* --- Vista Técnica --- */
@@ -231,23 +270,24 @@
 
         .obs-list li {
             padding: 8px 12px;
-            background: #fff3cd;
-            border-left: 3px solid #f39c12;
+            background: rgba(245,158,11,0.15);
+            border-left: 3px solid #F59E0B;
             margin-bottom: 6px;
             border-radius: 0 6px 6px 0;
             font-size: 13px;
+            color: #F59E0B;
         }
 
         .section-title {
             font-size: 14px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin: 20px 0 8px 0;
         }
 
         .error-msg {
-            background: #f8d7da;
-            color: #721c24;
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
             padding: 12px 16px;
             border-radius: 8px;
             font-size: 13px;
@@ -256,7 +296,7 @@
         .loading {
             text-align: center;
             padding: 40px;
-            color: #6b7280;
+            color: rgba(255,255,255,0.5);
         }
 
         .loading::after {
@@ -264,8 +304,8 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid #d1d5db;
-            border-top-color: #0f3460;
+            border: 3px solid rgba(124,58,237,0.15);
+            border-top-color: #7C3AED;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-left: 8px;
@@ -277,25 +317,31 @@
         .segundo-solicitante-section {
             margin-top: 24px;
             padding-top: 20px;
-            border-top: 2px dashed #d1d5db;
+            border-top: 2px dashed rgba(124,58,237,0.15);
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
-        <h1>Morada Capital</h1>
-        <span>Filtro de Originaci&oacute;n &mdash; Evaluaci&oacute;n de Capacidad de Pago</span>
+    <div class="header-brand">
+        <svg class="brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 22L20 10l12 12" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M12 19v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V19" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M17 32v-7a3 3 0 0 1 6 0v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="brand-name">Morada</span>
     </div>
+    <span class="header-subtitle">Evaluaci&oacute;n de Capacidad de Pago</span>
 </div>
 
-<div style="background:#16213e; padding:0 32px; display:flex; gap:0;">
-    <a href="/muestra" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">Muestra</a>
-    <a href="/" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">Solicitud</a>
-    <a href="/analista" style="color:white; text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid #4fc3f7;">An&aacute;lisis de Ingresos</a>
-    <a href="/analisis-ctl" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">An&aacute;lisis Arriendos</a>
-    <a href="/carpeta" style="color:rgba(255,255,255,0.6); text-decoration:none; padding:12px 20px; font-size:14px; font-weight:500; border-bottom:2px solid transparent;">Carpeta</a>
+<div class="nav">
+    <a href="/muestra">Muestra</a>
+    <a href="/">Solicitud</a>
+    <a href="/analista" class="active">An&aacute;lisis de Ingresos</a>
+    <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
+    <a href="/carpeta">Carpeta</a>
 </div>
 
 <div class="container">
@@ -484,7 +530,7 @@ function renderDetalleSolicitante(detalle, datosExperian) {
             <div class="metric-label">Ingreso Calculado</div>
             <div class="metric-value">${formatCOP(ingreso)}</div>
             <div class="metric-detail">Actividad principal</div>
-            <div style="margin-top:8px; padding-top:8px; border-top:1px solid ${esPositivo ? '#c3e6cb' : '#f5c6cb'};">
+            <div style="margin-top:8px; padding-top:8px; border-top:1px solid ${esPositivo ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'};">
                 <span class="badge ${antiguedad.cumple ? 'badge-si' : 'badge-no'}">${antiguedad.cumple ? 'Cumple Antigüedad (8.1.4)' : 'No Cumple Antigüedad (8.1.4)'}</span>
                 <div class="metric-detail" style="margin-top:4px">${antiguedad.detalle}</div>
             </div>

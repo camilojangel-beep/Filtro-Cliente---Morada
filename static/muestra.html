@@ -5,22 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morada Capital &mdash; Muestra Aleatoria</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0D0B1A;
+            color: #E2E0EA;
             line-height: 1.6;
         }
         .header {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0D0B1A;
             color: white;
-            padding: 24px 32px;
+            padding: 18px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(124,58,237,0.2);
         }
-        .header h1 { font-size: 22px; font-weight: 600; }
-        .header span { font-size: 14px; opacity: 0.7; }
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo {
+            width: 30px;
+            height: 30px;
+        }
+        .brand-name {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: white;
+        }
+        .header-subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.5);
+        }
         .nav {
-            background: #16213e;
+            background: #0D0B1A;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
             padding: 0 32px;
             display: flex;
             gap: 0;
@@ -35,16 +58,17 @@
             transition: all 0.2s;
         }
         .nav a:hover { color: white; }
-        .nav a.active { color: white; border-bottom-color: #4fc3f7; }
+        .nav a.active { color: white; border-bottom-color: #7C3AED; }
         .container {
             max-width: 1100px;
             margin: 24px auto;
             padding: 0 16px;
         }
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            background: #1A1832;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
             padding: 24px;
             margin-bottom: 20px;
         }
@@ -52,14 +76,14 @@
             font-size: 16px;
             font-weight: 600;
             margin-bottom: 16px;
-            color: #16213e;
-            border-bottom: 2px solid #e8ecf1;
+            color: #FFFFFF;
+            border-bottom: 2px solid rgba(124,58,237,0.15);
             padding-bottom: 8px;
         }
         .temp-badge {
             display: inline-block;
-            background: #fff3cd;
-            color: #856404;
+            background: rgba(245,158,11,0.15);
+            color: #F59E0B;
             font-size: 11px;
             font-weight: 600;
             padding: 2px 8px;
@@ -69,7 +93,7 @@
         }
         table { width: 100%; border-collapse: collapse; }
         th {
-            background: #16213e;
+            background: #2D1B69;
             color: white;
             padding: 10px 14px;
             text-align: left;
@@ -78,10 +102,11 @@
         }
         td {
             padding: 10px 14px;
-            border-bottom: 1px solid #e8ecf1;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
             font-size: 13px;
+            color: #E2E0EA;
         }
-        tr:hover td { background: #f8f9fb; }
+        tr:hover td { background: rgba(124,58,237,0.08); }
         .perfil-tag {
             display: inline-block;
             padding: 2px 10px;
@@ -89,9 +114,9 @@
             font-size: 11px;
             font-weight: 600;
         }
-        .tag-ok { background: #d4edda; color: #155724; }
-        .tag-warn { background: #fff3cd; color: #856404; }
-        .tag-block { background: #f8d7da; color: #721c24; }
+        .tag-ok { background: rgba(16,185,129,0.2); color: #10B981; }
+        .tag-warn { background: rgba(245,158,11,0.15); color: #F59E0B; }
+        .tag-block { background: rgba(239,68,68,0.2); color: #EF4444; }
         .form-group {
             margin-bottom: 16px;
         }
@@ -99,27 +124,28 @@
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #374151;
+            color: rgba(255,255,255,0.7);
             margin-bottom: 6px;
         }
         .form-group select {
             width: 100%;
             padding: 10px 14px;
-            border: 1px solid #d1d5db;
+            border: 1px solid rgba(124,58,237,0.3);
             border-radius: 8px;
             font-size: 14px;
             font-family: inherit;
-            background: #fafbfc;
+            background: #161429;
+            color: #E2E0EA;
         }
         .form-group select:focus {
             outline: none;
-            border-color: #0f3460;
-            box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
         }
         .section-label {
             font-size: 14px;
             font-weight: 600;
-            color: #16213e;
+            color: #FFFFFF;
             margin-bottom: 12px;
         }
         .radio-row {
@@ -133,9 +159,10 @@
             gap: 6px;
             font-size: 14px;
             cursor: pointer;
+            color: rgba(255,255,255,0.5);
         }
         .radio-row input[type="radio"] {
-            accent-color: #0f3460;
+            accent-color: #7C3AED;
             width: 16px;
             height: 16px;
             cursor: pointer;
@@ -144,18 +171,18 @@
             display: none;
             margin-top: 16px;
             padding: 20px;
-            background: #f8f9fb;
+            background: #161429;
             border-radius: 10px;
-            border: 1px solid #e8ecf1;
+            border: 1px solid rgba(124,58,237,0.15);
         }
         .segundo-fields.visible { display: block; }
         .btn-continuar {
             width: 100%;
             padding: 14px;
-            background: #0f3460;
+            background: #7C3AED;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -163,31 +190,40 @@
             transition: all 0.2s;
         }
         .btn-continuar:hover:not(:disabled) {
-            background: #1a4a7a;
+            background: #6D28D9;
             transform: translateY(-1px);
         }
         .btn-continuar:disabled {
-            background: #9ca3af;
+            background: rgba(124,58,237,0.3);
+            color: rgba(255,255,255,0.4);
             cursor: not-allowed;
         }
         .preview {
             margin-top: 16px;
             padding: 16px;
-            background: #f0f7ff;
+            background: #161429;
             border-radius: 8px;
-            border: 1px solid #b6d4fe;
+            border: 1px solid rgba(124,58,237,0.15);
             font-size: 13px;
             display: none;
+            color: #E2E0EA;
         }
         .preview.visible { display: block; }
-        .preview strong { color: #16213e; }
+        .preview strong { color: #FFFFFF; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1>Morada Capital</h1>
-    <span>Filtro de Originaci&oacute;n &mdash; Evaluaci&oacute;n de Capacidad de Pago</span>
+    <div class="header-brand">
+        <svg class="brand-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M8 22L20 10l12 12" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M12 19v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V19" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M17 32v-7a3 3 0 0 1 6 0v7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </svg>
+        <span class="brand-name">Morada</span>
+    </div>
+    <span class="header-subtitle">Filtro de Originaci&oacute;n</span>
 </div>
 
 <div class="nav">
@@ -195,6 +231,7 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -219,13 +256,13 @@
         <h2>Seleccionar Solicitantes para Evaluaci&oacute;n</h2>
 
         <div class="form-group">
-            <label>Solicitante Principal <span style="color:#e74c3c">*</span></label>
+            <label>Solicitante Principal <span style="color:#EF4444">*</span></label>
             <select id="selectPrincipal" onchange="actualizarPreview()">
                 <option value="">— Seleccionar —</option>
             </select>
         </div>
 
-        <div style="margin-top:20px; padding-top:20px; border-top:1px solid #e8ecf1;">
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(124,58,237,0.15);">
             <div class="section-label">&iquest;Hay un segundo solicitante?</div>
             <div class="radio-row">
                 <label>
@@ -238,13 +275,13 @@
 
             <div class="segundo-fields" id="segundoFields">
                 <div class="form-group">
-                    <label>Segundo Solicitante <span style="color:#e74c3c">*</span></label>
+                    <label>Segundo Solicitante <span style="color:#EF4444">*</span></label>
                     <select id="selectSecundario" onchange="actualizarPreview()">
                         <option value="">— Seleccionar —</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Parentesco con el solicitante principal <span style="color:#e74c3c">*</span></label>
+                    <label>Parentesco con el solicitante principal <span style="color:#EF4444">*</span></label>
                     <select id="parentesco" onchange="actualizarPreview()">
                         <option value="">Seleccione...</option>
                         <option value="conyuge">C&oacute;nyuge</option>
@@ -291,11 +328,11 @@ function poblarTabla() {
         var s = SOLICITANTES[i];
         var d = s.data.data;
         html += '<tr>';
-        html += '<td style="font-weight:700; color:#0f3460">' + (i + 1) + '</td>';
+        html += '<td style="font-weight:700; color:#7C3AED">' + (i + 1) + '</td>';
         html += '<td><strong>' + s.nombre + '</strong></td>';
         html += '<td>CC ' + d.numero_identificacion_persona_natural + '</td>';
         html += '<td style="font-size:12px">' + getEmpresas(s) + '</td>';
-        html += '<td>' + getPerfilTag(s.descripcion) + ' <span style="font-size:11px;color:#6b7280">' + s.descripcion + '</span></td>';
+        html += '<td>' + getPerfilTag(s.descripcion) + ' <span style="font-size:11px;color:rgba(255,255,255,0.5)">' + s.descripcion + '</span></td>';
         html += '</tr>';
     }
     document.getElementById('tablaSolicitantes').innerHTML = html;
@@ -357,7 +394,7 @@ function actualizarPreview() {
 
         if (sIdx !== '') {
             if (sIdx === pIdx) {
-                html += '<br><span style="color:#e74c3c">El segundo solicitante debe ser diferente al principal</span>';
+                html += '<br><span style="color:#EF4444">El segundo solicitante debe ser diferente al principal</span>';
                 listo = false;
             } else {
                 var s = SOLICITANTES[sIdx];
@@ -365,10 +402,10 @@ function actualizarPreview() {
                 if (par) html += ' &mdash; Parentesco: ' + par;
             }
         } else {
-            html += '<br><span style="color:#6b7280">Seleccione el segundo solicitante</span>';
+            html += '<br><span style="color:rgba(255,255,255,0.5)">Seleccione el segundo solicitante</span>';
         }
         if (!par && sIdx !== '') {
-            html += '<br><span style="color:#6b7280">Seleccione el parentesco</span>';
+            html += '<br><span style="color:rgba(255,255,255,0.5)">Seleccione el parentesco</span>';
         }
     }
 
