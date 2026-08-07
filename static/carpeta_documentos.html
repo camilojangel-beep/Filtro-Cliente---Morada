@@ -237,6 +237,177 @@
             cursor: pointer;
         }
         .btn-subir:hover { background: #6D28D9; }
+
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: #161429;
+            padding: 4px;
+            border-radius: 10px;
+            border: 1px solid rgba(124,58,237,0.15);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover { color: rgba(255,255,255,0.8); }
+        .tab-btn.active { background: #7C3AED; color: white; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .ref-card {
+            background: #1A1832;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .ref-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 4px;
+        }
+        .ref-sub {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 16px;
+        }
+        .ref-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .ref-table th {
+            background: #2D1B69;
+            color: white;
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .ref-table th:first-child,
+        .ref-table th:nth-child(2) { text-align: left; }
+        .ref-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
+            text-align: center;
+            color: #E2E0EA;
+        }
+        .ref-table td:first-child,
+        .ref-table td:nth-child(2) { text-align: left; }
+        .ref-table tr:hover td { background: rgba(124,58,237,0.08); }
+        .ref-params {
+            background: #161429;
+            border: 1px solid rgba(124,58,237,0.25);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .ref-params-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ref-params-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .ref-param label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 4px;
+        }
+        .ref-param input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #0D0B1A;
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 6px;
+            color: #FFFFFF;
+            font-size: 14px;
+            font-family: inherit;
+            font-weight: 600;
+        }
+        .ref-param input:focus {
+            outline: none;
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+        }
+        .ref-params-note {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .ref-note {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .ref-item {
+            background: #1A1832;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .ref-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .ref-item-header:hover { background: rgba(124,58,237,0.08); }
+        .ref-item-icon {
+            width: 36px; height: 36px;
+            background: rgba(124,58,237,0.15);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .ref-item-title {
+            flex: 1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+        .ref-item-arrow {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            transition: transform 0.2s;
+        }
+        .ref-item.open .ref-item-arrow { transform: rotate(90deg); }
+        .ref-item-body {
+            display: none;
+            padding: 0 20px 20px;
+        }
+        .ref-item.open .ref-item-body { display: block; }
     </style>
 </head>
 <body>
@@ -262,14 +433,205 @@
     <a href="/carpeta" class="active">Carpeta</a>
 </div>
 
-<div class="container" id="contenido">
-    <div class="empty-state" id="emptyState">
-        <p>No hay datos de solicitantes registrados.</p>
-        <p style="margin-top:8px">Complete primero el formulario de <a href="/" style="color:#8B5CF6; font-weight:600;">Solicitud</a>.</p>
+<div class="container">
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab(this, 'documentos')">Documentos del Solicitante</button>
+        <button class="tab-btn" onclick="switchTab(this, 'referencia')">Tablas de Referencia</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-documentos">
+        <div id="contenido">
+            <div class="empty-state" id="emptyState">
+                <p>No hay datos de solicitantes registrados.</p>
+                <p style="margin-top:8px">Complete primero el formulario de <a href="/" style="color:#8B5CF6; font-weight:600;">Solicitud</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-panel" id="panel-referencia">
+        <div class="ref-item" id="ref-gastos">
+            <div class="ref-item-header" onclick="toggleRefItem('ref-gastos')">
+                <div class="ref-item-icon">&#128203;</div>
+                <span class="ref-item-title">Tablas para C&aacute;lculo de Retenci&oacute;n en la Fuente</span>
+                <span class="ref-item-arrow">&#9654;</span>
+            </div>
+            <div class="ref-item-body">
+                <div class="ref-params">
+                    <div class="ref-params-title"><span>&#9881;</span> Par&aacute;metros Anuales &mdash; Actualizar al inicio de cada a&ntilde;o</div>
+                    <div class="ref-params-grid">
+                        <div class="ref-param">
+                            <label>SMLMV ($)</label>
+                            <input type="number" id="param-smlmv" value="1750095" onchange="calcularRetefuente()" oninput="calcularRetefuente()">
+                        </div>
+                        <div class="ref-param">
+                            <label>UVT ($)</label>
+                            <input type="number" id="param-uvt" value="52374" onchange="calcularRetefuente()" oninput="calcularRetefuente()">
+                        </div>
+                        <div class="ref-param">
+                            <label>Ingreso Mensual ($)</label>
+                            <input type="number" id="param-ingreso" value="50000000" onchange="calcularRetefuente()" oninput="calcularRetefuente()">
+                        </div>
+                    </div>
+                    <div class="ref-params-note">SMLMV y UVT vigentes seg&uacute;n DIAN. El ingreso mensual es modificable para simular diferentes escenarios.</div>
+                </div>
+                <div class="ref-card">
+                    <h3>Metodolog&iacute;a de C&aacute;lculo &mdash; Retenci&oacute;n en la Fuente</h3>
+                    <div class="ref-sub" id="retefuente-sub"></div>
+                    <table class="ref-table">
+                        <thead>
+                            <tr>
+                                <th style="width:40px">#</th>
+                                <th>Concepto</th>
+                                <th style="text-align:right">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-retefuente"></tbody>
+                    </table>
+                </div>
+                <div class="ref-card">
+                    <h3>Tabla DIAN &mdash; Retenci&oacute;n en la Fuente (Art. 383 E.T.)</h3>
+                    <div class="ref-sub">Rangos en UVT de ingreso laboral gravable, tarifa marginal y f&oacute;rmula de impuesto</div>
+                    <table class="ref-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Rangos en UVT</th>
+                                <th>Tarifa marginal</th>
+                                <th>Impuesto o retenci&oacute;n en la fuente</th>
+                            </tr>
+                            <tr><th>Desde</th><th>Hasta</th><th></th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>&gt; 0</td><td>95</td><td>0%</td><td>&mdash;</td></tr>
+                            <tr><td>&gt; 95</td><td>150</td><td>19%</td><td>(Ingreso gravado en UVT &minus; 95 UVT) &times; 19%</td></tr>
+                            <tr><td>&gt; 150</td><td>360</td><td>28%</td><td>(Ingreso gravado en UVT &minus; 150 UVT) &times; 28% + 10 UVT</td></tr>
+                            <tr><td>&gt; 360</td><td>640</td><td>33%</td><td>(Ingreso gravado en UVT &minus; 360 UVT) &times; 33% + 69 UVT</td></tr>
+                            <tr><td>&gt; 640</td><td>945</td><td>35%</td><td>(Ingreso gravado en UVT &minus; 640 UVT) &times; 35% + 162 UVT</td></tr>
+                            <tr><td>&gt; 945</td><td>2.300</td><td>37%</td><td>(Ingreso gravado en UVT &minus; 945 UVT) &times; 37% + 268 UVT</td></tr>
+                            <tr><td>&gt; 2.300</td><td>En adelante</td><td>39%</td><td>(Ingreso gravado en UVT &minus; 2.300 UVT) &times; 39% + 770 UVT</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="ref-item" id="ref-solidaridad">
+            <div class="ref-item-header" onclick="toggleRefItem('ref-solidaridad')">
+                <div class="ref-item-icon">&#128176;</div>
+                <span class="ref-item-title">Tabla para el C&aacute;lculo de la Retenci&oacute;n por Solidaridad Pensional</span>
+                <span class="ref-item-arrow">&#9654;</span>
+            </div>
+            <div class="ref-item-body">
+                <div class="ref-card">
+                    <h3>Retenci&oacute;n Fondo de Solidaridad Pensional</h3>
+                    <div class="ref-sub">Aplica a ingresos &ge; 4 SMLMV &mdash; Rangos en salarios m&iacute;nimos legales mensuales vigentes</div>
+                    <table class="ref-table">
+                        <thead>
+                            <tr><th>Desde (SMLMV)</th><th>Hasta (SMLMV)</th><th>Tarifa</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>&ge; 4</td><td>16</td><td>1,00%</td></tr>
+                            <tr><td>&ge; 16</td><td>17</td><td>1,20%</td></tr>
+                            <tr><td>&ge; 17</td><td>18</td><td>1,40%</td></tr>
+                            <tr><td>&ge; 18</td><td>19</td><td>1,60%</td></tr>
+                            <tr><td>&ge; 19</td><td>20</td><td>1,80%</td></tr>
+                            <tr><td>&gt; 20</td><td>&mdash;</td><td>2,00%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+function fmtCOP(val) {
+    return '$' + Math.round(val).toLocaleString('es-CO');
+}
+
+function calcularRetefuente() {
+    var smlmv = parseFloat(document.getElementById('param-smlmv').value) || 0;
+    var uvt = parseFloat(document.getElementById('param-uvt').value) || 0;
+    var ingresoMensual = parseFloat(document.getElementById('param-ingreso').value) || 0;
+
+    var brutAnual = ingresoMensual * 12;
+    var tope25 = smlmv * 25 * 12;
+    var baseAportes = Math.min(brutAnual, tope25);
+    var incr = baseAportes * 0.08;
+    var deducciones = 0;
+    var ingresoNeto = brutAnual - incr - deducciones;
+    var rentaExenta25 = ingresoNeto * 0.25;
+    var limiteConjunto40 = ingresoNeto * 0.40;
+    var exentasDeducciones = rentaExenta25 + deducciones;
+    var ajusteLimite = Math.min(exentasDeducciones, limiteConjunto40);
+    var ingresoGravado = ingresoNeto - ajusteLimite;
+    var gravadoUVT = uvt > 0 ? ingresoGravado / uvt : 0;
+    var mensualUVT = gravadoUVT / 12;
+
+    var DIAN = [
+        { min: 0, max: 95, rate: 0, base: 0, add: 0 },
+        { min: 95, max: 150, rate: 0.19, base: 95, add: 0 },
+        { min: 150, max: 360, rate: 0.28, base: 150, add: 10 },
+        { min: 360, max: 640, rate: 0.33, base: 360, add: 69 },
+        { min: 640, max: 945, rate: 0.35, base: 640, add: 162 },
+        { min: 945, max: 2300, rate: 0.37, base: 945, add: 268 },
+        { min: 2300, max: Infinity, rate: 0.39, base: 2300, add: 770 }
+    ];
+    var bracket = DIAN[0];
+    for (var i = 1; i < DIAN.length; i++) {
+        if (mensualUVT > DIAN[i].min) bracket = DIAN[i];
+    }
+    var impuestoUVT = (mensualUVT - bracket.base) * bracket.rate + bracket.add;
+    if (impuestoUVT < 0) impuestoUVT = 0;
+    var impuestoPesos = impuestoUVT * uvt;
+
+    document.getElementById('retefuente-sub').innerHTML =
+        'Ingreso mensual ' + fmtCOP(ingresoMensual) + ' &mdash; SMLMV ' + fmtCOP(smlmv) + ' / UVT ' + fmtCOP(uvt);
+
+    var fmtUVT = function(v) { return v.toLocaleString('es-CO', {minimumFractionDigits:2, maximumFractionDigits:2}); };
+
+    var filas = [
+        [1, 'SMLMV', fmtCOP(smlmv), ''],
+        [2, 'Dato del ingreso mensual', fmtCOP(ingresoMensual), ''],
+        [3, 'Ingreso Bruto Anual', fmtCOP(brutAnual), ''],
+        [4, 'Tope anual de 25 SMLMV', fmtCOP(tope25), ''],
+        [5, 'Base para aportes (con tope 25 SMLMV)', fmtCOP(baseAportes), ''],
+        [6, 'INCR &mdash; (Salud + Pensi&oacute;n) con tope del 8%', fmtCOP(incr), ''],
+        [7, 'Deducciones', fmtCOP(deducciones), ''],
+        [8, '<strong>Ingreso Neto</strong>', '<strong>' + fmtCOP(ingresoNeto) + '</strong>', 'background:rgba(124,58,237,0.06);'],
+        [9, 'Renta Exenta 25%', fmtCOP(rentaExenta25), ''],
+        [10, 'L&iacute;mite conjunto del 40%', fmtCOP(limiteConjunto40), ''],
+        [11, 'Exentas + Deducciones', fmtCOP(exentasDeducciones), ''],
+        [12, 'Ajuste por L&iacute;mite Legal', fmtCOP(ajusteLimite), ''],
+        [13, '<strong>INGRESO GRAVADO FINAL</strong>', '<strong style="color:#7C3AED;">' + fmtCOP(ingresoGravado) + '</strong>', 'background:rgba(124,58,237,0.1);'],
+        [14, 'UVT del a&ntilde;o', fmtCOP(uvt), 'border-top:2px solid rgba(124,58,237,0.2);'],
+        [15, 'Ingreso Gravado en UVT', fmtUVT(gravadoUVT), ''],
+        [16, 'Ingreso Gravado mensual en UVT', fmtUVT(mensualUVT), 'background:rgba(124,58,237,0.06);'],
+        [17, '<strong>Retenci&oacute;n mensual en UVT</strong> <span style="font-size:11px;color:rgba(255,255,255,0.4);">(Rango &gt;' + bracket.min + ' &mdash; tarifa ' + (bracket.rate * 100) + '%)</span>', '<strong>' + fmtUVT(impuestoUVT) + ' UVT</strong>', 'background:rgba(124,58,237,0.1);'],
+        [18, '<strong>Retenci&oacute;n mensual en pesos</strong>', '<strong style="color:#7C3AED;">' + fmtCOP(impuestoPesos) + '</strong>', 'background:rgba(124,58,237,0.1);']
+    ];
+
+    var html = '';
+    for (var i = 0; i < filas.length; i++) {
+        var f = filas[i];
+        var style = f[3] ? ' style="' + f[3] + '"' : '';
+        html += '<tr' + style + '><td>' + f[0] + '</td><td>' + f[1] + '</td><td style="text-align:right">' + f[2] + '</td></tr>';
+    }
+    document.getElementById('tbody-retefuente').innerHTML = html;
+}
+
+function switchTab(btn, tab) {
+    var btns = document.querySelectorAll('.tab-btn');
+    var panels = document.querySelectorAll('.tab-panel');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    for (var i = 0; i < panels.length; i++) panels[i].classList.remove('active');
+    btn.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+}
+
+function toggleRefItem(id) {
+    document.getElementById(id).classList.toggle('open');
+}
+
 function iniciales(nombre) {
     return nombre.split(' ').map(function(p) { return p[0]; }).join('').substring(0, 2).toUpperCase();
 }
@@ -551,7 +913,10 @@ function cargarPagina() {
     }
 }
 
-window.addEventListener('load', cargarPagina);
+window.addEventListener('load', function() {
+    cargarPagina();
+    calcularRetefuente();
+});
 </script>
 
 </body>

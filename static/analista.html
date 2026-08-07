@@ -376,6 +376,52 @@
 
 <script src="/static/solicitantes.js"></script>
 <script>
+var SMLMV_VIGENTE = 1750095;
+var UVT_VIGENTE = 52374;
+
+function calcularSolidaridad(ingresoMensual) {
+    var smlmvs = SMLMV_VIGENTE > 0 ? ingresoMensual / SMLMV_VIGENTE : 0;
+    if (smlmvs < 4) return 0;
+    var tarifa = 0;
+    if (smlmvs <= 16) tarifa = 0.01;
+    else if (smlmvs <= 17) tarifa = 0.012;
+    else if (smlmvs <= 18) tarifa = 0.014;
+    else if (smlmvs <= 19) tarifa = 0.016;
+    else if (smlmvs <= 20) tarifa = 0.018;
+    else tarifa = 0.02;
+    return Math.round(ingresoMensual * tarifa);
+}
+
+function calcularRetencionFuente(ingresoMensual) {
+    var brutAnual = ingresoMensual * 12;
+    var tope25 = SMLMV_VIGENTE * 25 * 12;
+    var baseAportes = Math.min(brutAnual, tope25);
+    var incr = baseAportes * 0.08;
+    var neto = brutAnual - incr;
+    var rentaExenta25 = neto * 0.25;
+    var limiteConjunto40 = neto * 0.40;
+    var ajusteLimite = Math.min(rentaExenta25, limiteConjunto40);
+    var ingresoGravado = neto - ajusteLimite;
+    var mensualUVT = (UVT_VIGENTE > 0 ? ingresoGravado / UVT_VIGENTE : 0) / 12;
+
+    var DIAN = [
+        { min: 0, rate: 0, base: 0, add: 0 },
+        { min: 95, rate: 0.19, base: 95, add: 0 },
+        { min: 150, rate: 0.28, base: 150, add: 10 },
+        { min: 360, rate: 0.33, base: 360, add: 69 },
+        { min: 640, rate: 0.35, base: 640, add: 162 },
+        { min: 945, rate: 0.37, base: 945, add: 268 },
+        { min: 2300, rate: 0.39, base: 2300, add: 770 }
+    ];
+    var b = DIAN[0];
+    for (var i = 1; i < DIAN.length; i++) {
+        if (mensualUVT > DIAN[i].min) b = DIAN[i];
+    }
+    var impUVT = (mensualUVT - b.base) * b.rate + b.add;
+    if (impUVT < 0) impUVT = 0;
+    return Math.round(impUVT * UVT_VIGENTE);
+}
+
 function formatCOP(val) {
     return '$' + Math.round(val).toLocaleString('es-CO');
 }
@@ -520,6 +566,10 @@ function renderDetalleSolicitante(detalle, datosExperian) {
     const ingreso = detalle.ingreso_calculado;
     const esPositivo = ingreso > 0;
     const antiguedad = calcularAntiguedad(datosExperian);
+    const solidaridad = calcularSolidaridad(ingreso);
+    const retencion = calcularRetencionFuente(ingreso);
+    const ingresoNeto = ingreso - solidaridad - retencion;
+    const smlmvs = SMLMV_VIGENTE > 0 ? (ingreso / SMLMV_VIGENTE) : 0;
 
     let html = '';
 
@@ -530,10 +580,24 @@ function renderDetalleSolicitante(detalle, datosExperian) {
             <div class="metric-label">Ingreso Calculado</div>
             <div class="metric-value">${formatCOP(ingreso)}</div>
             <div class="metric-detail">Actividad principal</div>
-            <div style="margin-top:8px; padding-top:8px; border-top:1px solid ${esPositivo ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'};">
-                <span class="badge ${antiguedad.cumple ? 'badge-si' : 'badge-no'}">${antiguedad.cumple ? 'Cumple Antigüedad (8.1.4)' : 'No Cumple Antigüedad (8.1.4)'}</span>
-                <div class="metric-detail" style="margin-top:4px">${antiguedad.detalle}</div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(124,58,237,0.2);">
+                <div class="metric-label">Retenci&oacute;n Fondo Solidaridad</div>
+                <div class="metric-value" style="font-size:18px; color:${solidaridad > 0 ? '#EF4444' : 'rgba(255,255,255,0.4)'};">${solidaridad > 0 ? '-' + formatCOP(solidaridad) : '$0'}</div>
+                <div class="metric-detail">${smlmvs >= 4 ? smlmvs.toFixed(2) + ' SMLMV &rarr; tarifa ' + (solidaridad > 0 ? ((solidaridad / ingreso) * 100).toFixed(1) : '0') + '%' : smlmvs.toFixed(2) + ' SMLMV &lt; 4 &rarr; No aplica'}</div>
             </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(124,58,237,0.2);">
+                <div class="metric-label">Retenci&oacute;n en la Fuente</div>
+                <div class="metric-value" style="font-size:18px; color:${retencion > 0 ? '#EF4444' : 'rgba(255,255,255,0.4)'};">${retencion > 0 ? '-' + formatCOP(retencion) : '$0'}</div>
+            </div>
+            <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(124,58,237,0.2);">
+                <div class="metric-label">Ingreso Neto</div>
+                <div class="metric-value" style="font-size:22px;">${formatCOP(ingresoNeto)}</div>
+            </div>
+        </div>
+        <div class="metric-card ${antiguedad.cumple ? 'success' : 'danger'}">
+            <div class="metric-label">Antig&uuml;edad Laboral (8.1.4)</div>
+            <div class="metric-value" style="font-size:18px">${antiguedad.cumple ? 'Cumple' : 'No Cumple'}</div>
+            <div class="metric-detail" style="margin-top:8px">${antiguedad.detalle}</div>
         </div>`;
 
     if (nombre) {
@@ -590,19 +654,21 @@ function renderAnalista(data, payload) {
     var antSecundario = haySeg ? calcularAntiguedad(payload.solicitante_secundario) : null;
 
     var ingPrincipal = data.solicitante_principal.ingreso_calculado;
+    var netoPrincipal = ingPrincipal - calcularSolidaridad(ingPrincipal) - calcularRetencionFuente(ingPrincipal);
     var ingSecundario = haySeg ? data.solicitante_secundario.ingreso_calculado : 0;
+    var netoSecundario = haySeg ? ingSecundario - calcularSolidaridad(ingSecundario) - calcularRetencionFuente(ingSecundario) : 0;
 
     var ingresoTotal = 0;
     var notas = [];
-    if (antPrincipal.cumple) { ingresoTotal += ingPrincipal; }
+    if (antPrincipal.cumple) { ingresoTotal += netoPrincipal; }
     else { notas.push('Principal: no cumple antigüedad (8.1.4) — ingreso excluido'); }
     if (haySeg) {
-        if (antSecundario.cumple) { ingresoTotal += ingSecundario; }
+        if (antSecundario.cumple) { ingresoTotal += netoSecundario; }
         else { notas.push('Secundario: no cumple antigüedad (8.1.4) — ingreso excluido'); }
     }
 
     var detalleTotal = notas.length > 0
-        ? notas.join('<br>') : (haySeg ? 'Suma de ambos solicitantes' : 'Solicitante único');
+        ? notas.join('<br>') : (haySeg ? 'Suma de ingresos netos de ambos solicitantes' : 'Ingreso neto del solicitante');
     var colorTotal = ingresoTotal > 0 ? 'success' : 'danger';
 
     var totalHtml = `

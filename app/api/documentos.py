@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.services.contrato_arrendamiento import analizar_contrato
+from app.services.pipeline.orquestador import extraer_contrato
 
 router = APIRouter(prefix="/documentos", tags=["documentos"])
 
@@ -150,6 +151,52 @@ def endpoint_analizar_contrato(req: AnalisisContratoRequest):
         "canon_mensual": resultado.canon_mensual,
         "texto_completo": resultado.texto_completo,
     }
+
+
+@router.post("/extraer-contrato-v2")
+def endpoint_extraer_contrato_v2(req: AnalisisContratoRequest):
+    carpeta = UPLOADS_DIR / req.numero_identificacion / "arriendos"
+    if not carpeta.exists():
+        raise HTTPException(status_code=404, detail="No se encontraron documentos para este solicitante")
+
+    archivo = None
+    for ext in [".pdf", ".png", ".jpg", ".jpeg", ".docx", ".doc"]:
+        candidato = carpeta / f"contrato_inmueble_{req.indice_inmueble}{ext}"
+        if candidato.exists():
+            archivo = candidato
+            break
+
+    if not archivo:
+        raise HTTPException(status_code=404, detail="No se encontró contrato para este inmueble")
+
+    resultado = extraer_contrato(str(archivo))
+    resumen = resultado.resumen()
+    return {
+        "resumen": resumen.model_dump(),
+        "completo": resultado.model_dump(exclude={"texto_completo"}),
+    }
+
+
+class CorreccionCampoRequest(BaseModel):
+    numero_identificacion: str
+    indice_inmueble: int
+    campo_path: str
+    valor_corregido: str
+
+
+@router.post("/corregir-campo")
+def endpoint_corregir_campo(req: CorreccionCampoRequest):
+    carpeta = UPLOADS_DIR / req.numero_identificacion / "arriendos"
+    correcciones_path = carpeta / f"correcciones_{req.indice_inmueble}.jsonl"
+    import json, datetime
+    linea = json.dumps({
+        "campo": req.campo_path,
+        "valor_corregido": req.valor_corregido,
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    }, ensure_ascii=False)
+    with open(correcciones_path, "a", encoding="utf-8") as f:
+        f.write(linea + "\n")
+    return {"status": "ok", "campo": req.campo_path}
 
 
 @router.get("/archivo/{numero_identificacion}/{subcarpeta}/{nombre_archivo}")

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morada Capital &mdash; Gastos B&aacute;sicos</title>
+    <title>Morada Capital &mdash; Capacidad de Pago</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -50,6 +50,7 @@
             display: flex;
             gap: 0;
             border-bottom: 1px solid rgba(124,58,237,0.1);
+            overflow-x: auto;
         }
         .nav a {
             color: rgba(255,255,255,0.6);
@@ -59,13 +60,14 @@
             font-weight: 500;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .nav a:hover { color: white; }
         .nav a.active { color: white; border-bottom-color: #7C3AED; }
 
         .container {
-            max-width: 900px;
-            margin: 40px auto;
+            max-width: 1100px;
+            margin: 24px auto;
             padding: 0 16px;
         }
 
@@ -74,35 +76,284 @@
             border-radius: 16px;
             border: 1px solid rgba(124,58,237,0.15);
             box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-            padding: 32px;
+            padding: 24px;
             margin-bottom: 20px;
         }
 
         .card h2 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
+            margin-bottom: 16px;
             color: #FFFFFF;
-            margin-bottom: 4px;
+            border-bottom: 2px solid rgba(124,58,237,0.15);
+            padding-bottom: 8px;
         }
 
         .card .subtitle {
             font-size: 14px;
             color: rgba(255,255,255,0.5);
-            margin-bottom: 24px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(255,255,255,0.4);
-            font-size: 15px;
-        }
-
-        .empty-state .icon {
-            font-size: 48px;
             margin-bottom: 16px;
-            opacity: 0.3;
         }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+        .form-group label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input, .form-group select {
+            background: #161429;
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #E2E0EA;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #7C3AED;
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .btn-primary { background: #7C3AED; color: white; }
+        .btn-primary:hover:not(:disabled) { background: #6D28D9; }
+
+        .btn-secondary {
+            background: #1A1832;
+            color: #7C3AED;
+            border: 1px solid rgba(124,58,237,0.3);
+        }
+        .btn-secondary:hover { background: rgba(124,58,237,0.08); }
+
+        /* Metrics */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #1A1832;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-left: 4px solid #7C3AED;
+        }
+        .metric-card.success { border-left-color: #10B981; }
+        .metric-card.warning { border-left-color: #F59E0B; }
+        .metric-card.danger { border-left-color: #EF4444; }
+
+        .metric-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+
+        .metric-detail {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+        }
+
+        /* Tables */
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th {
+            background: #2D1B69;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(124,58,237,0.1);
+            font-size: 13px;
+            color: #E2E0EA;
+        }
+
+        tr:hover td { background: rgba(124,58,237,0.08); }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-r1, .badge-r2 { background: rgba(16,185,129,0.2); color: #10B981; }
+        .badge-r3, .badge-r4 { background: rgba(245,158,11,0.2); color: #F59E0B; }
+        .badge-r5, .badge-r6 { background: rgba(239,68,68,0.2); color: #EF4444; }
+
+        .badge-si { background: rgba(16,185,129,0.2); color: #10B981; }
+        .badge-no { background: rgba(239,68,68,0.2); color: #EF4444; }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin: 20px 0 8px 0;
+        }
+
+        .obs-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .obs-list li {
+            padding: 8px 12px;
+            background: rgba(245,158,11,0.15);
+            border-left: 3px solid #F59E0B;
+            margin-bottom: 6px;
+            border-radius: 0 6px 6px 0;
+            font-size: 13px;
+            color: #F59E0B;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .error-msg {
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .results { display: none; }
+        .results.visible { display: block; }
+
+        /* Waterfall chart */
+        .waterfall {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .waterfall-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .waterfall-label {
+            width: 180px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.7);
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .waterfall-bar-container {
+            flex: 1;
+            height: 28px;
+            position: relative;
+        }
+        .waterfall-bar {
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            min-width: 60px;
+        }
+        .waterfall-bar.income { background: #10B981; }
+        .waterfall-bar.expense { background: #EF4444; }
+        .waterfall-bar.result { background: #7C3AED; }
+        .waterfall-bar.adjusted { background: #6366F1; }
+
+        .divider {
+            height: 1px;
+            background: rgba(124,58,237,0.2);
+            margin: 20px 0;
+        }
+
+        .json-view {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+        }
+        .tab-bar .btn {
+            border-radius: 0;
+            border: 1px solid rgba(124,58,237,0.3);
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+        }
+        .tab-bar .btn:first-child { border-radius: 8px 0 0 8px; }
+        .tab-bar .btn:last-child { border-radius: 0 8px 8px 0; }
+        .tab-bar .btn.active { background: #7C3AED; color: white; }
     </style>
 </head>
 <body>
@@ -116,7 +367,7 @@
         </svg>
         <span class="brand-name">Morada</span>
     </div>
-    <span class="header-subtitle">Gastos B&aacute;sicos</span>
+    <span class="header-subtitle">Capacidad de Pago</span>
 </div>
 
 <div class="nav">
@@ -124,20 +375,460 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
-    <a href="/gastos-basicos" class="active">Gastos B&aacute;sicos</a>
+    <a href="/gastos-basicos" class="active">Capacidad de Pago</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
 <div class="container">
-    <div class="card">
-        <h2>Gastos B&aacute;sicos</h2>
-        <div class="subtitle">An&aacute;lisis de gastos b&aacute;sicos del solicitante</div>
-        <div class="empty-state">
-            <div class="icon">&#128203;</div>
-            P&aacute;gina en construcci&oacute;n
+
+    <!-- Input Form -->
+    <div class="card" id="form-card">
+        <h2>Datos del Solicitante</h2>
+        <div class="subtitle">Ingrese los datos para consultar Experian HDC+ y calcular la capacidad de pago</div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>C&eacute;dula</label>
+                <input type="text" id="cedula" placeholder="1017207712">
+            </div>
+            <div class="form-group">
+                <label>Primer Apellido</label>
+                <input type="text" id="apellido" placeholder="Uribe">
+            </div>
+            <div class="form-group">
+                <label>Tipo Documento</label>
+                <select id="tipo_doc">
+                    <option value="CC" selected>CC - C&eacute;dula</option>
+                    <option value="CE">CE - Extranjer&iacute;a</option>
+                    <option value="PAS">PAS - Pasaporte</option>
+                    <option value="PPT">PPT</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ingreso Bruto ($)</label>
+                <input type="number" id="ingreso_bruto" placeholder="5000000" step="100000">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+        <h2>An&aacute;lisis Manual (sin HDC)</h2>
+        <div class="subtitle">O ingrese directamente el score y las obligaciones en formato JSON</div>
+
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Score Advance</label>
+                <input type="number" id="score_manual" placeholder="750">
+            </div>
+        </div>
+        <div class="form-group" style="margin-top: 16px;">
+            <label>Obligaciones (JSON)</label>
+            <textarea id="obligaciones_json" rows="8" style="width:100%; background:#161429; border:1px solid rgba(124,58,237,0.3); border-radius:8px; padding:12px; color:#E2E0EA; font-family:'SF Mono','Fira Code',monospace; font-size:12px; resize:vertical;" placeholder='[
+  {
+    "entidad_nit": "860002964",
+    "entidad_nombre": "BANCO DE BOGOTA",
+    "linea_credito": "TDC",
+    "account_type": 2,
+    "sub_account_type": "00",
+    "cupo": 10000000,
+    "saldo": 5000000,
+    "cuota_reportada": 200000,
+    "calidad_deudor": "00"
+  }
+]'></textarea>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-primary" id="btn-consultar" onclick="consultarHDC()">Consultar Experian HDC+</button>
+            <button class="btn btn-secondary" id="btn-manual" onclick="analizarManual()">An&aacute;lisis Manual</button>
+        </div>
+
+        <div id="error-container" class="error-msg" style="display:none; margin-top:16px;"></div>
+        <div id="loading" class="loading" style="display:none;">Consultando Experian...</div>
+    </div>
+
+    <!-- Results -->
+    <div class="results" id="results">
+
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <button class="btn active" onclick="showTab('resumen')">Resumen</button>
+            <button class="btn" onclick="showTab('detalle')">Detalle Obligaciones</button>
+            <button class="btn" onclick="showTab('json')">JSON</button>
+        </div>
+
+        <!-- Tab: Resumen -->
+        <div id="tab-resumen">
+            <!-- Top metrics -->
+            <div class="summary-grid" id="top-metrics"></div>
+
+            <!-- Waterfall chart -->
+            <div class="card">
+                <h2>Cascada de Capacidad de Pago</h2>
+                <div id="waterfall-chart"></div>
+            </div>
+
+            <!-- Breakdown -->
+            <div class="card">
+                <h2>Desglose por Secci&oacute;n</h2>
+                <div id="breakdown-table"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Detalle obligaciones -->
+        <div id="tab-detalle" style="display:none;">
+            <div class="card">
+                <h2>Obligaciones del Solicitante Principal</h2>
+                <div class="table-wrap" id="obligaciones-table"></div>
+            </div>
+        </div>
+
+        <!-- Tab: JSON -->
+        <div id="tab-json" style="display:none;">
+            <div class="card">
+                <h2>Respuesta Completa</h2>
+                <div class="json-view" id="json-output"></div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+const FMT = new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0});
+const PCT = new Intl.NumberFormat('es-CO', {style:'percent', minimumFractionDigits:1, maximumFractionDigits:1});
+
+function fmt(v) { return FMT.format(v); }
+function pct(v) { return PCT.format(v); }
+
+function riesgoBadge(nivel) {
+    const cls = nivel <= 2 ? `badge-r${nivel}` : nivel <= 4 ? `badge-r${nivel}` : `badge-r${nivel}`;
+    return `<span class="badge ${cls}">R${nivel}</span>`;
+}
+
+function showTab(name) {
+    ['resumen','detalle','json'].forEach(t => {
+        document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
+    });
+    document.querySelectorAll('.tab-bar .btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase().includes(name === 'resumen' ? 'resumen' : name === 'detalle' ? 'detalle' : 'json'));
+    });
+}
+
+function showError(msg) {
+    const el = document.getElementById('error-container');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+function hideError() {
+    document.getElementById('error-container').style.display = 'none';
+}
+
+async function consultarHDC() {
+    hideError();
+    const cedula = document.getElementById('cedula').value.trim();
+    const apellido = document.getElementById('apellido').value.trim();
+    const ingreso = parseFloat(document.getElementById('ingreso_bruto').value) || 0;
+
+    if (!cedula || !apellido || !ingreso) {
+        showError('Complete cédula, apellido e ingreso bruto');
+        return;
+    }
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('btn-consultar').disabled = true;
+    document.getElementById('results').classList.remove('visible');
+
+    try {
+        const resp = await fetch('/filtro/capacidad-pago', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                cedula: cedula,
+                primer_apellido: apellido,
+                tipo_documento: document.getElementById('tipo_doc').value,
+                ingreso_bruto: ingreso,
+            }),
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.detail || `Error ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        renderResults(data.analisis, data.hdc_principal);
+    } catch (e) {
+        showError(e.message);
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('btn-consultar').disabled = false;
+    }
+}
+
+async function analizarManual() {
+    hideError();
+    const cedula = document.getElementById('cedula').value.trim() || 'manual';
+    const ingreso = parseFloat(document.getElementById('ingreso_bruto').value) || 0;
+    const score = parseInt(document.getElementById('score_manual').value) || null;
+
+    if (!ingreso) {
+        showError('Ingrese el ingreso bruto');
+        return;
+    }
+
+    let obligaciones = [];
+    const jsonText = document.getElementById('obligaciones_json').value.trim();
+    if (jsonText) {
+        try {
+            obligaciones = JSON.parse(jsonText);
+        } catch (e) {
+            showError('JSON de obligaciones inválido: ' + e.message);
+            return;
+        }
+    }
+
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('loading').textContent = 'Calculando...';
+    document.getElementById('btn-manual').disabled = true;
+    document.getElementById('results').classList.remove('visible');
+
+    try {
+        const resp = await fetch('/filtro/analisis-gastos', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                solicitante_principal: {
+                    cedula: cedula,
+                    ingreso_bruto: ingreso,
+                    score_advance: score,
+                    obligaciones: obligaciones,
+                },
+            }),
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.detail || `Error ${resp.status}`);
+        }
+
+        const data = await resp.json();
+        renderResults(data, null);
+    } catch (e) {
+        showError(e.message);
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loading').textContent = 'Consultando Experian...';
+        document.getElementById('btn-manual').disabled = false;
+    }
+}
+
+function renderResults(analisis, hdc) {
+    const p = analisis.solicitante_principal;
+    const full = { analisis, hdc };
+
+    // Top metrics
+    const metricsEl = document.getElementById('top-metrics');
+    const disponibleClass = analisis.disponible_pago > 0 ? 'success' : 'danger';
+
+    metricsEl.innerHTML = `
+        <div class="metric-card">
+            <div class="metric-label">Ingreso Bruto</div>
+            <div class="metric-value">${fmt(p.ingreso_bruto)}</div>
+            <div class="metric-detail">${p.ingreso_smlmv.toFixed(1)} SMLMV</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Score Advance</div>
+            <div class="metric-value">${p.score_advance || 'N/A'}</div>
+            <div class="metric-detail">Nivel de riesgo: ${riesgoBadge(p.nivel_riesgo)}</div>
+        </div>
+        <div class="metric-card warning">
+            <div class="metric-label">Total Egresos</div>
+            <div class="metric-value">${fmt(analisis.total_egresos)}</div>
+            <div class="metric-detail">${pct(analisis.total_egresos / p.ingreso_bruto)} del ingreso</div>
+        </div>
+        <div class="metric-card ${disponibleClass}">
+            <div class="metric-label">Disponible para Cuota</div>
+            <div class="metric-value">${fmt(analisis.disponible_pago)}</div>
+            <div class="metric-detail">Factor ajuste: ${pct(analisis.factor_ajuste)} (${riesgoBadge(analisis.nivel_riesgo_ajuste)})</div>
+        </div>
+    `;
+
+    // Waterfall chart
+    const maxVal = p.ingreso_bruto;
+    const barPct = (v) => Math.max(3, Math.abs(v) / maxVal * 100);
+
+    const waterfallEl = document.getElementById('waterfall-chart');
+    waterfallEl.innerHTML = `
+        <div class="waterfall">
+            <div class="waterfall-row">
+                <div class="waterfall-label">8.3 Ingreso Bruto</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar income" style="width:${barPct(analisis.total_ingreso_bruto)}%">${fmt(analisis.total_ingreso_bruto)}</div>
+                </div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">8.4 Gastos B&aacute;sicos</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar expense" style="width:${barPct(p.gastos_basicos)}%">-${fmt(p.gastos_basicos)}</div>
+                </div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">8.5 Cuotas Centrales</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar expense" style="width:${barPct(p.total_cuotas_centrales)}%">-${fmt(p.total_cuotas_centrales)}</div>
+                </div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">8.6 Descuentos N&oacute;mina</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar expense" style="width:${barPct(p.total_descuentos_nomina)}%">-${fmt(p.total_descuentos_nomina)}</div>
+                </div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">8.8 Ingreso Neto</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar result" style="width:${barPct(analisis.ingreso_neto)}%">${fmt(analisis.ingreso_neto)}</div>
+                </div>
+            </div>
+            <div class="waterfall-row">
+                <div class="waterfall-label">8.10 Disponible (${pct(analisis.factor_ajuste)})</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar adjusted" style="width:${barPct(analisis.disponible_pago)}%">${fmt(analisis.disponible_pago)}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Breakdown table
+    const breakdownEl = document.getElementById('breakdown-table');
+    breakdownEl.innerHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Secci&oacute;n</th>
+                    <th>Concepto</th>
+                    <th class="text-right">%</th>
+                    <th class="text-right">Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>8.3</td>
+                    <td>Ingreso Bruto Total</td>
+                    <td class="text-right">100%</td>
+                    <td class="text-right" style="color:#10B981;font-weight:600;">${fmt(analisis.total_ingreso_bruto)}</td>
+                </tr>
+                <tr>
+                    <td>8.4</td>
+                    <td>Gastos B&aacute;sicos</td>
+                    <td class="text-right">${pct(p.porcentaje_gastos_basicos)}</td>
+                    <td class="text-right" style="color:#EF4444;">-${fmt(p.gastos_basicos)}</td>
+                </tr>
+                <tr>
+                    <td>8.5</td>
+                    <td>Cuotas Centrales de Riesgo (${p.detalle_obligaciones.length} obligaciones)</td>
+                    <td class="text-right">&mdash;</td>
+                    <td class="text-right" style="color:#EF4444;">-${fmt(p.total_cuotas_centrales)}</td>
+                </tr>
+                <tr>
+                    <td>8.6a</td>
+                    <td>Retenci&oacute;n en la Fuente</td>
+                    <td class="text-right">${pct(p.porcentaje_retefuente)}</td>
+                    <td class="text-right" style="color:#EF4444;">-${fmt(p.retefuente)}</td>
+                </tr>
+                <tr>
+                    <td>8.6b</td>
+                    <td>Fondo Solidaridad Pensional</td>
+                    <td class="text-right">${pct(p.porcentaje_solidaridad)}</td>
+                    <td class="text-right" style="color:#EF4444;">-${fmt(p.solidaridad)}</td>
+                </tr>
+                <tr style="border-top:2px solid rgba(124,58,237,0.3);">
+                    <td><strong>8.7</strong></td>
+                    <td><strong>Total Egresos</strong></td>
+                    <td class="text-right"><strong>${pct(analisis.total_egresos / analisis.total_ingreso_bruto)}</strong></td>
+                    <td class="text-right" style="color:#EF4444;font-weight:700;">-${fmt(analisis.total_egresos)}</td>
+                </tr>
+                <tr>
+                    <td><strong>8.8</strong></td>
+                    <td><strong>Ingreso Neto</strong></td>
+                    <td class="text-right">&mdash;</td>
+                    <td class="text-right" style="color:#7C3AED;font-weight:700;">${fmt(analisis.ingreso_neto)}</td>
+                </tr>
+                <tr>
+                    <td>8.9</td>
+                    <td>Factor de Ajuste ${riesgoBadge(analisis.nivel_riesgo_ajuste)}</td>
+                    <td class="text-right">${pct(analisis.factor_ajuste)}</td>
+                    <td class="text-right">&mdash;</td>
+                </tr>
+                <tr style="background:rgba(124,58,237,0.08);">
+                    <td><strong>8.10</strong></td>
+                    <td><strong>Disponible para Pago de Cuota</strong></td>
+                    <td class="text-right">&mdash;</td>
+                    <td class="text-right" style="color:${analisis.disponible_pago >= 0 ? '#10B981' : '#EF4444'};font-weight:700;font-size:16px;">${fmt(analisis.disponible_pago)}</td>
+                </tr>
+            </tbody>
+        </table>
+    `;
+
+    // Obligaciones detail table
+    const obEl = document.getElementById('obligaciones-table');
+    if (p.detalle_obligaciones.length === 0) {
+        obEl.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);">Sin obligaciones registradas</div>';
+    } else {
+        let rows = p.detalle_obligaciones.map(ob => {
+            const obsHtml = ob.observaciones.length ? `<ul class="obs-list">${ob.observaciones.map(o => `<li>${o}</li>`).join('')}</ul>` : '';
+            return `
+                <tr>
+                    <td>${ob.entidad || '—'}</td>
+                    <td><span class="badge badge-si">${ob.linea_credito}</span></td>
+                    <td class="text-right">${fmt(ob.cupo)}</td>
+                    <td class="text-right">${fmt(ob.saldo)}</td>
+                    <td class="text-right">${fmt(ob.cuota_reportada)}</td>
+                    <td class="text-right">${fmt(ob.cuota_calculada)}</td>
+                    <td class="text-center">${ob.es_deudor_principal ? '<span class="badge badge-si">Principal</span>' : '<span class="badge badge-no">Codeudor</span>'}</td>
+                    <td class="text-right">${pct(ob.porcentaje_calidad)}</td>
+                    <td class="text-center">${ob.excluida_por_cuotas ? '<span class="badge badge-no">Excluida</span>' : ''}</td>
+                    <td class="text-right" style="font-weight:600;">${fmt(ob.cuota_final)}</td>
+                </tr>
+                ${obsHtml ? `<tr><td colspan="10" style="padding:4px 12px;">${obsHtml}</td></tr>` : ''}
+            `;
+        }).join('');
+
+        obEl.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Entidad</th>
+                        <th>L&iacute;nea</th>
+                        <th class="text-right">Cupo</th>
+                        <th class="text-right">Saldo</th>
+                        <th class="text-right">Cuota Rep.</th>
+                        <th class="text-right">Cuota Calc.</th>
+                        <th class="text-center">Calidad</th>
+                        <th class="text-right">% Calidad</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-right">Cuota Final</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+                <tfoot>
+                    <tr style="background:rgba(124,58,237,0.1);">
+                        <td colspan="9" style="font-weight:700;">Total Cuotas Centrales</td>
+                        <td class="text-right" style="font-weight:700;font-size:15px;">${fmt(p.total_cuotas_centrales)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        `;
+    }
+
+    // JSON tab
+    document.getElementById('json-output').textContent = JSON.stringify(full, null, 2);
+
+    // Show results
+    document.getElementById('results').classList.add('visible');
+    showTab('resumen');
+}
+</script>
 
 </body>
 </html>

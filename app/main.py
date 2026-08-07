@@ -8,6 +8,8 @@ from app.api.filtro import router as filtro_router
 from app.api.cliente import router as cliente_router
 from app.api.certificado import router as certificado_router
 from app.api.documentos import router as documentos_router
+from app.api.experian import router as experian_router
+from app.api.gastos import router as gastos_router
 
 app = FastAPI(
     title="Morada Capital — Filtro de Originación",
@@ -16,9 +18,11 @@ app = FastAPI(
 )
 
 app.include_router(filtro_router)
+app.include_router(gastos_router)
 app.include_router(cliente_router)
 app.include_router(certificado_router)
 app.include_router(documentos_router)
+app.include_router(experian_router)
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 

@@ -253,6 +253,33 @@
             transition: all 0.2s;
         }
         .btn-consultar-inm:hover { background: #6D28D9; }
+        .valor-aceptado-card {
+            background: #1A1832;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-left: 4px solid #10B981;
+            margin-top: 16px;
+            display: none;
+        }
+        .valor-aceptado-card.danger { border-left-color: #EF4444; }
+        .valor-aceptado-card .va-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .valor-aceptado-card .va-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FFFFFF;
+        }
+        .valor-aceptado-card .va-detail {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -284,6 +311,11 @@
         <h2>Inmuebles Declarados</h2>
         <p class="subtitle">Seleccione un inmueble para consultar su Certificado de Tradici&oacute;n y Libertad</p>
         <div class="inmueble-tabs" id="inmuebleTabs"></div>
+        <div class="valor-aceptado-card" id="cardValorAceptado">
+            <div class="va-label">Valor Aceptado</div>
+            <div class="va-value" id="vaValor"></div>
+            <div class="va-detail" id="vaDetalle"></div>
+        </div>
     </div>
 
     <div class="card" id="cardPinManual" style="display:none;">
@@ -428,8 +460,7 @@ function renderTabs() {
         if (consultado) html += '<span class="tab-check">&#10003;</span>';
         html += '<span class="tab-sub">' + inm.tipoLabel + '</span>';
         if (inm.valor_aceptado !== undefined) {
-            var colorVA = inm.valor_aceptado > 0 ? '#10B981' : '#EF4444';
-            html += '<span class="tab-sub" style="color:' + colorVA + '; font-weight:600;">Valor Aceptado: $' + inm.valor_aceptado.toLocaleString('es-CO') + '</span>';
+            html += '<span class="tab-sub" style="color:#10B981; font-weight:600;">&#10003; Valorado</span>';
         }
         html += '</button>';
     }
@@ -441,6 +472,7 @@ function seleccionarInmueble(idx) {
     var inm = todosInmuebles[idx];
 
     renderTabs();
+    mostrarValorAceptadoCard();
 
     document.getElementById('tituloInmueble').textContent = 'Inmueble ' + (idx + 1) + ' — Solicitante ' + inm.tipoLabel;
     document.getElementById('tituloInmueble').style.display = 'block';
@@ -714,6 +746,30 @@ function actualizarValorAceptado(idx, valor) {
         }
     }
     renderTabs();
+    mostrarValorAceptadoCard();
+}
+
+function mostrarValorAceptadoCard() {
+    var card = document.getElementById('cardValorAceptado');
+    var total = 0;
+    var count = 0;
+    var detalles = [];
+    for (var i = 0; i < todosInmuebles.length; i++) {
+        var inm = todosInmuebles[i];
+        if (inm.valor_aceptado !== undefined && inm.valor_aceptado > 0) {
+            total += inm.valor_aceptado;
+            count++;
+            detalles.push('Inmueble ' + (i + 1) + ': $' + Math.round(inm.valor_aceptado).toLocaleString('es-CO'));
+        }
+    }
+    if (count === 0) {
+        card.style.display = 'none';
+        return;
+    }
+    card.className = 'valor-aceptado-card';
+    card.style.display = 'block';
+    document.getElementById('vaValor').textContent = '$' + Math.round(total).toLocaleString('es-CO');
+    document.getElementById('vaDetalle').textContent = count === 1 ? detalles[0] : 'Suma de ' + count + ' inmuebles: ' + detalles.join(' + ');
 }
 
 function renderContrato(idx) {
