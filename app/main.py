@@ -27,6 +27,21 @@ app.include_router(experian_router)
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 
+@app.middleware("http")
+async def sin_cache_estaticos(request, call_next):
+    """Obliga al navegador a revalidar HTML y JS en cada carga.
+
+    Sin esto el navegador reutiliza copias viejas de /static (por ejemplo
+    solicitantes.js) tras un cambio y las páginas fallan a medio cargar.
+    La revalidación usa el ETag, así que el costo es mínimo.
+    """
+    response = await call_next(request)
+    ctype = response.headers.get("content-type", "")
+    if request.url.path.startswith("/static") or "text/html" in ctype:
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/")
 def root():
     return FileResponse(str(STATIC_DIR / "index.html"))

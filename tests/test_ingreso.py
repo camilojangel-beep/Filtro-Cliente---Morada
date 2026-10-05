@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from app.config import settings
 from app.models.experian import (
     Aportante,
     ExperianData,
@@ -322,7 +323,8 @@ class TestDossSolicitantes:
             parentesco=Parentesco.HERMANO,
             score_principal=600,
             score_secundario=300,
-            moras_actuales_secundario=800_000,  # > 0.5 SMLMV
+            # Justo por encima del tope de 0.5 SMLMV, sea cual sea el SMLMV vigente
+            moras_actuales_secundario=0.5 * settings.SMLMV + 1,
         )
         resp = evaluar_ingreso(req)
         # participación 1M / 9M = 11% ≤ 20% → score bajo OK pero moras no

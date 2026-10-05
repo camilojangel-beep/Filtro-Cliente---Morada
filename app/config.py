@@ -8,7 +8,9 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
 class Settings(BaseModel):
-    SMLMV: float = 1_423_500
+    # Salario mínimo mensual legal vigente (2026). Es el mismo valor del Excel de
+    # tablas de la política y el que usan analista.html y carpeta_documentos.html.
+    SMLMV: float = 1_750_905
     VIGENCIA_CONSULTA_DIAS: int = 30
     SCORE_MINIMO_PRODUCTO: float = 500
     PARTICIPACION_MINIMA_SEGUNDO_SOLICITANTE: float = 0.20

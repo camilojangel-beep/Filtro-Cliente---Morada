@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from typing import Optional
 
-from app.services.experian_hdc import consultar_hdc
+from app.models.hdc import ResultadoHDC
+from app.services.experian_hdc import consultar_hdc, parsear_respuesta_hdc
 from app.services.experian_valor_ingreso import consultar_valor_ingreso
 
 router = APIRouter(prefix="/experian", tags=["Experian"])
@@ -33,6 +34,31 @@ async def obtener_hdc(req: ConsultaExperianRequest):
         )
 
     return resultado
+
+
+class ParsearHDCRequest(BaseModel):
+    """JSON HDC+ subido por el analista (respuesta cruda de Experian)."""
+    respuesta: dict
+    cedula: Optional[str] = None
+
+
+@router.post("/hdc/parsear", response_model=ResultadoHDC)
+def parsear_hdc(req: ParsearHDCRequest):
+    """Interpreta un JSON HDC+ ya obtenido sin volver a consultar Experian.
+
+    Usado por la Carpeta para mostrar el score a partir del archivo subido.
+    """
+    if "ReportHDCplus" not in req.respuesta:
+        raise HTTPException(
+            status_code=422,
+            detail="El JSON no parece una respuesta HDC+: falta 'ReportHDCplus'",
+        )
+    try:
+        return parsear_respuesta_hdc(req.respuesta, req.cedula)
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=422, detail=f"JSON HDC+ inválido: {e.errors()[0].get('msg', e)}"
+        )
 
 
 @router.post("/valor-ingreso")

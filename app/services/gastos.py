@@ -113,6 +113,100 @@ _TABLA_PCT_CONTINGENTE: list[list[float]] = [
 ]
 
 
+# Rangos de ingreso (en SMLMV) de _TABLA_GASTOS_BASICOS, en el mismo orden
+# que las filas, para mostrarlos en pantalla.
+_RANGOS_GASTOS_BASICOS: list[str] = [
+    "> 15", "> 10 a 15", "> 8 a 10", "> 4 a 8", "> 2 a 4", "1 a 2", "< 1",
+]
+
+# Rangos de meses para pagar de _TABLA_PCT_SALDO / _TABLA_PCT_CONTINGENTE.
+_RANGOS_MESES: list[str] = [
+    "0", "> 0 a 3", "> 3 a 6", "> 6 a 9", "> 9 a 12", "> 12",
+]
+
+# Umbrales de score por nivel de riesgo (R1..R6).
+_UMBRALES_RIESGO: list[Tuple[int, str]] = [
+    (1, "≥ 895"), (2, "850 a 894"), (3, "807 a 849"),
+    (4, "753 a 806"), (5, "707 a 752"), (6, "< 707 o sin score"),
+]
+
+
+def _fila_gastos_basicos(ingreso_smlmv: float) -> int:
+    """Índice de fila de _TABLA_GASTOS_BASICOS que aplica al ingreso."""
+    n = ingreso_smlmv
+    if n > 15:
+        return 0
+    if n > 10:
+        return 1
+    if n > 8:
+        return 2
+    if n > 4:
+        return 3
+    if n > 2:
+        return 4
+    if n >= 1:
+        return 5
+    return 6
+
+
+def _fila_meses(meses: float) -> int:
+    """Índice de fila de las tablas de % por meses para pagar."""
+    if meses == 0:
+        return 0
+    if meses <= 3:
+        return 1
+    if meses <= 6:
+        return 2
+    if meses <= 9:
+        return 3
+    if meses <= 12:
+        return 4
+    return 5
+
+
+def parametros_politica() -> dict:
+    """Tablas de la política (8.4 y 8.5) tal como las usa el motor, para
+    mostrarlas en la hoja de Capacidad de Pago."""
+    return {
+        "smlmv": settings.SMLMV,
+        "niveles_riesgo": [
+            {"nivel": n, "score": s} for n, s in _UMBRALES_RIESGO
+        ],
+        "gastos_basicos": {
+            "rangos_smlmv": _RANGOS_GASTOS_BASICOS,
+            "tabla": [fila for _, fila in _TABLA_GASTOS_BASICOS],
+        },
+        "cuotas_centrales": {
+            "lineas": [
+                {"linea": "TDC", "tasa_ea": _TASA_EA_TDC, "plazo_meses": _PLAZO_TDC,
+                 "metodo": "% sobre saldo + % sobre cupo contingente"},
+                {"linea": "ROT", "tasa_ea": _TASA_EA_ROT, "plazo_meses": _PLAZO_ROT,
+                 "metodo": "% sobre saldo + % sobre cupo contingente"},
+                {"linea": "CAB", "tasa_ea": _TASA_EA_CAB, "plazo_meses": None,
+                 "metodo": "max(cuota reportada mensualizada, anualidad a plazo total)"},
+                {"linea": "VIV", "tasa_ea": _TASA_EA_VIV, "plazo_meses": None,
+                 "metodo": "max(cuota reportada mensualizada, anualidad a plazo total)"},
+                {"linea": "SOSTENIMIENTO", "tasa_ea": None, "plazo_meses": None,
+                 "metodo": "cuota 0 (incluido en gastos básicos); castigado exige saldo"},
+            ],
+            "rangos_meses": _RANGOS_MESES,
+            "pct_saldo": _TABLA_PCT_SALDO,
+            "pct_contingente": _TABLA_PCT_CONTINGENTE,
+            "calidad_deudor": [
+                {"calidad": "Deudor principal (00)", "linea": "Todas", "pct": 1.0},
+                {"calidad": "Codeudor / otra", "linea": "TDC, ROT, Sostenimiento", "pct": 1.0},
+                {"calidad": "Codeudor / otra", "linea": "VIV", "pct": 0.50},
+                {"calidad": "Codeudor / otra", "linea": "CAB", "pct": 0.25},
+            ],
+            "reglas": [
+                "CAB/VIV con ≤ 2 meses faltantes (o ≤ 2 cuotas restantes) se excluyen: cuota 0.",
+                "Obligaciones en mora nunca se excluyen; sin cuota calculable, el saldo es exigible.",
+                "Castigadas / dudoso recaudo (estados 05, 06): la cuota nunca es menor al saldo.",
+            ],
+        },
+    }
+
+
 # =========================================================================
 # Funciones auxiliares
 # =========================================================================
@@ -145,18 +239,7 @@ def _pmt(tasa_mensual: float, n_meses: float, valor_presente: float) -> float:
 
 
 def _buscar_pct(tabla: list[list[float]], meses: float, nivel_riesgo: int) -> float:
-    idx = nivel_riesgo - 1
-    if meses == 0:
-        return tabla[0][idx]
-    if meses <= 3:
-        return tabla[1][idx]
-    if meses <= 6:
-        return tabla[2][idx]
-    if meses <= 9:
-        return tabla[3][idx]
-    if meses <= 12:
-        return tabla[4][idx]
-    return tabla[5][idx]
+    return tabla[_fila_meses(meses)][nivel_riesgo - 1]
 
 
 def _parse_fecha(fecha_str: Optional[str]) -> Optional[date]:
@@ -186,6 +269,49 @@ def _es_deudor_principal(calidad: str) -> bool:
     return calidad == "00"
 
 
+# Estados HDC+ (status.account.businessAccountStatus) con deuda exigible en
+# su totalidad: 05 DUDOSO RECAUDO, 06 CASTIGADA.
+_ESTADOS_CASTIGADA = {"05", "06"}
+# 02 EN MORA
+_ESTADOS_MORA = {"02"} | _ESTADOS_CASTIGADA
+
+
+def _es_castigada(ob: ObligacionCredito) -> bool:
+    return ob.estado_cuenta in _ESTADOS_CASTIGADA
+
+
+def _esta_en_mora(ob: ObligacionCredito) -> bool:
+    return (
+        ob.estado_cuenta in _ESTADOS_MORA
+        or ob.cuotas_mora > 0
+        or ob.monto_mora > 0
+    )
+
+
+def _campos_estado(ob: ObligacionCredito) -> dict:
+    return dict(
+        calidad_deudor_desc=ob.calidad_deudor_desc,
+        estado_cuenta=ob.estado_cuenta,
+        estado_cuenta_desc=ob.estado_cuenta_desc,
+        cuotas_mora=ob.cuotas_mora,
+        monto_mora=ob.monto_mora,
+        en_mora=_esta_en_mora(ob),
+        castigada=_es_castigada(ob),
+    )
+
+
+def _aplicar_castigo(ob: ObligacionCredito, cuota: float, obs: list[str]) -> float:
+    """Crédito castigado / dudoso recaudo: el saldo es exigible en su
+    totalidad, así que la cuota nunca es menor al saldo."""
+    if not _es_castigada(ob):
+        return cuota
+    obs.append(
+        f"{ob.estado_cuenta_desc or 'Castigada'}: saldo {ob.saldo:,.0f} "
+        f"exigible en su totalidad"
+    )
+    return max(cuota, ob.saldo)
+
+
 def _porcentaje_calidad(calidad: str, linea: LineaCredito) -> float:
     if _es_deudor_principal(calidad):
         return 1.0
@@ -213,23 +339,7 @@ def calcular_gastos_basicos(
     smlmv = settings.SMLMV
     n = ingreso_bruto / smlmv if smlmv else 0
     idx = _nivel_riesgo(score) - 1
-
-    if n > 15:
-        porcentajes = _TABLA_GASTOS_BASICOS[0][1]
-    elif n > 10:
-        porcentajes = _TABLA_GASTOS_BASICOS[1][1]
-    elif n > 8:
-        porcentajes = _TABLA_GASTOS_BASICOS[2][1]
-    elif n > 4:
-        porcentajes = _TABLA_GASTOS_BASICOS[3][1]
-    elif n > 2:
-        porcentajes = _TABLA_GASTOS_BASICOS[4][1]
-    elif n >= 1:
-        porcentajes = _TABLA_GASTOS_BASICOS[5][1]
-    else:
-        porcentajes = _TABLA_GASTOS_BASICOS[6][1]
-
-    pct = porcentajes[idx]
+    pct = _TABLA_GASTOS_BASICOS[_fila_gastos_basicos(n)][1][idx]
     return pct, ingreso_bruto * pct
 
 
@@ -263,6 +373,12 @@ def _calcular_cuota_tdc_rot(
 
     cuota_total = cuota_saldo + cuota_cont
 
+    if _esta_en_mora(ob) and not _es_castigada(ob):
+        obs.append(
+            f"En mora: {ob.cuotas_mora} cuota(s), {ob.monto_mora:,.0f} vencido"
+        )
+    cuota_final = _aplicar_castigo(ob, cuota_total, obs)
+
     return DetalleObligacion(
         entidad=ob.entidad_nombre,
         linea_credito=ob.linea_credito,
@@ -271,6 +387,7 @@ def _calcular_cuota_tdc_rot(
         cuota_reportada=ob.cuota_reportada,
         cuota_anualidad=round(cuota_anualidad_saldo, 2),
         meses_para_pagar=round(meses_pagar, 2),
+        fila_tabla_meses=_fila_meses(meses_pagar),
         porcentaje_saldo=pct_saldo,
         cuota_por_saldo=round(cuota_saldo, 2),
         cupo_contingente=round(cupo_cont, 2),
@@ -282,8 +399,9 @@ def _calcular_cuota_tdc_rot(
         es_deudor_principal=_es_deudor_principal(ob.calidad_deudor),
         porcentaje_calidad=1.0,
         cuota_ajustada_calidad=round(cuota_total, 2),
-        cuota_final=round(cuota_total, 2),
+        cuota_final=round(cuota_final, 2),
         observaciones=obs,
+        **_campos_estado(ob),
     )
 
 
@@ -312,6 +430,13 @@ def _calcular_cuota_cab_viv(
             f"Cuota calculada ({cuota_anualidad:,.0f}) > reportada ({cuota_mensualizada:,.0f})"
         )
 
+    en_mora = _esta_en_mora(ob)
+
+    # Crédito vencido / en mora sin cuota calculable: el saldo es exigible
+    if en_mora and cuota <= 0 < ob.saldo:
+        cuota = ob.saldo
+        obs.append(f"En mora sin cuota reportada: saldo {ob.saldo:,.0f} exigible")
+
     # Ajuste por calidad del deudor (solo CAB/VIV)
     principal = _es_deudor_principal(ob.calidad_deudor)
     pct_calidad = _porcentaje_calidad(ob.calidad_deudor, ob.linea_credito)
@@ -322,9 +447,17 @@ def _calcular_cuota_cab_viv(
             f"Calidad {ob.calidad_deudor}: se aplica {pct_calidad:.0%} de la cuota"
         )
 
-    # Exclusión: <= 2 meses faltantes calculados desde fechas, o cuotas_restantes
+    # Exclusión: <= 2 meses faltantes calculados desde fechas, o cuotas_restantes.
+    # Nunca aplica a obligaciones en mora o castigadas: un crédito vencido con
+    # saldo sigue siendo exigible.
     excluida = False
-    if meses_faltantes is not None and meses_faltantes <= 2:
+    if en_mora:
+        if not _es_castigada(ob):
+            obs.append(
+                f"En mora: {ob.cuotas_mora} cuota(s), {ob.monto_mora:,.0f} vencido; "
+                f"no se excluye"
+            )
+    elif meses_faltantes is not None and meses_faltantes <= 2:
         excluida = True
         obs.append(f"≤ 2 meses faltantes ({meses_faltantes:.1f}): cuota = 0")
     elif (
@@ -336,6 +469,7 @@ def _calcular_cuota_cab_viv(
         obs.append(f"≤ 2 cuotas restantes ({ob.cuotas_restantes}): cuota = 0")
 
     cuota_final = 0.0 if excluida else cuota_calidad
+    cuota_final = _aplicar_castigo(ob, cuota_final, obs)
 
     return DetalleObligacion(
         entidad=ob.entidad_nombre,
@@ -356,6 +490,7 @@ def _calcular_cuota_cab_viv(
         excluida_por_cuotas=excluida,
         cuota_final=round(cuota_final, 2),
         observaciones=obs,
+        **_campos_estado(ob),
     )
 
 
@@ -366,6 +501,9 @@ def calcular_cuota_obligacion(
     nivel = _nivel_riesgo(score)
 
     if ob.linea_credito == LineaCredito.SOSTENIMIENTO:
+        obs.append("Sostenimiento: cuota = 0 (incluido en gastos básicos)")
+        # Un servicio castigado con saldo sí es deuda exigible
+        cuota_final = _aplicar_castigo(ob, 0.0, obs)
         return DetalleObligacion(
             entidad=ob.entidad_nombre,
             linea_credito=ob.linea_credito,
@@ -378,8 +516,9 @@ def calcular_cuota_obligacion(
             es_deudor_principal=_es_deudor_principal(ob.calidad_deudor),
             porcentaje_calidad=0,
             cuota_ajustada_calidad=0,
-            cuota_final=0,
-            observaciones=["Sostenimiento: cuota = 0 (incluido en gastos básicos)"],
+            cuota_final=round(cuota_final, 2),
+            observaciones=obs,
+            **_campos_estado(ob),
         )
 
     if ob.linea_credito in (LineaCredito.TDC, LineaCredito.ROT):
@@ -457,17 +596,41 @@ def analizar_gastos_solicitante(
     ingreso_bruto: float,
     score: Optional[int],
     obligaciones: List[ObligacionCredito],
+    retefuente_previa: Optional[float] = None,
+    solidaridad_previa: Optional[float] = None,
 ) -> AnalisisGastosSolicitante:
+    """Capacidad de pago de un solicitante a partir de su ingreso bruto.
+
+    `retefuente_previa` / `solidaridad_previa`: valores ya calculados en el
+    Análisis de Ingresos. Si se indica alguno, esos son los descuentos de
+    nómina (8.6) y no se recalculan con las tablas de la política.
+
+    Ingreso Neto Calculado = ingreso bruto - retención en la fuente
+    - fondo de solidaridad - gastos básicos, donde los gastos básicos son el
+    porcentaje de la tabla (buscado con el ingreso bruto) aplicado al bruto.
+    """
     smlmv = settings.SMLMV
     ingreso_smlmv = ingreso_bruto / smlmv if smlmv else 0
     nivel = _nivel_riesgo(score)
 
     pct_gastos, gastos_basicos = calcular_gastos_basicos(ingreso_bruto, score)
     detalles_ob, total_cuotas = calcular_cuotas_centrales(obligaciones, score)
-    pct_ret, retefuente = calcular_retefuente(ingreso_bruto)
-    pct_sol, solidaridad = calcular_solidaridad(ingreso_bruto)
+
+    del_analisis = retefuente_previa is not None or solidaridad_previa is not None
+    if del_analisis:
+        retefuente = retefuente_previa or 0.0
+        solidaridad = solidaridad_previa or 0.0
+        pct_ret = retefuente / ingreso_bruto if ingreso_bruto else 0.0
+        pct_sol = solidaridad / ingreso_bruto if ingreso_bruto else 0.0
+    else:
+        pct_ret, retefuente = calcular_retefuente(ingreso_bruto)
+        pct_sol, solidaridad = calcular_solidaridad(ingreso_bruto)
     descuentos = retefuente + solidaridad
+    ingreso_neto_calculado = ingreso_bruto - descuentos - gastos_basicos
     total_egresos = gastos_basicos + total_cuotas + descuentos
+
+    en_mora = [d for d in detalles_ob if d.en_mora]
+    castigadas = [d for d in detalles_ob if d.castigada]
 
     return AnalisisGastosSolicitante(
         cedula=cedula,
@@ -475,15 +638,22 @@ def analizar_gastos_solicitante(
         ingreso_smlmv=round(ingreso_smlmv, 2),
         score_advance=score,
         nivel_riesgo=nivel,
+        fila_tabla_gastos=_fila_gastos_basicos(ingreso_smlmv),
         porcentaje_gastos_basicos=pct_gastos,
         gastos_basicos=round(gastos_basicos, 2),
         detalle_obligaciones=detalles_ob,
         total_cuotas_centrales=round(total_cuotas, 2),
+        obligaciones_en_mora=len(en_mora),
+        obligaciones_castigadas=len(castigadas),
+        monto_mora_total=round(sum(d.monto_mora for d in en_mora), 2),
+        saldo_castigado=round(sum(d.saldo for d in castigadas), 2),
+        descuentos_del_analisis_ingresos=del_analisis,
         porcentaje_retefuente=pct_ret,
         retefuente=round(retefuente, 2),
         porcentaje_solidaridad=pct_sol,
         solidaridad=round(solidaridad, 2),
         total_descuentos_nomina=round(descuentos, 2),
+        ingreso_neto_calculado=round(ingreso_neto_calculado, 2),
         total_egresos_solicitante=round(total_egresos, 2),
     )
 
@@ -501,6 +671,10 @@ def analizar_gastos(
     cedula_secundario: str = "",
     score_secundario: Optional[int] = None,
     obligaciones_secundario: Optional[List[ObligacionCredito]] = None,
+    retefuente_principal: Optional[float] = None,
+    solidaridad_principal: Optional[float] = None,
+    retefuente_secundario: Optional[float] = None,
+    solidaridad_secundario: Optional[float] = None,
 ) -> AnalisisGastosResponse:
 
     principal = analizar_gastos_solicitante(
@@ -508,6 +682,8 @@ def analizar_gastos(
         ingreso_bruto=ingreso_bruto_principal,
         score=score_principal,
         obligaciones=obligaciones_principal,
+        retefuente_previa=retefuente_principal,
+        solidaridad_previa=solidaridad_principal,
     )
 
     secundario = None
@@ -517,12 +693,16 @@ def analizar_gastos(
             ingreso_bruto=ingreso_bruto_secundario,
             score=score_secundario,
             obligaciones=obligaciones_secundario or [],
+            retefuente_previa=retefuente_secundario,
+            solidaridad_previa=solidaridad_secundario,
         )
 
     total_ingreso = ingreso_bruto_principal + ingreso_bruto_secundario
     total_egresos = principal.total_egresos_solicitante
+    total_neto_calculado = principal.ingreso_neto_calculado
     if secundario:
         total_egresos += secundario.total_egresos_solicitante
+        total_neto_calculado += secundario.ingreso_neto_calculado
     ingreso_neto = total_ingreso - total_egresos
     factor, nivel_ajuste = calcular_factor_ajuste(score_principal)
     disponible = ingreso_neto * factor
@@ -531,6 +711,7 @@ def analizar_gastos(
         solicitante_principal=principal,
         solicitante_secundario=secundario,
         total_ingreso_bruto=round(total_ingreso, 2),
+        total_ingreso_neto_calculado=round(total_neto_calculado, 2),
         total_egresos=round(total_egresos, 2),
         ingreso_neto=round(ingreso_neto, 2),
         factor_ajuste=factor,

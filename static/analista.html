@@ -340,7 +340,7 @@
     <a href="/">Solicitud</a>
     <a href="/analista" class="active">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
-    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos y Cuotas Centrales</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -374,9 +374,10 @@
 
 </div>
 
+<script src="/static/experian_demo.local.js"></script>
 <script src="/static/solicitantes.js"></script>
 <script>
-var SMLMV_VIGENTE = 1750095;
+var SMLMV_VIGENTE = 1750905;   // mismo valor que SMLMV en app/config.py
 var UVT_VIGENTE = 52374;
 
 function calcularSolidaridad(ingresoMensual) {
@@ -590,7 +591,7 @@ function renderDetalleSolicitante(detalle, datosExperian) {
                 <div class="metric-value" style="font-size:18px; color:${retencion > 0 ? '#EF4444' : 'rgba(255,255,255,0.4)'};">${retencion > 0 ? '-' + formatCOP(retencion) : '$0'}</div>
             </div>
             <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(124,58,237,0.2);">
-                <div class="metric-label">Ingreso Neto</div>
+                <div class="metric-label">Ingreso Neto antes de Gastos B&aacute;sicos y Cuotas Centrales</div>
                 <div class="metric-value" style="font-size:22px;">${formatCOP(ingresoNeto)}</div>
             </div>
         </div>
@@ -667,14 +668,36 @@ function renderAnalista(data, payload) {
         else { notas.push('Secundario: no cumple antigüedad (8.1.4) — ingreso excluido'); }
     }
 
+    // Resultado del análisis para la hoja de Capacidad de Pago: ingreso neto
+    // (sin retención en la fuente ni fondo de solidaridad) por solicitante,
+    // en cero si no cumple antigüedad. Los arriendos se suman allá, tomados
+    // del Análisis de Arriendos.
+    function resumenIngreso(datosExperian, ingreso, neto, antiguedad) {
+        return {
+            cedula: String((datosExperian.data || {}).numero_identificacion_persona_natural || ''),
+            ingreso_calculado: ingreso,
+            solidaridad: calcularSolidaridad(ingreso),
+            retencion_fuente: calcularRetencionFuente(ingreso),
+            ingreso_neto: neto,
+            cumple_antiguedad: !!antiguedad.cumple,
+            ingreso_neto_aceptado: antiguedad.cumple ? neto : 0
+        };
+    }
+    sessionStorage.setItem('morada_ingresos', JSON.stringify({
+        principal: resumenIngreso(payload.solicitante_principal, ingPrincipal, netoPrincipal, antPrincipal),
+        secundario: haySeg ? resumenIngreso(payload.solicitante_secundario, ingSecundario, netoSecundario, antSecundario) : null,
+        ingreso_total: ingresoTotal
+    }));
+    sessionStorage.removeItem('morada_capacidad');
+
     var detalleTotal = notas.length > 0
-        ? notas.join('<br>') : (haySeg ? 'Suma de ingresos netos de ambos solicitantes' : 'Ingreso neto del solicitante');
+        ? notas.join('<br>') : (haySeg ? 'Suma de ambos solicitantes: ingreso calculado menos retenci&oacute;n en la fuente y fondo de solidaridad' : 'Ingreso calculado menos retenci&oacute;n en la fuente y fondo de solidaridad');
     var colorTotal = ingresoTotal > 0 ? 'success' : 'danger';
 
     var totalHtml = `
         <div class="summary-grid">
             <div class="metric-card ${colorTotal}">
-                <div class="metric-label">Ingreso Total</div>
+                <div class="metric-label">Ingreso Neto Total antes de Gastos B&aacute;sicos y Cuotas Centrales</div>
                 <div class="metric-value">${formatCOP(ingresoTotal)}</div>
                 <div class="metric-detail">${detalleTotal}</div>
             </div>

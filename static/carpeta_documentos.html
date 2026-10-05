@@ -215,28 +215,6 @@
             font-style: italic;
         }
 
-        .subir-section {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px dashed rgba(124,58,237,0.15);
-        }
-        .subir-row {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .subir-row input[type="file"] { font-size: 13px; }
-        .btn-subir {
-            padding: 6px 16px;
-            background: #7C3AED;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .btn-subir:hover { background: #6D28D9; }
 
         .tab-bar {
             display: flex;
@@ -429,7 +407,7 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
-    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos y Cuotas Centrales</a>
     <a href="/carpeta" class="active">Carpeta</a>
 </div>
 
@@ -461,7 +439,7 @@
                     <div class="ref-params-grid">
                         <div class="ref-param">
                             <label>SMLMV ($)</label>
-                            <input type="number" id="param-smlmv" value="1750095" onchange="calcularRetefuente()" oninput="calcularRetefuente()">
+                            <input type="number" id="param-smlmv" value="1750905" onchange="calcularRetefuente()" oninput="calcularRetefuente()">
                         </div>
                         <div class="ref-param">
                             <label>UVT ($)</label>
@@ -543,6 +521,8 @@
     </div>
 </div>
 
+<script src="/static/experian_demo.local.js"></script>
+<script src="/static/solicitantes.js"></script>
 <script>
 function fmtCOP(val) {
     return '$' + Math.round(val).toLocaleString('es-CO');
@@ -657,6 +637,14 @@ function renderSolicitante(sol, tipo, arriendos) {
         '<div id="centrales_' + tipo + '">' +
             '<p class="loading-inline">Sin datos de centrales. Ejecute el An&aacute;lisis de Ingresos para cargar la informaci&oacute;n.</p>' +
         '</div></div>';
+
+    html += '<div class="seccion">' +
+        '<div class="seccion-titulo"><span class="icono">&#128202;</span> Documentos de Historia de Cr&eacute;dito por Centrales</div>' +
+        '<div id="hdc_' + tipo + '">' +
+            '<p class="loading-inline">Sin historia de cr&eacute;dito cargada. La consulta HDC+ se hace autom&aacute;ticamente para los clientes de la Base Experian Demo.</p>' +
+        '</div>' +
+        '<p id="hdcMsg_' + tipo + '" style="font-size:12px; margin-top:6px; color:rgba(255,255,255,0.5);"></p>' +
+        '</div>';
 
     if (arriendos && arriendos.length > 0) {
         html += '<div class="seccion">' +
@@ -802,13 +790,186 @@ function consultarCTL(inmId, pin) {
 
 function toggleJsonOriginal(id, link) {
     var el = document.getElementById(id);
+    var fuente = link.getAttribute('data-fuente') || 'Valor Ingreso Experian';
     if (el.style.display === 'none') {
         el.style.display = 'block';
-        link.textContent = 'Ocultar JSON original de Experian';
+        link.textContent = 'Ocultar JSON original de ' + fuente;
     } else {
         el.style.display = 'none';
-        link.textContent = 'Ver JSON original de Experian';
+        link.textContent = 'Ver JSON original de ' + fuente;
     }
+}
+
+function escaparHtml(txt) {
+    return String(txt).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function bloqueJsonOriginal(id, fuente, objeto) {
+    var html = '<div style="margin-top:12px;">';
+    html += '<span onclick="toggleJsonOriginal(\'' + id + '\', this)" data-fuente="' + fuente + '" style="color:#8B5CF6; font-weight:600; cursor:pointer; text-decoration:underline; font-size:13px;">Ver JSON original de ' + fuente + '</span>';
+    html += '<pre id="' + id + '" style="display:none; margin-top:8px; background:#161429; color:#E2E0EA; padding:16px; border-radius:8px; border:1px solid rgba(124,58,237,0.15); font-size:12px; max-height:400px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + escaparHtml(JSON.stringify(objeto, null, 2)) + '</pre>';
+    html += '</div>';
+    return html;
+}
+
+// ---------------------------------------------------------------------
+// Historia de crédito (HDC+ Experian). El JSON se consulta en vivo en
+// Experian UAT para los clientes de la Base Experian Demo y queda visible
+// con "Ver JSON original de HDC+".
+// ---------------------------------------------------------------------
+
+var FUENTE_HDC = 'HDC+';
+
+// Cliente de la Base Experian Demo que corresponde al solicitante, o null.
+function clienteExperianDemo(sol) {
+    if (!sol) return null;
+    for (var i = 0; i < EXPERIAN_DEMO.length; i++) {
+        var e = EXPERIAN_DEMO[i];
+        if (e.cedula === String(sol.numero_id) && e.tipo === sol.tipo_id) return e;
+    }
+    return null;
+}
+
+// Consulta HDC+ en Experian UAT y deja el resultado (con su JSON original)
+// en la sección de historia de crédito. Solo aplica a la Base Experian Demo.
+function consultarHdcExperian(tipo, sol) {
+    var demo = clienteExperianDemo(sol);
+    if (!demo) return;
+    var el = document.getElementById('hdc_' + tipo);
+    var msg = document.getElementById('hdcMsg_' + tipo);
+    el.innerHTML = '<p class="loading-inline">Consultando HDC+ en Experian UAT...</p>';
+    if (msg) msg.textContent = '';
+
+    fetch('/experian/hdc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            numero_documento: demo.cedula,
+            primer_apellido: demo.apellido,
+            tipo_documento: demo.tipo
+        })
+    })
+    .then(function(resp) {
+        if (!resp.ok) return resp.json().then(function(d) { throw new Error(d.detail || resp.statusText); });
+        return resp.json();
+    })
+    .then(function(hdc) {
+        renderHDC(tipo, hdc);
+        if (hdc.respuesta_original) guardarHdcSesion(tipo, hdc.respuesta_original);
+        if (msg) {
+            msg.style.color = '#10B981';
+            msg.textContent = 'JSON HDC+ cargado desde Experian UAT.';
+        }
+    })
+    .catch(function(err) {
+        el.innerHTML = '<p style="color:#EF4444; font-size:13px; padding:8px 14px;">No se pudo consultar HDC+ en Experian: ' + escaparHtml(err.message) +
+            ' <span onclick="reintentarHdcExperian(\'' + tipo + '\')" style="color:#8B5CF6; font-weight:600; cursor:pointer; text-decoration:underline;">Reintentar</span></p>';
+    });
+}
+
+function reintentarHdcExperian(tipo) {
+    var carpeta = JSON.parse(sessionStorage.getItem('morada_carpeta') || '{}');
+    consultarHdcExperian(tipo, carpeta[tipo]);
+}
+
+function leerHdcSesion() {
+    var raw = sessionStorage.getItem('morada_hdc');
+    return raw ? JSON.parse(raw) : {};
+}
+
+function guardarHdcSesion(tipo, respuesta) {
+    var hdc = leerHdcSesion();
+    hdc[tipo] = respuesta;
+    try {
+        sessionStorage.setItem('morada_hdc', JSON.stringify(hdc));
+    } catch (e) {
+        // Respuestas muy grandes pueden exceder la cuota; la vista sigue funcionando
+        console.warn('No se pudo guardar el HDC en sesión:', e);
+    }
+}
+
+function procesarHDC(tipo, respuesta, done) {
+    var el = document.getElementById('hdc_' + tipo);
+    var msg = document.getElementById('hdcMsg_' + tipo);
+    var carpeta = JSON.parse(sessionStorage.getItem('morada_carpeta') || '{}');
+    var sol = carpeta[tipo] || {};
+
+    fetch('/experian/hdc/parsear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ respuesta: respuesta, cedula: sol.numero_id || null })
+    })
+    .then(function(resp) {
+        if (!resp.ok) return resp.json().then(function(d) { throw new Error(d.detail || resp.statusText); });
+        return resp.json();
+    })
+    .then(function(hdc) {
+        renderHDC(tipo, hdc);
+        if (done) done(true);
+    })
+    .catch(function(err) {
+        if (msg) {
+            msg.style.color = '#EF4444';
+            msg.textContent = 'No se pudo interpretar el JSON: ' + err.message;
+        }
+        if (el && !el.querySelector('.ctl-resumen')) {
+            el.innerHTML = '<p style="color:#EF4444; font-size:13px; padding:8px 14px;">Error al interpretar el JSON HDC+: ' + escaparHtml(err.message) + '</p>';
+        }
+        if (done) done(false);
+    });
+}
+
+function scoreColor(score) {
+    if (!score) return '#EF4444';
+    if (score >= 700) return '#10B981';
+    if (score >= 400) return '#F59E0B';
+    return '#EF4444';
+}
+
+function renderHDC(tipo, hdc) {
+    var el = document.getElementById('hdc_' + tipo);
+    if (!el) return;
+
+    var html = '';
+    if (hdc.codigo_respuesta !== 13) {
+        html += '<div class="ctl-resumen">';
+        html += '<span class="badge badge-danger">Consulta no efectiva</span>';
+        html += '<p style="font-size:12px; color:#EF4444; margin-top:6px;">Experian respondi&oacute; c&oacute;digo ' + hdc.codigo_respuesta + ': ' + escaparHtml(hdc.mensaje_respuesta || '') + '</p>';
+        html += '</div>';
+        html += bloqueJsonOriginal('jsonHdc_' + tipo, FUENTE_HDC, hdc.respuesta_original || {});
+        el.innerHTML = html;
+        return;
+    }
+
+    var score = hdc.score_advance;
+    var modelo = null;
+    for (var i = 0; i < (hdc.scores || []).length; i++) {
+        if (hdc.scores[i].score_value === score) { modelo = hdc.scores[i]; break; }
+    }
+    if (!modelo && hdc.scores && hdc.scores.length) modelo = hdc.scores[0];
+
+    html += '<div class="ctl-resumen" style="margin-bottom:12px;">';
+    html += '<div style="font-size:13px; font-weight:600; color:#FFFFFF; margin-bottom:10px;">Datos de la consulta</div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Nombre</span><span class="ctl-value">' + escaparHtml(hdc.nombre_completo || '-') + '</span></div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Identificaci&oacute;n</span><span class="ctl-value">' + escaparHtml(hdc.cedula || '-') + '</span></div>';
+    if (hdc.fecha_consulta) html += '<div class="ctl-row"><span class="ctl-label">Fecha consulta</span><span class="ctl-value">' + escaparHtml(hdc.fecha_consulta) + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="inmueble-card">';
+    html += '<div class="inmueble-titulo">Score del solicitante</div>';
+    html += '<div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">';
+    html += '<div style="font-size:40px; font-weight:800; color:' + scoreColor(score) + '; line-height:1;">' + (score ? score : 'Sin score') + '</div>';
+    html += '<div class="ctl-resumen" style="flex:1; min-width:240px; margin-bottom:0;">';
+    html += '<div class="ctl-row"><span class="ctl-label">Modelo</span><span class="ctl-value">' + (modelo ? escaparHtml(modelo.model_code) : '-') + '</span></div>';
+    if (modelo && modelo.model_date) html += '<div class="ctl-row"><span class="ctl-label">Fecha del score</span><span class="ctl-value">' + escaparHtml(modelo.model_date) + '</span></div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Obligaciones vigentes</span><span class="ctl-value">' + (hdc.obligaciones || []).length + '</span></div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Obligaciones cerradas</span><span class="ctl-value">' + (hdc.obligaciones_cerradas || 0) + '</span></div>';
+    html += '<div class="ctl-row"><span class="ctl-label">Huellas de consulta</span><span class="ctl-value">' + (hdc.huellas_consulta || 0) + '</span></div>';
+    html += '</div></div></div>';
+
+    html += bloqueJsonOriginal('jsonHdc_' + tipo, FUENTE_HDC, hdc.respuesta_original || {});
+
+    el.innerHTML = html;
 }
 
 function toggleCTLTexto(id, link) {
@@ -880,11 +1041,7 @@ function renderCentrales(tipo, datosExperian) {
         }
     }
 
-    var jsonId = 'jsonOriginal_' + tipo;
-    html += '<div style="margin-top:12px;">';
-    html += '<span onclick="toggleJsonOriginal(\'' + jsonId + '\', this)" style="color:#8B5CF6; font-weight:600; cursor:pointer; text-decoration:underline; font-size:13px;">Ver JSON original de Experian</span>';
-    html += '<pre id="' + jsonId + '" style="display:none; margin-top:8px; background:#161429; color:#E2E0EA; padding:16px; border-radius:8px; border:1px solid rgba(124,58,237,0.15); font-size:12px; max-height:400px; overflow:auto; white-space:pre-wrap; word-break:break-word;">' + JSON.stringify(datosExperian, null, 2) + '</pre>';
-    html += '</div>';
+    html += bloqueJsonOriginal('jsonOriginal_' + tipo, 'Valor Ingreso Experian', datosExperian);
 
     el.innerHTML = html;
 }
@@ -911,6 +1068,15 @@ function cargarPagina() {
         if (centrales.principal) renderCentrales('principal', centrales.principal);
         if (centrales.secundario) renderCentrales('secundario', centrales.secundario);
     }
+
+    // Historia de crédito: la que ya está en esta sesión (ya consultada)
+    // o, para clientes de la Base Experian Demo, consulta en vivo de HDC+.
+    var hdcSesion = leerHdcSesion();
+    ['principal', 'secundario'].forEach(function(tipo) {
+        if (!carpeta[tipo]) return;
+        if (hdcSesion[tipo]) procesarHDC(tipo, hdcSesion[tipo]);
+        else consultarHdcExperian(tipo, carpeta[tipo]);
+    });
 }
 
 window.addEventListener('load', function() {

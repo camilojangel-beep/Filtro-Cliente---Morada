@@ -128,6 +128,44 @@
             box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
         }
 
+        .form-group input[readonly] {
+            background: rgba(124,58,237,0.08);
+            color: #FFFFFF;
+            font-weight: 600;
+            cursor: default;
+        }
+
+        .bloque-solicitante {
+            margin-top: 16px;
+            padding: 16px;
+            background: #161429;
+            border: 1px solid rgba(124,58,237,0.15);
+            border-radius: 10px;
+        }
+        .bloque-titulo {
+            font-size: 14px;
+            font-weight: 600;
+            color: #FFFFFF;
+            margin-bottom: 12px;
+        }
+        .detalle-campo {
+            margin-top: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: rgba(255,255,255,0.6);
+        }
+        .detalle-campo strong { color: #FFFFFF; }
+        .aviso-origen {
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .aviso-origen a { color: #A78BFA; }
+        .aviso-origen.ok { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #D1FAE5; }
+        .aviso-origen.falta { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: #FDE68A; }
+
         .btn-row {
             display: flex;
             gap: 12px;
@@ -327,6 +365,27 @@
             margin: 20px 0;
         }
 
+        /* Cuadros de cálculo */
+        .matriz td, .matriz th { text-align: center; }
+        .matriz td:first-child, .matriz th:first-child { text-align: left; white-space: nowrap; }
+        .matriz td.aplicada {
+            background: rgba(124,58,237,0.35);
+            color: #FFFFFF;
+            font-weight: 700;
+            outline: 2px solid #A78BFA;
+            outline-offset: -2px;
+        }
+        .matriz td.col-riesgo { background: rgba(124,58,237,0.10); }
+        .matriz td.fila-usada { background: rgba(245,158,11,0.12); }
+        .nota-calc {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+        }
+        .nota-calc strong { color: #FFFFFF; }
+        .reglas { list-style: disc; padding-left: 20px; font-size: 13px; color: rgba(255,255,255,0.7); }
+        .reglas li { margin-bottom: 4px; }
+
         .json-view {
             background: #1e1e2e;
             color: #cdd6f4;
@@ -375,7 +434,7 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
-    <a href="/gastos-basicos" class="active">Capacidad de Pago</a>
+    <a href="/gastos-basicos" class="active">Gastos B&aacute;sicos y Cuotas Centrales</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -384,62 +443,121 @@
     <!-- Input Form -->
     <div class="card" id="form-card">
         <h2>Datos del Solicitante</h2>
-        <div class="subtitle">Ingrese los datos para consultar Experian HDC+ y calcular la capacidad de pago</div>
+        <div class="subtitle">Los datos se traen de la Solicitud; el ingreso bruto, la retenci&oacute;n en la fuente y el fondo de solidaridad, del An&aacute;lisis de Ingresos (m&aacute;s los arriendos demostrados); el Score Advance, de Experian HDC+. <strong style="color:#FFFFFF;">Ingreso Neto Calculado = ingreso bruto &minus; retenci&oacute;n en la fuente &minus; fondo de solidaridad &minus; gastos b&aacute;sicos.</strong></div>
 
-        <div class="form-grid">
-            <div class="form-group">
-                <label>C&eacute;dula</label>
-                <input type="text" id="cedula" placeholder="1017207712">
-            </div>
-            <div class="form-group">
-                <label>Primer Apellido</label>
-                <input type="text" id="apellido" placeholder="Uribe">
-            </div>
-            <div class="form-group">
-                <label>Tipo Documento</label>
-                <select id="tipo_doc">
-                    <option value="CC" selected>CC - C&eacute;dula</option>
-                    <option value="CE">CE - Extranjer&iacute;a</option>
-                    <option value="PAS">PAS - Pasaporte</option>
-                    <option value="PPT">PPT</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Ingreso Bruto ($)</label>
-                <input type="number" id="ingreso_bruto" placeholder="5000000" step="100000">
-            </div>
+        <div id="aviso-origen" class="aviso-origen" style="display:none;"></div>
+
+        <div class="form-group" style="margin-bottom:16px;">
+            <label>Base Experian Demo (Valor Ingreso y HDC+ UAT) <span style="color:rgba(255,255,255,0.4); font-weight:400;">opcional: cambia c&eacute;dula, apellido y tipo del principal</span></label>
+            <select id="select_demo" onchange="cargarClienteDemo()">
+                <option value="">— Datos de la Solicitud / digitar manualmente —</option>
+            </select>
         </div>
 
-        <div class="divider"></div>
-        <h2>An&aacute;lisis Manual (sin HDC)</h2>
-        <div class="subtitle">O ingrese directamente el score y las obligaciones en formato JSON</div>
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Score Advance</label>
-                <input type="number" id="score_manual" placeholder="750">
+        <div class="bloque-solicitante" id="bloque-principal">
+            <div class="bloque-titulo" id="titulo-principal">Solicitante Principal</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>C&eacute;dula</label>
+                    <input type="text" id="cedula">
+                </div>
+                <div class="form-group">
+                    <label>Primer Apellido</label>
+                    <input type="text" id="apellido">
+                </div>
+                <div class="form-group">
+                    <label>Tipo Documento</label>
+                    <select id="tipo_doc">
+                        <option value="CC" selected>CC - C&eacute;dula</option>
+                        <option value="CE">CE - Extranjer&iacute;a</option>
+                        <option value="PAS">PAS - Pasaporte</option>
+                        <option value="PPT">PPT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Score Advance</label>
+                    <input type="text" id="score_advance" placeholder="Se trae de Experian HDC+" readonly>
+                </div>
             </div>
+            <div class="form-grid" style="margin-top:16px;">
+                <div class="form-group">
+                    <label>Ingreso Bruto ($)</label>
+                    <input type="number" id="ingreso_bruto" placeholder="Del An&aacute;lisis de Ingresos" step="1000" oninput="limpiarCalculados('principal')">
+                </div>
+                <div class="form-group">
+                    <label>Retenci&oacute;n en la Fuente ($)</label>
+                    <input type="number" id="retencion_fuente" placeholder="Del An&aacute;lisis de Ingresos" step="1000" oninput="limpiarCalculados('principal')">
+                </div>
+                <div class="form-group">
+                    <label>Fondo de Solidaridad ($)</label>
+                    <input type="number" id="solidaridad" placeholder="Del An&aacute;lisis de Ingresos" step="1000" oninput="limpiarCalculados('principal')">
+                </div>
+                <div class="form-group">
+                    <label>Gastos B&aacute;sicos ($)</label>
+                    <input type="text" id="gastos_basicos" placeholder="% seg&uacute;n score &times; ingreso bruto" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Ingreso Neto Calculado ($)</label>
+                    <input type="text" id="ingreso_neto" placeholder="Bruto &minus; retenci&oacute;n &minus; solidaridad &minus; gastos" readonly>
+                </div>
+            </div>
+            <div class="detalle-campo" id="detalle_ingreso"></div>
+            <div class="detalle-campo" id="detalle_neto"></div>
         </div>
-        <div class="form-group" style="margin-top: 16px;">
-            <label>Obligaciones (JSON)</label>
-            <textarea id="obligaciones_json" rows="8" style="width:100%; background:#161429; border:1px solid rgba(124,58,237,0.3); border-radius:8px; padding:12px; color:#E2E0EA; font-family:'SF Mono','Fira Code',monospace; font-size:12px; resize:vertical;" placeholder='[
-  {
-    "entidad_nit": "860002964",
-    "entidad_nombre": "BANCO DE BOGOTA",
-    "linea_credito": "TDC",
-    "account_type": 2,
-    "sub_account_type": "00",
-    "cupo": 10000000,
-    "saldo": 5000000,
-    "cuota_reportada": 200000,
-    "calidad_deudor": "00"
-  }
-]'></textarea>
+
+        <div class="bloque-solicitante" id="bloque-secundario" style="display:none;">
+            <div class="bloque-titulo" id="titulo-secundario">Segundo Solicitante</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>C&eacute;dula</label>
+                    <input type="text" id="cedula_2">
+                </div>
+                <div class="form-group">
+                    <label>Primer Apellido</label>
+                    <input type="text" id="apellido_2">
+                </div>
+                <div class="form-group">
+                    <label>Tipo Documento</label>
+                    <select id="tipo_doc_2">
+                        <option value="CC" selected>CC - C&eacute;dula</option>
+                        <option value="CE">CE - Extranjer&iacute;a</option>
+                        <option value="PAS">PAS - Pasaporte</option>
+                        <option value="PPT">PPT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Score Advance</label>
+                    <input type="text" id="score_advance_2" placeholder="Se trae de Experian HDC+" readonly>
+                </div>
+            </div>
+            <div class="form-grid" style="margin-top:16px;">
+                <div class="form-group">
+                    <label>Ingreso Bruto ($)</label>
+                    <input type="number" id="ingreso_bruto_2" placeholder="Del An&aacute;lisis de Ingresos" step="1000" oninput="limpiarCalculados('secundario')">
+                </div>
+                <div class="form-group">
+                    <label>Retenci&oacute;n en la Fuente ($)</label>
+                    <input type="number" id="retencion_fuente_2" placeholder="Del An&aacute;lisis de Ingresos" step="1000" oninput="limpiarCalculados('secundario')">
+                </div>
+                <div class="form-group">
+                    <label>Fondo de Solidaridad ($)</label>
+                    <input type="number" id="solidaridad_2" placeholder="Del An&aacute;lisis de Ingresos" step="1000" oninput="limpiarCalculados('secundario')">
+                </div>
+                <div class="form-group">
+                    <label>Gastos B&aacute;sicos ($)</label>
+                    <input type="text" id="gastos_basicos_2" placeholder="% seg&uacute;n score &times; ingreso bruto" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Ingreso Neto Calculado ($)</label>
+                    <input type="text" id="ingreso_neto_2" placeholder="Bruto &minus; retenci&oacute;n &minus; solidaridad &minus; gastos" readonly>
+                </div>
+            </div>
+            <div class="detalle-campo" id="detalle_ingreso_2"></div>
+            <div class="detalle-campo" id="detalle_neto_2"></div>
         </div>
 
         <div class="btn-row">
-            <button class="btn btn-primary" id="btn-consultar" onclick="consultarHDC()">Consultar Experian HDC+</button>
-            <button class="btn btn-secondary" id="btn-manual" onclick="analizarManual()">An&aacute;lisis Manual</button>
+            <button class="btn btn-primary" id="btn-consultar" onclick="calcular({forzar: true})">Consultar Experian HDC+ y calcular</button>
         </div>
 
         <div id="error-container" class="error-msg" style="display:none; margin-top:16px;"></div>
@@ -476,10 +594,7 @@
 
         <!-- Tab: Detalle obligaciones -->
         <div id="tab-detalle" style="display:none;">
-            <div class="card">
-                <h2>Obligaciones del Solicitante Principal</h2>
-                <div class="table-wrap" id="obligaciones-table"></div>
-            </div>
+            <div id="obligaciones-cards"></div>
         </div>
 
         <!-- Tab: JSON -->
@@ -490,8 +605,24 @@
             </div>
         </div>
     </div>
+
+    <!-- Cuadros de cálculo (política 8.4 y 8.5) -->
+    <div id="selector-caso" class="tab-bar" style="display:none; margin-bottom:16px;"></div>
+    <div class="card" id="cuadro-gastos">
+        <h2>8.4 &mdash; C&aacute;lculo de Gastos B&aacute;sicos</h2>
+        <div class="subtitle">El porcentaje se busca con el ingreso bruto en SMLMV y el nivel de riesgo, y se aplica al mismo ingreso bruto. La celda resaltada es la aplicada al caso consultado.</div>
+        <div id="cuadro-gastos-body" class="loading">Cargando par&aacute;metros...</div>
+    </div>
+
+    <div class="card" id="cuadro-centrales">
+        <h2>8.5 &mdash; C&aacute;lculo de Cuotas en Centrales</h2>
+        <div class="subtitle">Par&aacute;metros por l&iacute;nea de cr&eacute;dito, porcentajes sobre saldo y cupo contingente (TDC/ROT) y ajuste por calidad del deudor.</div>
+        <div id="cuadro-centrales-body" class="loading">Cargando par&aacute;metros...</div>
+    </div>
 </div>
 
+<script src="/static/experian_demo.local.js"></script>
+<script src="/static/solicitantes.js"></script>
 <script>
 const FMT = new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0});
 const PCT = new Intl.NumberFormat('es-CO', {style:'percent', minimumFractionDigits:1, maximumFractionDigits:1});
@@ -499,17 +630,219 @@ const PCT = new Intl.NumberFormat('es-CO', {style:'percent', minimumFractionDigi
 function fmt(v) { return FMT.format(v); }
 function pct(v) { return PCT.format(v); }
 
+// =====================================================================
+// Formulario: un bloque por solicitante. Los ids del segundo llevan "_2".
+// =====================================================================
+const SUFIJO = { principal: '', secundario: '_2' };
+const ETIQUETA = { principal: 'Solicitante Principal', secundario: 'Segundo Solicitante' };
+
+function campo(id, tipo) { return document.getElementById(id + SUFIJO[tipo]); }
+
+function leerJsonSesion(clave) {
+    try { return JSON.parse(sessionStorage.getItem(clave) || 'null'); } catch (e) { return null; }
+}
+
+function escapar(txt) {
+    return String(txt === null || txt === undefined ? '' : txt)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function mostrarAviso(clase, html) {
+    const el = document.getElementById('aviso-origen');
+    el.className = 'aviso-origen ' + clase;
+    el.innerHTML = html;
+    el.style.display = 'block';
+}
+
+function poblarSelectDemo() {
+    const sel = document.getElementById('select_demo');
+    EXPERIAN_DEMO.forEach((e, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = (i + 1) + '. ' + e.nombre + ' (' + e.tipo + ' ' + e.cedula + ') — Score ' + (e.score || 'N/A') + ', ' + e.obligaciones + ' obligaciones';
+        sel.appendChild(opt);
+    });
+}
+
+// Campos que llena el cálculo (dependen del score): se vacían si cambian los insumos.
+function limpiarCalculados(tipo) {
+    campo('gastos_basicos', tipo).value = '';
+    campo('ingreso_neto', tipo).value = '';
+    campo('detalle_neto', tipo).innerHTML = '';
+}
+
+// Elección manual de un cliente de la Base Experian Demo como principal. Sus
+// ingresos no vienen del Análisis de Ingresos, así que se digitan.
+function cargarClienteDemo() {
+    const idx = document.getElementById('select_demo').value;
+    if (idx === '') return;
+    const e = EXPERIAN_DEMO[idx];
+    campo('cedula', 'principal').value = e.cedula;
+    campo('apellido', 'principal').value = e.apellido;
+    campo('tipo_doc', 'principal').value = e.tipo;
+    ['ingreso_bruto', 'retencion_fuente', 'solidaridad', 'score_advance'].forEach(id => { campo(id, 'principal').value = ''; });
+    limpiarCalculados('principal');
+    campo('detalle_ingreso', 'principal').innerHTML = '';
+    document.getElementById('titulo-principal').textContent = ETIQUETA.principal + ' — ' + e.nombre;
+    document.getElementById('bloque-secundario').style.display = 'none';
+    mostrarAviso('falta', 'Cliente elegido manualmente de la Base Experian Demo: digite el ingreso bruto, la retenci&oacute;n en la fuente y el fondo de solidaridad. Para traerlos del An&aacute;lisis de Ingresos, haga el flujo desde <a href="/muestra">Muestra</a> y <a href="/">Solicitud</a>.');
+    hideError();
+}
+
+// Primer apellido de un solicitante de la carpeta. Las carpetas guardadas
+// antes de este cambio solo traen el nombre completo.
+function apellidoDe(sol, tipo) {
+    if (sol.primer_apellido) return sol.primer_apellido;
+    const sel = leerSeleccionMuestra();
+    const s = sel && sel[tipo];
+    if (s && String(s.numero_id) === String(sol.numero_id)) return s.primer_apellido;
+    const demo = EXPERIAN_DEMO.find(e => e.cedula === String(sol.numero_id));
+    if (demo) return demo.apellido;
+    const partes = String(sol.nombre || '').trim().split(/\s+/);
+    return partes.length > 1 ? partes[partes.length - 1] : '';
+}
+
+// Insumos de un solicitante para la capacidad de pago, tomados del Análisis
+// de Ingresos y del Análisis de Arriendos:
+//   Ingreso Bruto = ingreso calculado + arriendos que cuentan
+//   Retención en la fuente y fondo de solidaridad = los del Análisis de Ingresos
+// Con ellos y el score, el motor obtiene:
+//   Gastos básicos = % de la tabla (buscado con el ingreso bruto) x ingreso bruto
+//   Ingreso Neto Calculado = bruto - retención - solidaridad - gastos básicos
+//
+// Si no cumple la antigüedad laboral, el ingreso calculado y sus descuentos
+// quedan en cero. Los arriendos demostrados (valor aceptado en el Análisis de
+// Arriendos) del solicitante principal cuentan siempre; los del segundo
+// solicitante solo si cumple la antigüedad laboral.
+function insumosSolicitante(tipo, sol, ingresos, arriendos) {
+    const ing = ingresos && ingresos[tipo] && String(ingresos[tipo].cedula) === String(sol.numero_id)
+        ? ingresos[tipo] : null;
+    const lista = ((arriendos || {})['arriendos_' + tipo]) || [];
+    const demostrado = lista.reduce((t, a) => t + (a.valor_aceptado > 0 ? a.valor_aceptado : 0), 0);
+    const sinAnalizar = lista.filter(a => a.valor_aceptado === undefined).length;
+    const cumple = !!(ing && ing.cumple_antiguedad);
+    const cuentanArriendos = tipo === 'principal' || cumple;
+    const arr = cuentanArriendos ? demostrado : 0;
+    const laboral = cumple ? ing.ingreso_calculado : 0;
+
+    const lineas = [];
+    if (ing) {
+        lineas.push('An&aacute;lisis de Ingresos: ingreso calculado <strong>' + fmt(laboral) + '</strong>' + (cumple
+            ? ''
+            : ' (no cumple antig&uuml;edad laboral: el ingreso calculado de ' + fmt(ing.ingreso_calculado) + ' queda excluido)'));
+    } else {
+        lineas.push('<span style="color:#FDE68A;">Falta el An&aacute;lisis de Ingresos de este solicitante.</span>');
+    }
+    if (lista.length) {
+        let nota = '';
+        if (ing && !cumple && demostrado > 0) {
+            nota = cuentanArriendos
+                ? ', se cuentan aunque no cumpla la antig&uuml;edad laboral por ser el solicitante principal'
+                : ', <span style="color:#FDE68A;">no se cuentan: el segundo solicitante no cumple la antig&uuml;edad laboral</span>';
+        }
+        lineas.push('Arriendos demostrados: <strong>' + fmt(demostrado) + '</strong> (' + lista.length + ' inmueble' + (lista.length === 1 ? '' : 's') + ')'
+            + nota
+            + (sinAnalizar ? ' &middot; <span style="color:#FDE68A;">' + sinAnalizar + ' sin analizar: abra <a href="/analisis-ctl" style="color:#A78BFA;">An&aacute;lisis Arriendos</a></span>' : ''));
+    } else {
+        lineas.push('Arriendos: no declar&oacute; ingresos por arriendos.');
+    }
+    if (ing) lineas.push('Ingreso bruto = ingreso calculado + arriendos que cuentan = <strong>' + fmt(laboral + arr) + '</strong>');
+    return {
+        hayAnalisis: !!ing,
+        bruto: laboral + arr,
+        retencion: cumple ? (ing.retencion_fuente || 0) : 0,
+        solidaridad: cumple ? (ing.solidaridad || 0) : 0,
+        detalle: lineas.join('<br>'),
+    };
+}
+
+// Trae a la hoja los solicitantes de la Solicitud con sus insumos de ingreso.
+// Devuelve true si había una Solicitud enviada en esta sesión.
+function cargarDesdeSolicitud() {
+    const carpeta = leerJsonSesion('morada_carpeta');
+    if (!carpeta || !carpeta.principal) return false;
+    const ingresos = leerJsonSesion('morada_ingresos');
+    const arriendos = leerJsonSesion('morada_arriendos');
+    let faltaAnalisis = false;
+
+    ['principal', 'secundario'].forEach(tipo => {
+        const sol = carpeta[tipo];
+        if (!sol) return;
+        campo('cedula', tipo).value = sol.numero_id;
+        campo('apellido', tipo).value = apellidoDe(sol, tipo);
+        campo('tipo_doc', tipo).value = sol.tipo_id;
+        const ins = insumosSolicitante(tipo, sol, ingresos, arriendos);
+        if (!ins.hayAnalisis) faltaAnalisis = true;
+        campo('ingreso_bruto', tipo).value = ins.hayAnalisis ? Math.round(ins.bruto) : '';
+        campo('retencion_fuente', tipo).value = ins.hayAnalisis ? Math.round(ins.retencion) : '';
+        campo('solidaridad', tipo).value = ins.hayAnalisis ? Math.round(ins.solidaridad) : '';
+        limpiarCalculados(tipo);
+        campo('detalle_ingreso', tipo).innerHTML = ins.detalle;
+        document.getElementById('titulo-' + tipo).textContent = ETIQUETA[tipo] + ' — ' + sol.nombre
+            + (tipo === 'secundario' && sol.parentesco ? ' (' + sol.parentesco + ')' : '');
+    });
+    document.getElementById('bloque-secundario').style.display = carpeta.secundario ? 'block' : 'none';
+
+    const demo = EXPERIAN_DEMO.findIndex(e => e.cedula === String(carpeta.principal.numero_id));
+    document.getElementById('select_demo').value = demo >= 0 ? demo : '';
+
+    if (faltaAnalisis) {
+        mostrarAviso('falta', 'Los solicitantes se trajeron de la Solicitud, pero falta el resultado del An&aacute;lisis de Ingresos. Abra <a href="/analista">An&aacute;lisis de Ingresos</a> y vuelva a esta hoja para traer el ingreso bruto, la retenci&oacute;n en la fuente y el fondo de solidaridad.');
+    } else {
+        mostrarAviso('ok', '<strong>Datos tra&iacute;dos de la Solicitud y del An&aacute;lisis de Ingresos.</strong> La retenci&oacute;n en la fuente y el fondo de solidaridad son los del An&aacute;lisis de Ingresos y no se recalculan. Los gastos b&aacute;sicos y el Ingreso Neto Calculado se obtienen al consultar el score.');
+    }
+    return true;
+}
+
+// Sin Solicitud enviada: al menos se identifica a quienes están elegidos en
+// Muestra. El ingreso queda pendiente del Análisis de Ingresos.
+function cargarDesdeMuestra() {
+    const sel = leerSeleccionMuestra();
+    if (!sel) return false;
+    ['principal', 'secundario'].forEach(tipo => {
+        const s = sel[tipo];
+        if (!s) return;
+        campo('cedula', tipo).value = s.numero_id;
+        campo('apellido', tipo).value = s.primer_apellido;
+        campo('tipo_doc', tipo).value = s.tipo_id;
+        document.getElementById('titulo-' + tipo).textContent = ETIQUETA[tipo] + ' — ' + s.nombre;
+    });
+    document.getElementById('bloque-secundario').style.display = sel.secundario ? 'block' : 'none';
+    if (sel.principal.base === BASE_EXPERIAN) document.getElementById('select_demo').value = sel.principal.idx;
+    mostrarAviso('falta', 'Solicitantes tomados de Muestra. Falta enviar la <a href="/">Solicitud</a> para que el An&aacute;lisis de Ingresos calcule el ingreso bruto y sus descuentos.');
+    return true;
+}
+
+// Compatibilidad: datos del principal por parámetros de la URL.
+function cargarDesdeUrl() {
+    const p = new URLSearchParams(window.location.search);
+    if (!p.get('cedula')) return false;
+    campo('cedula', 'principal').value = p.get('cedula');
+    if (p.get('apellido')) campo('apellido', 'principal').value = p.get('apellido');
+    if (p.get('tipo')) campo('tipo_doc', 'principal').value = p.get('tipo');
+    if (p.get('ingreso')) campo('ingreso_bruto', 'principal').value = p.get('ingreso');
+    return true;
+}
+
+window.addEventListener('load', function() {
+    poblarSelectDemo();
+    if (!cargarDesdeUrl() && !cargarDesdeSolicitud()) cargarDesdeMuestra();
+    // Con los datos completos se calcula de una vez, lo que trae el Score Advance.
+    if (solicitudCompleta()) calcular();
+    // Ingreso en cero traído del Análisis de Ingresos: se explica sin consultar Experian.
+    else if (campo('cedula', 'principal').value && campo('ingreso_bruto', 'principal').value !== '') construirSolicitud();
+});
+
 function riesgoBadge(nivel) {
-    const cls = nivel <= 2 ? `badge-r${nivel}` : nivel <= 4 ? `badge-r${nivel}` : `badge-r${nivel}`;
-    return `<span class="badge ${cls}">R${nivel}</span>`;
+    return `<span class="badge badge-r${nivel}">R${nivel}</span>`;
 }
 
 function showTab(name) {
     ['resumen','detalle','json'].forEach(t => {
         document.getElementById('tab-' + t).style.display = t === name ? 'block' : 'none';
     });
-    document.querySelectorAll('.tab-bar .btn').forEach(b => {
-        b.classList.toggle('active', b.textContent.toLowerCase().includes(name === 'resumen' ? 'resumen' : name === 'detalle' ? 'detalle' : 'json'));
+    document.querySelectorAll('#results .tab-bar .btn').forEach(b => {
+        b.classList.toggle('active', b.textContent.toLowerCase().includes(name));
     });
 }
 
@@ -523,14 +856,77 @@ function hideError() {
     document.getElementById('error-container').style.display = 'none';
 }
 
-async function consultarHDC() {
-    hideError();
-    const cedula = document.getElementById('cedula').value.trim();
-    const apellido = document.getElementById('apellido').value.trim();
-    const ingreso = parseFloat(document.getElementById('ingreso_bruto').value) || 0;
+// =====================================================================
+// Consulta: HDC+ en Experian por solicitante + motor de capacidad de pago
+// =====================================================================
+function haySegundoEnFormulario() {
+    return document.getElementById('bloque-secundario').style.display !== 'none'
+        && campo('cedula', 'secundario').value.trim() !== ''
+        && campo('apellido', 'secundario').value.trim() !== '';
+}
 
-    if (!cedula || !apellido || !ingreso) {
-        showError('Complete cédula, apellido e ingreso bruto');
+function solicitudCompleta() {
+    return campo('cedula', 'principal').value.trim() !== ''
+        && campo('apellido', 'principal').value.trim() !== ''
+        && (parseFloat(campo('ingreso_bruto', 'principal').value) || 0) > 0;
+}
+
+// Retención y solidaridad se envían solo si la casilla tiene valor (un cero
+// cuenta). Con las dos vacías, el motor las calcula con las tablas de la política.
+function agregarDescuentos(body, tipo, sufijo) {
+    const ret = campo('retencion_fuente', tipo).value;
+    const sol = campo('solidaridad', tipo).value;
+    if (ret !== '') body['retencion_fuente' + sufijo] = parseFloat(ret) || 0;
+    if (sol !== '') body['solidaridad' + sufijo] = parseFloat(sol) || 0;
+}
+
+function construirSolicitud() {
+    const cedula = campo('cedula', 'principal').value.trim();
+    const apellido = campo('apellido', 'principal').value.trim();
+    const brutoTxt = campo('ingreso_bruto', 'principal').value;
+    const bruto = parseFloat(brutoTxt) || 0;
+
+    if (!cedula || !apellido) {
+        showError('Complete la cédula y el primer apellido del solicitante principal.');
+        return null;
+    }
+    if (brutoTxt === '') {
+        showError('Falta el ingreso bruto del solicitante principal: abra el Análisis de Ingresos o digítelo.');
+        return null;
+    }
+    if (bruto <= 0) {
+        showError('El ingreso bruto del solicitante principal es $0: el Análisis de Ingresos no aceptó ingresos, así que no hay capacidad de pago que calcular.');
+        return null;
+    }
+
+    const body = {
+        cedula: cedula,
+        primer_apellido: apellido,
+        tipo_documento: campo('tipo_doc', 'principal').value,
+        ingreso_bruto: bruto,
+    };
+    agregarDescuentos(body, 'principal', '');
+    if (haySegundoEnFormulario()) {
+        body.cedula_secundario = campo('cedula', 'secundario').value.trim();
+        body.primer_apellido_secundario = campo('apellido', 'secundario').value.trim();
+        body.tipo_documento_secundario = campo('tipo_doc', 'secundario').value;
+        body.ingreso_bruto_secundario = parseFloat(campo('ingreso_bruto', 'secundario').value) || 0;
+        agregarDescuentos(body, 'secundario', '_secundario');
+    }
+    return body;
+}
+
+// opciones.forzar: vuelve a consultar Experian aunque el cálculo ya esté en
+// la sesión (botón). Sin forzar se reutiliza el último cálculo de los mismos datos.
+async function calcular(opciones) {
+    hideError();
+    const body = construirSolicitud();
+    if (!body) return;
+    const firma = JSON.stringify(body);
+
+    const previo = leerJsonSesion('morada_capacidad');
+    if (!(opciones && opciones.forzar) && previo && previo.firma === firma) {
+        renderResults(previo.data);
         return;
     }
 
@@ -542,21 +938,23 @@ async function consultarHDC() {
         const resp = await fetch('/filtro/capacidad-pago', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                cedula: cedula,
-                primer_apellido: apellido,
-                tipo_documento: document.getElementById('tipo_doc').value,
-                ingreso_bruto: ingreso,
-            }),
+            body: firma,
         });
 
         if (!resp.ok) {
             const err = await resp.json();
-            throw new Error(err.detail || `Error ${resp.status}`);
+            throw new Error(typeof err.detail === 'string' ? err.detail : `Error ${resp.status}`);
         }
 
         const data = await resp.json();
-        renderResults(data.analisis, data.hdc_principal);
+        // El JSON original de HDC+ es muy grande y ya se ve en la Carpeta.
+        [data.hdc_principal, data.hdc_secundario].forEach(h => { if (h) delete h.respuesta_original; });
+        try {
+            sessionStorage.setItem('morada_capacidad', JSON.stringify({ firma: firma, data: data }));
+        } catch (e) {
+            console.warn('No se pudo guardar el cálculo en la sesión:', e);
+        }
+        renderResults(data);
     } catch (e) {
         showError(e.message);
     } finally {
@@ -565,143 +963,289 @@ async function consultarHDC() {
     }
 }
 
-async function analizarManual() {
-    hideError();
-    const cedula = document.getElementById('cedula').value.trim() || 'manual';
-    const ingreso = parseFloat(document.getElementById('ingreso_bruto').value) || 0;
-    const score = parseInt(document.getElementById('score_manual').value) || null;
-
-    if (!ingreso) {
-        showError('Ingrese el ingreso bruto');
-        return;
-    }
-
-    let obligaciones = [];
-    const jsonText = document.getElementById('obligaciones_json').value.trim();
-    if (jsonText) {
-        try {
-            obligaciones = JSON.parse(jsonText);
-        } catch (e) {
-            showError('JSON de obligaciones inválido: ' + e.message);
-            return;
-        }
-    }
-
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('loading').textContent = 'Calculando...';
-    document.getElementById('btn-manual').disabled = true;
-    document.getElementById('results').classList.remove('visible');
-
-    try {
-        const resp = await fetch('/filtro/analisis-gastos', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                solicitante_principal: {
-                    cedula: cedula,
-                    ingreso_bruto: ingreso,
-                    score_advance: score,
-                    obligaciones: obligaciones,
-                },
-            }),
-        });
-
-        if (!resp.ok) {
-            const err = await resp.json();
-            throw new Error(err.detail || `Error ${resp.status}`);
-        }
-
-        const data = await resp.json();
-        renderResults(data, null);
-    } catch (e) {
-        showError(e.message);
-    } finally {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('loading').textContent = 'Consultando Experian...';
-        document.getElementById('btn-manual').disabled = false;
-    }
+// =====================================================================
+// Resultados
+// =====================================================================
+function modeloScore(hdc) {
+    if (!hdc || !hdc.scores || !hdc.scores.length) return '';
+    const m = hdc.scores.find(x => x.score_value === hdc.score_advance) || hdc.scores[0];
+    return m.model_code || '';
 }
 
-function renderResults(analisis, hdc) {
+function tablaObligaciones(a, hdc) {
+    if (a.detalle_obligaciones.length === 0) {
+        return '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);">Sin obligaciones vigentes'
+            + (hdc && hdc.obligaciones_cerradas ? ` (${hdc.obligaciones_cerradas} cerradas)` : '') + '</div>';
+    }
+    const rows = a.detalle_obligaciones.map(ob => {
+        const obsHtml = ob.observaciones.length ? `<ul class="obs-list">${ob.observaciones.map(o => `<li>${o}</li>`).join('')}</ul>` : '';
+        let estado = '';
+        if (ob.castigada) {
+            estado = `<span class="badge badge-no" title="Saldo ${fmt(ob.saldo)} exigible">${ob.estado_cuenta_desc || 'Castigada'}</span>`;
+        } else if (ob.en_mora) {
+            estado = `<span class="badge badge-no" title="${fmt(ob.monto_mora || 0)} vencido">Mora ${ob.cuotas_mora || ''}</span>`;
+        } else if (ob.excluida_por_cuotas) {
+            estado = '<span class="badge badge-no">Excluida</span>';
+        } else if (ob.estado_cuenta_desc) {
+            estado = `<span class="badge badge-si">${ob.estado_cuenta_desc}</span>`;
+        }
+        const calidad = ob.es_deudor_principal
+            ? '<span class="badge badge-si">Principal</span>'
+            : `<span class="badge badge-no">${ob.calidad_deudor_desc || 'Codeudor'}</span>`;
+        const rowStyle = ob.castigada ? ' style="background:rgba(239,68,68,0.12);"' : (ob.en_mora ? ' style="background:rgba(245,158,11,0.10);"' : '');
+        return `
+            <tr${rowStyle}>
+                <td>${ob.entidad || '—'}</td>
+                <td><span class="badge badge-si">${ob.linea_credito}</span></td>
+                <td class="text-right">${fmt(ob.cupo)}</td>
+                <td class="text-right">${fmt(ob.saldo)}</td>
+                <td class="text-right">${fmt(ob.cuota_reportada)}</td>
+                <td class="text-right">${fmt(ob.cuota_calculada)}</td>
+                <td class="text-center">${calidad}</td>
+                <td class="text-right">${pct(ob.porcentaje_calidad)}</td>
+                <td class="text-center">${estado}</td>
+                <td class="text-right" style="font-weight:600;">${fmt(ob.cuota_final)}</td>
+            </tr>
+            ${obsHtml ? `<tr><td colspan="10" style="padding:4px 12px;">${obsHtml}</td></tr>` : ''}
+        `;
+    }).join('');
+
+    return `
+        <table>
+            <thead>
+                <tr>
+                    <th>Entidad</th>
+                    <th>L&iacute;nea</th>
+                    <th class="text-right">Cupo</th>
+                    <th class="text-right">Saldo</th>
+                    <th class="text-right">Cuota Rep.</th>
+                    <th class="text-right">Cuota Calc.</th>
+                    <th class="text-center">Calidad</th>
+                    <th class="text-right">% Calidad</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-right">Cuota Final</th>
+                </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+            <tfoot>
+                <tr style="background:rgba(124,58,237,0.1);">
+                    <td colspan="9" style="font-weight:700;">Total Cuotas Centrales (${a.detalle_obligaciones.length} vigentes${hdc && hdc.obligaciones_cerradas ? `, ${hdc.obligaciones_cerradas} cerradas excluidas` : ''})</td>
+                    <td class="text-right" style="font-weight:700;font-size:15px;">${fmt(a.total_cuotas_centrales)}</td>
+                </tr>
+            </tfoot>
+        </table>
+    `;
+}
+
+function renderResults(data) {
+    const analisis = data.analisis;
+    const hdcP = data.hdc_principal;
+    const hdcS = data.hdc_secundario || null;
     const p = analisis.solicitante_principal;
-    const full = { analisis, hdc };
+    const s = analisis.solicitante_secundario || null;
+
+    // Solicitantes que entran al cálculo
+    const sols = [{ tipo: 'principal', a: p, hdc: hdcP }];
+    if (s) sols.push({ tipo: 'secundario', a: s, hdc: hdcS });
+    const dos = sols.length > 1;
+    const suma = (f) => sols.reduce((t, o) => t + f(o.a), 0);
+    const totalBruto = analisis.total_ingreso_bruto;
+    const totalNetoCalculado = analisis.total_ingreso_neto_calculado;
+    const delAnalisis = sols.every(o => o.a.descuentos_del_analisis_ingresos);
+    const origenDescuentos = delAnalisis ? 'del An&aacute;lisis de Ingresos' : 'seg&uacute;n tablas de la pol&iacute;tica';
+
+    // Casillas calculadas del formulario: score, gastos básicos e Ingreso Neto Calculado
+    campo('score_advance', 'principal').value = hdcP.score_advance
+        ? hdcP.score_advance + '  ·  R' + p.nivel_riesgo + (modeloScore(hdcP) ? '  ·  modelo ' + modeloScore(hdcP) : '')
+        : 'Sin score';
+    if (hdcS) {
+        campo('score_advance', 'secundario').value = hdcS.score_advance
+            ? hdcS.score_advance + (s ? '  ·  R' + s.nivel_riesgo : '') + (modeloScore(hdcS) ? '  ·  modelo ' + modeloScore(hdcS) : '')
+            : 'Sin score';
+    }
+    sols.forEach(o => {
+        const a = o.a;
+        campo('gastos_basicos', o.tipo).value = fmt(a.gastos_basicos) + '  ·  ' + pct(a.porcentaje_gastos_basicos);
+        campo('ingreso_neto', o.tipo).value = fmt(a.ingreso_neto_calculado);
+        campo('detalle_neto', o.tipo).innerHTML = 'Ingreso Neto Calculado = ingreso bruto ' + fmt(a.ingreso_bruto)
+            + ' &minus; retenci&oacute;n en la fuente ' + fmt(a.retefuente)
+            + ' &minus; fondo de solidaridad ' + fmt(a.solidaridad)
+            + ' &minus; gastos b&aacute;sicos ' + fmt(a.gastos_basicos)
+            + ' (' + pct(a.porcentaje_gastos_basicos) + ' de ' + fmt(a.ingreso_bruto) + ', ' + a.ingreso_smlmv.toFixed(2) + ' SMLMV, R' + a.nivel_riesgo + ')'
+            + ' = <strong>' + fmt(a.ingreso_neto_calculado) + '</strong>';
+    });
+    if (hdcS && !s) {
+        limpiarCalculados('secundario');
+        campo('detalle_neto', 'secundario').innerHTML = 'Sin ingreso bruto aceptado: este solicitante no entra al c&aacute;lculo.';
+    }
 
     // Top metrics
-    const metricsEl = document.getElementById('top-metrics');
     const disponibleClass = analisis.disponible_pago > 0 ? 'success' : 'danger';
+    const enMora = suma(a => a.obligaciones_en_mora);
+    const castigadas = suma(a => a.obligaciones_castigadas);
 
-    metricsEl.innerHTML = `
+    document.getElementById('top-metrics').innerHTML = `
         <div class="metric-card">
             <div class="metric-label">Ingreso Bruto</div>
-            <div class="metric-value">${fmt(p.ingreso_bruto)}</div>
-            <div class="metric-detail">${p.ingreso_smlmv.toFixed(1)} SMLMV</div>
+            <div class="metric-value">${fmt(totalBruto)}</div>
+            <div class="metric-detail">${dos
+                ? 'Principal ' + fmt(p.ingreso_bruto) + ' + segundo ' + fmt(s.ingreso_bruto)
+                : p.ingreso_smlmv.toFixed(2) + ' SMLMV'}</div>
+        </div>
+        <div class="metric-card ${totalNetoCalculado > 0 ? 'success' : 'danger'}">
+            <div class="metric-label">Ingreso Neto Calculado</div>
+            <div class="metric-value">${fmt(totalNetoCalculado)}</div>
+            <div class="metric-detail">${dos
+                ? 'Principal ' + fmt(p.ingreso_neto_calculado) + ' + segundo ' + fmt(s.ingreso_neto_calculado)
+                : 'Bruto &minus; retenci&oacute;n &minus; solidaridad &minus; gastos b&aacute;sicos'}</div>
         </div>
         <div class="metric-card">
-            <div class="metric-label">Score Advance</div>
+            <div class="metric-label">Score Advance${modeloScore(hdcP) ? ' (' + modeloScore(hdcP) + ')' : ''}</div>
             <div class="metric-value">${p.score_advance || 'N/A'}</div>
-            <div class="metric-detail">Nivel de riesgo: ${riesgoBadge(p.nivel_riesgo)}</div>
+            <div class="metric-detail">Nivel de riesgo: ${riesgoBadge(p.nivel_riesgo)} &middot; ${p.detalle_obligaciones.length} vigentes, ${hdcP.obligaciones_cerradas || 0} cerradas${hdcS
+                ? '<br>Segundo solicitante: ' + (hdcS.score_advance || 'sin score') + (s ? ' ' + riesgoBadge(s.nivel_riesgo) : '')
+                : ''}</div>
         </div>
         <div class="metric-card warning">
-            <div class="metric-label">Total Egresos</div>
-            <div class="metric-value">${fmt(analisis.total_egresos)}</div>
-            <div class="metric-detail">${pct(analisis.total_egresos / p.ingreso_bruto)} del ingreso</div>
+            <div class="metric-label">Cuotas en Centrales</div>
+            <div class="metric-value">${fmt(suma(a => a.total_cuotas_centrales))}</div>
+            <div class="metric-detail">${suma(a => a.detalle_obligaciones.length)} obligaciones vigentes</div>
         </div>
         <div class="metric-card ${disponibleClass}">
             <div class="metric-label">Disponible para Cuota</div>
             <div class="metric-value">${fmt(analisis.disponible_pago)}</div>
             <div class="metric-detail">Factor ajuste: ${pct(analisis.factor_ajuste)} (${riesgoBadge(analisis.nivel_riesgo_ajuste)})</div>
         </div>
+        ${(enMora || castigadas) ? `
+        <div class="metric-card danger">
+            <div class="metric-label">Mora / Castigados</div>
+            <div class="metric-value">${enMora} en mora${castigadas ? ` &middot; ${castigadas} castigada(s)` : ''}</div>
+            <div class="metric-detail">Vencido: ${fmt(suma(a => a.monto_mora_total))}${castigadas ? ` &middot; Saldo castigado: ${fmt(suma(a => a.saldo_castigado))}` : ''}</div>
+        </div>` : ''}
     `;
 
-    // Waterfall chart
-    const maxVal = p.ingreso_bruto;
-    const barPct = (v) => Math.max(3, Math.abs(v) / maxVal * 100);
+    // Waterfall chart (totales de los solicitantes que entran al cálculo)
+    const barPct = (v) => Math.max(3, Math.min(100, Math.abs(v) / totalBruto * 100));
+    const fila = (etq, clase, valor, signo) => `
+            <div class="waterfall-row">
+                <div class="waterfall-label">${etq}</div>
+                <div class="waterfall-bar-container">
+                    <div class="waterfall-bar ${clase}" style="width:${barPct(valor)}%">${signo || ''}${fmt(valor)}</div>
+                </div>
+            </div>`;
 
-    const waterfallEl = document.getElementById('waterfall-chart');
-    waterfallEl.innerHTML = `
+    document.getElementById('waterfall-chart').innerHTML = `
         <div class="waterfall">
-            <div class="waterfall-row">
-                <div class="waterfall-label">8.3 Ingreso Bruto</div>
-                <div class="waterfall-bar-container">
-                    <div class="waterfall-bar income" style="width:${barPct(analisis.total_ingreso_bruto)}%">${fmt(analisis.total_ingreso_bruto)}</div>
-                </div>
-            </div>
-            <div class="waterfall-row">
-                <div class="waterfall-label">8.4 Gastos B&aacute;sicos</div>
-                <div class="waterfall-bar-container">
-                    <div class="waterfall-bar expense" style="width:${barPct(p.gastos_basicos)}%">-${fmt(p.gastos_basicos)}</div>
-                </div>
-            </div>
-            <div class="waterfall-row">
-                <div class="waterfall-label">8.5 Cuotas Centrales</div>
-                <div class="waterfall-bar-container">
-                    <div class="waterfall-bar expense" style="width:${barPct(p.total_cuotas_centrales)}%">-${fmt(p.total_cuotas_centrales)}</div>
-                </div>
-            </div>
-            <div class="waterfall-row">
-                <div class="waterfall-label">8.6 Descuentos N&oacute;mina</div>
-                <div class="waterfall-bar-container">
-                    <div class="waterfall-bar expense" style="width:${barPct(p.total_descuentos_nomina)}%">-${fmt(p.total_descuentos_nomina)}</div>
-                </div>
-            </div>
-            <div class="waterfall-row">
-                <div class="waterfall-label">8.8 Ingreso Neto</div>
-                <div class="waterfall-bar-container">
-                    <div class="waterfall-bar result" style="width:${barPct(analisis.ingreso_neto)}%">${fmt(analisis.ingreso_neto)}</div>
-                </div>
-            </div>
-            <div class="waterfall-row">
-                <div class="waterfall-label">8.10 Disponible (${pct(analisis.factor_ajuste)})</div>
-                <div class="waterfall-bar-container">
-                    <div class="waterfall-bar adjusted" style="width:${barPct(analisis.disponible_pago)}%">${fmt(analisis.disponible_pago)}</div>
-                </div>
-            </div>
+            ${fila('8.3 Ingreso Bruto', 'income', totalBruto)}
+            ${fila('8.6 Retenci&oacute;n y Solidaridad', 'expense', suma(a => a.total_descuentos_nomina), '-')}
+            ${fila('8.4 Gastos B&aacute;sicos', 'expense', suma(a => a.gastos_basicos), '-')}
+            ${fila('Ingreso Neto Calculado', 'result', totalNetoCalculado)}
+            ${fila('8.5 Cuotas Centrales', 'expense', suma(a => a.total_cuotas_centrales), '-')}
+            ${fila('8.8 Ingreso Neto tras cuotas', 'result', analisis.ingreso_neto)}
+            ${fila('8.10 Disponible (' + pct(analisis.factor_ajuste) + ')', 'adjusted', analisis.disponible_pago)}
         </div>
+        <div class="nota-calc">Ingreso Neto Calculado = ingreso bruto &minus; retenci&oacute;n en la fuente &minus; fondo de solidaridad &minus; gastos b&aacute;sicos. Retenci&oacute;n y solidaridad: ${origenDescuentos}.</div>
     `;
 
     // Breakdown table
-    const breakdownEl = document.getElementById('breakdown-table');
-    breakdownEl.innerHTML = `
+    const de = (o) => dos ? ' &mdash; ' + (o.tipo === 'principal' ? 'Principal' : 'Segundo solicitante') : '';
+    const rojo = 'color:#EF4444;';
+    let filas = `
+        <tr>
+            <td>8.3</td>
+            <td>Ingreso Bruto (ingreso calculado + arriendos que cuentan)</td>
+            <td class="text-right">100%</td>
+            <td class="text-right" style="color:#10B981;font-weight:600;">${fmt(totalBruto)}</td>
+        </tr>`;
+    if (dos) {
+        sols.forEach(o => {
+            filas += `
+        <tr>
+            <td></td>
+            <td style="padding-left:28px; color:rgba(255,255,255,0.6);">${o.tipo === 'principal' ? 'Principal' : 'Segundo solicitante'} (${o.a.ingreso_smlmv.toFixed(2)} SMLMV)</td>
+            <td class="text-right" style="color:rgba(255,255,255,0.6);">${pct(o.a.ingreso_bruto / totalBruto)}</td>
+            <td class="text-right" style="color:rgba(255,255,255,0.6);">${fmt(o.a.ingreso_bruto)}</td>
+        </tr>`;
+        });
+    }
+    sols.forEach(o => {
+        filas += `
+        <tr>
+            <td>8.6a</td>
+            <td>Retenci&oacute;n en la Fuente${de(o)} (${origenDescuentos})</td>
+            <td class="text-right">${pct(o.a.porcentaje_retefuente)}</td>
+            <td class="text-right" style="${rojo}">-${fmt(o.a.retefuente)}</td>
+        </tr>
+        <tr>
+            <td>8.6b</td>
+            <td>Fondo de Solidaridad Pensional${de(o)} (${origenDescuentos})</td>
+            <td class="text-right">${pct(o.a.porcentaje_solidaridad)}</td>
+            <td class="text-right" style="${rojo}">-${fmt(o.a.solidaridad)}</td>
+        </tr>`;
+    });
+    sols.forEach(o => {
+        filas += `
+        <tr>
+            <td>8.4</td>
+            <td>Gastos B&aacute;sicos${de(o)}: porcentaje sobre el ingreso bruto de ${fmt(o.a.ingreso_bruto)} (${o.a.ingreso_smlmv.toFixed(2)} SMLMV, ${riesgoBadge(o.a.nivel_riesgo)})</td>
+            <td class="text-right">${pct(o.a.porcentaje_gastos_basicos)}</td>
+            <td class="text-right" style="${rojo}">-${fmt(o.a.gastos_basicos)}</td>
+        </tr>`;
+    });
+    filas += `
+        <tr style="border-top:2px solid rgba(124,58,237,0.3); background:rgba(124,58,237,0.08);">
+            <td></td>
+            <td><strong>Ingreso Neto Calculado</strong> (bruto &minus; retenci&oacute;n &minus; solidaridad &minus; gastos b&aacute;sicos)</td>
+            <td class="text-right"><strong>${pct(totalNetoCalculado / totalBruto)}</strong></td>
+            <td class="text-right" style="color:#7C3AED;font-weight:700;">${fmt(totalNetoCalculado)}</td>
+        </tr>`;
+    if (dos) {
+        sols.forEach(o => {
+            filas += `
+        <tr>
+            <td></td>
+            <td style="padding-left:28px; color:rgba(255,255,255,0.6);">${o.tipo === 'principal' ? 'Principal' : 'Segundo solicitante'}</td>
+            <td class="text-right" style="color:rgba(255,255,255,0.6);">${pct(o.a.ingreso_neto_calculado / o.a.ingreso_bruto)}</td>
+            <td class="text-right" style="color:rgba(255,255,255,0.6);">${fmt(o.a.ingreso_neto_calculado)}</td>
+        </tr>`;
+        });
+    }
+    sols.forEach(o => {
+        filas += `
+        <tr>
+            <td>8.5</td>
+            <td>Cuotas Centrales de Riesgo${de(o)} (${o.a.detalle_obligaciones.length} obligaciones)</td>
+            <td class="text-right">&mdash;</td>
+            <td class="text-right" style="${rojo}">-${fmt(o.a.total_cuotas_centrales)}</td>
+        </tr>`;
+    });
+    filas += `
+        <tr style="border-top:2px solid rgba(124,58,237,0.3);">
+            <td><strong>8.7</strong></td>
+            <td><strong>Total Egresos</strong> (8.4 + 8.5 + 8.6)</td>
+            <td class="text-right"><strong>${pct(analisis.total_egresos / totalBruto)}</strong></td>
+            <td class="text-right" style="${rojo}font-weight:700;">-${fmt(analisis.total_egresos)}</td>
+        </tr>
+        <tr>
+            <td><strong>8.8</strong></td>
+            <td><strong>Ingreso Neto</strong> (Ingreso Neto Calculado &minus; cuotas en centrales)</td>
+            <td class="text-right">&mdash;</td>
+            <td class="text-right" style="color:#7C3AED;font-weight:700;">${fmt(analisis.ingreso_neto)}</td>
+        </tr>
+        <tr>
+            <td>8.9</td>
+            <td>Factor de Ajuste ${riesgoBadge(analisis.nivel_riesgo_ajuste)} (score del solicitante principal)</td>
+            <td class="text-right">${pct(analisis.factor_ajuste)}</td>
+            <td class="text-right">&mdash;</td>
+        </tr>
+        <tr style="background:rgba(124,58,237,0.08);">
+            <td><strong>8.10</strong></td>
+            <td><strong>Disponible para Pago de Cuota</strong></td>
+            <td class="text-right">&mdash;</td>
+            <td class="text-right" style="color:${analisis.disponible_pago >= 0 ? '#10B981' : '#EF4444'};font-weight:700;font-size:16px;">${fmt(analisis.disponible_pago)}</td>
+        </tr>`;
+
+    document.getElementById('breakdown-table').innerHTML = `
         <table>
             <thead>
                 <tr>
@@ -711,123 +1255,222 @@ function renderResults(analisis, hdc) {
                     <th class="text-right">Valor</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>8.3</td>
-                    <td>Ingreso Bruto Total</td>
-                    <td class="text-right">100%</td>
-                    <td class="text-right" style="color:#10B981;font-weight:600;">${fmt(analisis.total_ingreso_bruto)}</td>
-                </tr>
-                <tr>
-                    <td>8.4</td>
-                    <td>Gastos B&aacute;sicos</td>
-                    <td class="text-right">${pct(p.porcentaje_gastos_basicos)}</td>
-                    <td class="text-right" style="color:#EF4444;">-${fmt(p.gastos_basicos)}</td>
-                </tr>
-                <tr>
-                    <td>8.5</td>
-                    <td>Cuotas Centrales de Riesgo (${p.detalle_obligaciones.length} obligaciones)</td>
-                    <td class="text-right">&mdash;</td>
-                    <td class="text-right" style="color:#EF4444;">-${fmt(p.total_cuotas_centrales)}</td>
-                </tr>
-                <tr>
-                    <td>8.6a</td>
-                    <td>Retenci&oacute;n en la Fuente</td>
-                    <td class="text-right">${pct(p.porcentaje_retefuente)}</td>
-                    <td class="text-right" style="color:#EF4444;">-${fmt(p.retefuente)}</td>
-                </tr>
-                <tr>
-                    <td>8.6b</td>
-                    <td>Fondo Solidaridad Pensional</td>
-                    <td class="text-right">${pct(p.porcentaje_solidaridad)}</td>
-                    <td class="text-right" style="color:#EF4444;">-${fmt(p.solidaridad)}</td>
-                </tr>
-                <tr style="border-top:2px solid rgba(124,58,237,0.3);">
-                    <td><strong>8.7</strong></td>
-                    <td><strong>Total Egresos</strong></td>
-                    <td class="text-right"><strong>${pct(analisis.total_egresos / analisis.total_ingreso_bruto)}</strong></td>
-                    <td class="text-right" style="color:#EF4444;font-weight:700;">-${fmt(analisis.total_egresos)}</td>
-                </tr>
-                <tr>
-                    <td><strong>8.8</strong></td>
-                    <td><strong>Ingreso Neto</strong></td>
-                    <td class="text-right">&mdash;</td>
-                    <td class="text-right" style="color:#7C3AED;font-weight:700;">${fmt(analisis.ingreso_neto)}</td>
-                </tr>
-                <tr>
-                    <td>8.9</td>
-                    <td>Factor de Ajuste ${riesgoBadge(analisis.nivel_riesgo_ajuste)}</td>
-                    <td class="text-right">${pct(analisis.factor_ajuste)}</td>
-                    <td class="text-right">&mdash;</td>
-                </tr>
-                <tr style="background:rgba(124,58,237,0.08);">
-                    <td><strong>8.10</strong></td>
-                    <td><strong>Disponible para Pago de Cuota</strong></td>
-                    <td class="text-right">&mdash;</td>
-                    <td class="text-right" style="color:${analisis.disponible_pago >= 0 ? '#10B981' : '#EF4444'};font-weight:700;font-size:16px;">${fmt(analisis.disponible_pago)}</td>
-                </tr>
-            </tbody>
+            <tbody>${filas}</tbody>
         </table>
+        ${hdcS && !s ? '<div class="nota-calc">El segundo solicitante no tiene ingreso bruto aceptado: se consult&oacute; su score, pero sus ingresos y obligaciones no entran al c&aacute;lculo.</div>' : ''}
     `;
 
-    // Obligaciones detail table
-    const obEl = document.getElementById('obligaciones-table');
-    if (p.detalle_obligaciones.length === 0) {
-        obEl.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);">Sin obligaciones registradas</div>';
-    } else {
-        let rows = p.detalle_obligaciones.map(ob => {
-            const obsHtml = ob.observaciones.length ? `<ul class="obs-list">${ob.observaciones.map(o => `<li>${o}</li>`).join('')}</ul>` : '';
-            return `
-                <tr>
-                    <td>${ob.entidad || '—'}</td>
-                    <td><span class="badge badge-si">${ob.linea_credito}</span></td>
-                    <td class="text-right">${fmt(ob.cupo)}</td>
-                    <td class="text-right">${fmt(ob.saldo)}</td>
-                    <td class="text-right">${fmt(ob.cuota_reportada)}</td>
-                    <td class="text-right">${fmt(ob.cuota_calculada)}</td>
-                    <td class="text-center">${ob.es_deudor_principal ? '<span class="badge badge-si">Principal</span>' : '<span class="badge badge-no">Codeudor</span>'}</td>
-                    <td class="text-right">${pct(ob.porcentaje_calidad)}</td>
-                    <td class="text-center">${ob.excluida_por_cuotas ? '<span class="badge badge-no">Excluida</span>' : ''}</td>
-                    <td class="text-right" style="font-weight:600;">${fmt(ob.cuota_final)}</td>
-                </tr>
-                ${obsHtml ? `<tr><td colspan="10" style="padding:4px 12px;">${obsHtml}</td></tr>` : ''}
-            `;
-        }).join('');
-
-        obEl.innerHTML = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Entidad</th>
-                        <th>L&iacute;nea</th>
-                        <th class="text-right">Cupo</th>
-                        <th class="text-right">Saldo</th>
-                        <th class="text-right">Cuota Rep.</th>
-                        <th class="text-right">Cuota Calc.</th>
-                        <th class="text-center">Calidad</th>
-                        <th class="text-right">% Calidad</th>
-                        <th class="text-center">Estado</th>
-                        <th class="text-right">Cuota Final</th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-                <tfoot>
-                    <tr style="background:rgba(124,58,237,0.1);">
-                        <td colspan="9" style="font-weight:700;">Total Cuotas Centrales</td>
-                        <td class="text-right" style="font-weight:700;font-size:15px;">${fmt(p.total_cuotas_centrales)}</td>
-                    </tr>
-                </tfoot>
-            </table>
-        `;
-    }
+    // Obligaciones: una tarjeta por solicitante
+    document.getElementById('obligaciones-cards').innerHTML = sols.map(o => `
+        <div class="card">
+            <h2>Obligaciones del ${ETIQUETA[o.tipo]}</h2>
+            <div class="table-wrap">${tablaObligaciones(o.a, o.hdc)}</div>
+        </div>`).join('');
 
     // JSON tab
-    document.getElementById('json-output').textContent = JSON.stringify(full, null, 2);
+    document.getElementById('json-output').textContent = JSON.stringify(data, null, 2);
+
+    // Cuadros de cálculo al final de la hoja, resaltando el caso consultado
+    casosCuadros = sols;
+    casoActivo = 'principal';
+    renderCuadros();
 
     // Show results
     document.getElementById('results').classList.add('visible');
     showTab('resumen');
 }
+
+// =====================================================================
+// Cuadros de cálculo (8.4 gastos básicos, 8.5 cuotas en centrales)
+// =====================================================================
+let parametrosPolitica = null;
+let ultimoAnalisis = null;
+// Solicitantes del último cálculo y cuál se resalta en los cuadros
+let casosCuadros = [];
+let casoActivo = 'principal';
+
+const PCT0 = new Intl.NumberFormat('es-CO', {style:'percent', maximumFractionDigits:0});
+function pct0(v) { return PCT0.format(v); }
+const MESES_FMT = new Intl.NumberFormat('es-CO', {maximumFractionDigits:1});
+const SMLMV_FMT = new Intl.NumberFormat('es-CO', {maximumFractionDigits:2});
+
+async function cargarParametros() {
+    try {
+        const resp = await fetch('/filtro/parametros');
+        if (!resp.ok) throw new Error('Error ' + resp.status);
+        parametrosPolitica = await resp.json();
+        renderCuadros();
+    } catch (e) {
+        const msg = 'No se pudieron cargar los parámetros: ' + e.message;
+        document.getElementById('cuadro-gastos-body').textContent = msg;
+        document.getElementById('cuadro-centrales-body').textContent = msg;
+    }
+}
+
+function encabezadoRiesgo(niveles, nivelActual) {
+    return '<tr><th></th>' + niveles.map(n =>
+        `<th${n.nivel === nivelActual ? ' style="background:#7C3AED;"' : ''}>R${n.nivel}<br><span style="font-weight:400;opacity:0.8;">${n.score}</span></th>`
+    ).join('') + '</tr>';
+}
+
+function matrizPorcentajes(rangos, tabla, niveles, nivelActual, filaActual, etiquetaFila, filasUsadas) {
+    const usadas = filasUsadas || new Set();
+    let html = `<table class="matriz"><thead>${encabezadoRiesgo(niveles, nivelActual)}</thead><tbody>`;
+    tabla.forEach((fila, i) => {
+        html += `<tr><td>${etiquetaFila} ${rangos[i]}</td>`;
+        fila.forEach((v, j) => {
+            const nivel = j + 1;
+            let cls = '';
+            if (i === filaActual && nivel === nivelActual) cls = 'aplicada';
+            else if (nivel === nivelActual && usadas.has(i)) cls = 'aplicada';
+            else if (nivel === nivelActual) cls = 'col-riesgo';
+            else if (usadas.has(i)) cls = 'fila-usada';
+            html += `<td class="${cls}">${pct0(v)}</td>`;
+        });
+        html += '</tr>';
+    });
+    return html + '</tbody></table>';
+}
+
+function renderCuadroGastos(P, a) {
+    const g = P.gastos_basicos;
+    const nivel = a ? a.nivel_riesgo : null;
+    const fila = a ? a.fila_tabla_gastos : null;
+    let html = matrizPorcentajes(g.rangos_smlmv, g.tabla, P.niveles_riesgo, nivel, fila, 'Ingreso', null);
+    html += `<div class="nota-calc">SMLMV vigente: <strong>${fmt(P.smlmv)}</strong>. Gastos b&aacute;sicos = ingreso bruto &times; porcentaje.</div>`;
+    if (a) {
+        html += `<div class="nota-calc">Caso consultado: ingreso bruto <strong>${fmt(a.ingreso_bruto)}</strong> = <strong>${SMLMV_FMT.format(a.ingreso_smlmv)} SMLMV</strong>
+            (fila "${g.rangos_smlmv[fila]}"), score <strong>${a.score_advance || 'N/A'}</strong> &rarr; ${riesgoBadge(nivel)}
+            &rarr; <strong>${pct0(a.porcentaje_gastos_basicos)}</strong> &times; ${fmt(a.ingreso_bruto)} = <strong>${fmt(a.gastos_basicos)}</strong></div>`;
+    } else {
+        html += '<div class="nota-calc">Consulte un solicitante para ver la celda aplicada.</div>';
+    }
+    document.getElementById('cuadro-gastos-body').className = '';
+    document.getElementById('cuadro-gastos-body').innerHTML = html;
+}
+
+function filaDetalleTdcRot(ob, rangos) {
+    return `<tr>
+        <td>${ob.entidad || '—'}</td>
+        <td class="text-center"><span class="badge badge-si">${ob.linea_credito}</span></td>
+        <td class="text-right">${fmt(ob.saldo)}</td>
+        <td class="text-right">${fmt(ob.cuota_reportada)}</td>
+        <td class="text-right">${fmt(ob.cuota_anualidad || 0)}</td>
+        <td class="text-right">${MESES_FMT.format(ob.meses_para_pagar || 0)} <span style="opacity:0.6;">(${rangos[ob.fila_tabla_meses] || '—'})</span></td>
+        <td class="text-right">${pct0(ob.porcentaje_saldo || 0)}</td>
+        <td class="text-right">${fmt(ob.cuota_por_saldo || 0)}</td>
+        <td class="text-right">${fmt(ob.cupo_contingente || 0)}</td>
+        <td class="text-right">${pct0(ob.porcentaje_contingente || 0)}</td>
+        <td class="text-right">${fmt(ob.cuota_por_contingente || 0)}</td>
+        <td class="text-right" style="font-weight:600;">${fmt(ob.cuota_final)}</td>
+    </tr>`;
+}
+
+function filaDetalleCabViv(ob) {
+    const excl = ob.excluida_por_cuotas ? '<span class="badge badge-no">Excluida</span>' : (ob.castigada ? '<span class="badge badge-no">Castigada</span>' : '');
+    return `<tr>
+        <td>${ob.entidad || '—'}</td>
+        <td class="text-center"><span class="badge badge-si">${ob.linea_credito}</span></td>
+        <td class="text-right">${fmt(ob.base_calculo)}</td>
+        <td class="text-right">${ob.plazo_total_meses != null ? MESES_FMT.format(ob.plazo_total_meses) : '—'}</td>
+        <td class="text-right">${ob.meses_faltantes != null ? MESES_FMT.format(ob.meses_faltantes) : (ob.cuotas_restantes != null ? ob.cuotas_restantes + ' cuotas' : '—')}</td>
+        <td class="text-right">${fmt(ob.cuota_reportada)}</td>
+        <td class="text-right">${fmt(ob.cuota_anualidad || 0)}</td>
+        <td class="text-right">${fmt(ob.cuota_calculada)}</td>
+        <td class="text-right">${pct0(ob.porcentaje_calidad)}</td>
+        <td class="text-right">${fmt(ob.cuota_ajustada_calidad)}</td>
+        <td class="text-center">${excl}</td>
+        <td class="text-right" style="font-weight:600;">${fmt(ob.cuota_final)}</td>
+    </tr>`;
+}
+
+function renderCuadroCentrales(P, a) {
+    const c = P.cuotas_centrales;
+    const nivel = a ? a.nivel_riesgo : null;
+    const obs = a ? a.detalle_obligaciones : [];
+    const tdcRot = obs.filter(o => o.linea_credito === 'TDC' || o.linea_credito === 'ROT');
+    const cabViv = obs.filter(o => o.linea_credito === 'CAB' || o.linea_credito === 'VIV');
+    const otras = obs.filter(o => !tdcRot.includes(o) && !cabViv.includes(o));
+    const filasUsadas = new Set(tdcRot.map(o => o.fila_tabla_meses).filter(f => f != null));
+
+    let html = '<div class="section-title">Par&aacute;metros por l&iacute;nea de cr&eacute;dito</div>';
+    html += '<table><thead><tr><th>L&iacute;nea</th><th class="text-right">Tasa EA</th><th class="text-right">Plazo</th><th>M&eacute;todo de c&aacute;lculo</th></tr></thead><tbody>';
+    c.lineas.forEach(l => {
+        html += `<tr><td><span class="badge badge-si">${l.linea}</span></td>
+            <td class="text-right">${l.tasa_ea != null ? PCT.format(l.tasa_ea) : '—'}</td>
+            <td class="text-right">${l.plazo_meses != null ? l.plazo_meses + ' meses' : (l.tasa_ea != null ? 'plazo total del cr&eacute;dito' : '—')}</td>
+            <td>${l.metodo}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    html += '<div class="nota-calc">TDC/ROT: meses para pagar = saldo &divide; max(cuota reportada, anualidad del saldo). Con ese rango y el nivel de riesgo se toman los porcentajes de las dos tablas siguientes.</div>';
+
+    html += '<div class="section-title">Porcentaje sobre el saldo (TDC / ROT)</div>';
+    html += matrizPorcentajes(c.rangos_meses, c.pct_saldo, P.niveles_riesgo, nivel, null, 'Meses', filasUsadas);
+    html += '<div class="section-title">Porcentaje sobre el cupo contingente (TDC / ROT)</div>';
+    html += matrizPorcentajes(c.rangos_meses, c.pct_contingente, P.niveles_riesgo, nivel, null, 'Meses', filasUsadas);
+    if (a) {
+        html += `<div class="nota-calc">Caso consultado: score <strong>${a.score_advance || 'N/A'}</strong> &rarr; ${riesgoBadge(nivel)}. Las filas resaltadas son las usadas por las ${tdcRot.length} obligaciones TDC/ROT.</div>`;
+    }
+
+    html += '<div class="section-title">Ajuste por calidad del deudor</div>';
+    html += '<table><thead><tr><th>Calidad</th><th>L&iacute;nea</th><th class="text-right">% de la cuota</th></tr></thead><tbody>';
+    c.calidad_deudor.forEach(r => {
+        html += `<tr><td>${r.calidad}</td><td>${r.linea}</td><td class="text-right">${pct0(r.pct)}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    html += '<div class="section-title">Reglas adicionales</div><ul class="reglas">' + c.reglas.map(r => `<li>${r}</li>`).join('') + '</ul>';
+
+    if (tdcRot.length) {
+        html += '<div class="section-title">C&aacute;lculo aplicado: TDC / ROT</div><div class="table-wrap"><table><thead><tr>'
+            + '<th>Entidad</th><th class="text-center">L&iacute;nea</th><th class="text-right">Saldo</th><th class="text-right">Cuota Rep.</th><th class="text-right">Anualidad saldo</th><th class="text-right">Meses (rango)</th>'
+            + '<th class="text-right">% Saldo</th><th class="text-right">Cuota saldo</th><th class="text-right">Cupo conting.</th><th class="text-right">% Conting.</th><th class="text-right">Cuota conting.</th><th class="text-right">Cuota Final</th>'
+            + '</tr></thead><tbody>' + tdcRot.map(o => filaDetalleTdcRot(o, c.rangos_meses)).join('') + '</tbody></table></div>';
+    }
+    if (cabViv.length) {
+        html += '<div class="section-title">C&aacute;lculo aplicado: CAB / VIV</div><div class="table-wrap"><table><thead><tr>'
+            + '<th>Entidad</th><th class="text-center">L&iacute;nea</th><th class="text-right">Base (max saldo, cupo)</th><th class="text-right">Plazo total</th><th class="text-right">Meses faltantes</th><th class="text-right">Cuota Rep.</th>'
+            + '<th class="text-right">Anualidad</th><th class="text-right">Cuota Calc.</th><th class="text-right">% Calidad</th><th class="text-right">Cuota ajustada</th><th class="text-center">Excl.</th><th class="text-right">Cuota Final</th>'
+            + '</tr></thead><tbody>' + cabViv.map(filaDetalleCabViv).join('') + '</tbody></table></div>';
+    }
+    if (otras.length) {
+        html += '<div class="section-title">Otras l&iacute;neas (sostenimiento)</div><table><thead><tr><th>Entidad</th><th class="text-center">L&iacute;nea</th><th class="text-right">Saldo</th><th class="text-right">Cuota Final</th></tr></thead><tbody>'
+            + otras.map(o => `<tr><td>${o.entidad || '—'}</td><td class="text-center"><span class="badge badge-si">${o.linea_credito}</span></td><td class="text-right">${fmt(o.saldo)}</td><td class="text-right">${fmt(o.cuota_final)}</td></tr>`).join('')
+            + '</tbody></table>';
+    }
+    if (a) {
+        html += `<div class="nota-calc" style="font-size:14px;">Total cuotas en centrales: <strong>${fmt(a.total_cuotas_centrales)}</strong> (${obs.length} obligaciones vigentes)</div>`;
+    } else {
+        html += '<div class="nota-calc">Consulte un solicitante para ver el c&aacute;lculo aplicado a cada obligaci&oacute;n.</div>';
+    }
+
+    document.getElementById('cuadro-centrales-body').className = '';
+    document.getElementById('cuadro-centrales-body').innerHTML = html;
+}
+
+function elegirCaso(tipo) {
+    casoActivo = tipo;
+    renderCuadros();
+}
+
+function renderCuadros() {
+    if (!parametrosPolitica) return;
+    // Con dos solicitantes, los cuadros muestran el caso de uno a la vez
+    const selector = document.getElementById('selector-caso');
+    if (casosCuadros.length > 1) {
+        selector.innerHTML = casosCuadros.map(o =>
+            `<button class="btn${o.tipo === casoActivo ? ' active' : ''}" onclick="elegirCaso('${o.tipo}')">Cuadros del ${ETIQUETA[o.tipo]}</button>`
+        ).join('');
+        selector.style.display = '';
+    } else {
+        selector.style.display = 'none';
+    }
+    const caso = casosCuadros.find(o => o.tipo === casoActivo);
+    ultimoAnalisis = caso ? caso.a : null;
+    renderCuadroGastos(parametrosPolitica, ultimoAnalisis);
+    renderCuadroCentrales(parametrosPolitica, ultimoAnalisis);
+}
+
+window.addEventListener('load', cargarParametros);
 </script>
 
 </body>

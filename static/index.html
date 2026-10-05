@@ -418,7 +418,7 @@
     <a href="/" class="active">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
-    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos y Cuotas Centrales</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -426,6 +426,8 @@
     <div class="card">
         <h2>Datos del Solicitante</h2>
         <p class="subtitle">Ingrese la informaci&oacute;n b&aacute;sica para iniciar la evaluaci&oacute;n</p>
+
+        <div id="avisoMuestra" style="display:none; margin-bottom:24px; padding:14px 16px; border-radius:10px; font-size:13px; line-height:1.6;"></div>
 
         <form id="formCliente" onsubmit="return enviarDatos(event)">
             <div class="form-row">
@@ -604,35 +606,79 @@
     </div>
 </div>
 
+<script src="/static/experian_demo.local.js"></script>
 <script src="/static/solicitantes.js"></script>
 <script>
+// Carga en el formulario los solicitantes elegidos en /muestra (principal y,
+// si existe, segundo solicitante con su parentesco) y lo confirma en un aviso.
 function cargarDesdeMuestra() {
-    var raw = sessionStorage.getItem('morada_seleccion');
+    var raw = leerSeleccionCruda();
     if (!raw) return;
+    // Selección distinta a la última que cargó esta pestaña: los datos
+    // derivados de la anterior (carpeta, centrales, HDC) ya no aplican.
+    if (sessionStorage.getItem('morada_seleccion_cargada') !== raw) {
+        invalidarDatosDeSeleccion();
+        sessionStorage.setItem('morada_seleccion_cargada', raw);
+    }
+    var sel = leerSeleccionMuestra();
+    if (!sel) {
+        mostrarAvisoMuestra(false, 'No se pudo cargar la selecci&oacute;n hecha en Muestra. Vuelva a <a href="/muestra" style="color:#A78BFA;">Muestra</a> y seleccione de nuevo.');
+        return;
+    }
     try {
-        var sel = JSON.parse(raw);
-        var p = SOLICITANTES[sel.principalIdx];
-        var d = p.data.data;
-        document.getElementById('primerNombre').value = d.primer_nombre_persona_natural;
-        document.getElementById('primerApellido').value = d.primer_apellido_persona_natural;
-        document.getElementById('tipoId').value = 'CC';
-        document.getElementById('numeroId').value = d.numero_identificacion_persona_natural;
+        var p = sel.principal;
+        document.getElementById('primerNombre').value = p.primer_nombre;
+        document.getElementById('primerApellido').value = p.primer_apellido;
+        document.getElementById('tipoId').value = p.tipo_id;
+        document.getElementById('numeroId').value = p.numero_id;
         document.getElementById('checkAuth').checked = true;
 
-        if (sel.secundarioIdx !== null) {
-            document.querySelector('input[name="haySegundo"][value="si"]').checked = true;
-            toggleSegundo();
-            var s = SOLICITANTES[sel.secundarioIdx];
-            var ds = s.data.data;
-            document.getElementById('parentesco').value = sel.parentesco;
-            document.getElementById('primerNombre2').value = ds.primer_nombre_persona_natural;
-            document.getElementById('primerApellido2').value = ds.primer_apellido_persona_natural;
-            document.getElementById('tipoId2').value = 'CC';
-            document.getElementById('numeroId2').value = ds.numero_identificacion_persona_natural;
+        var radioSegundo = sel.secundario ? 'si' : 'no';
+        document.querySelector('input[name="haySegundo"][value="' + radioSegundo + '"]').checked = true;
+        toggleSegundo();
+
+        var html = '<strong>Cargado desde Muestra</strong><br>Principal: ' + textoSolicitante(p);
+        if (sel.secundario) {
+            var s = sel.secundario;
+            var selParentesco = document.getElementById('parentesco');
+            selParentesco.value = sel.parentesco || '';
+            document.getElementById('primerNombre2').value = s.primer_nombre;
+            document.getElementById('primerApellido2').value = s.primer_apellido;
+            document.getElementById('tipoId2').value = s.tipo_id;
+            document.getElementById('numeroId2').value = s.numero_id;
             document.getElementById('checkAuth2').checked = true;
+
+            html += '<br>Segundo solicitante: ' + textoSolicitante(s);
+            if (selParentesco.value) {
+                html += ' &mdash; ' + escaparTexto(selParentesco.options[selParentesco.selectedIndex].text);
+            }
         }
         toggleSubmit();
-    } catch(e) {}
+        mostrarAvisoMuestra(true, html);
+    } catch(e) {
+        console.error('No se pudo cargar la selección de Muestra', e);
+        mostrarAvisoMuestra(false, 'No se pudieron cargar los solicitantes elegidos en Muestra: ' + escaparTexto(e.message));
+    }
+}
+
+function escaparTexto(txt) {
+    var div = document.createElement('div');
+    div.textContent = txt === null || txt === undefined ? '' : String(txt);
+    return div.innerHTML;
+}
+
+function textoSolicitante(sol) {
+    var base = sol.base === BASE_EXPERIAN ? 'Base Experian Demo' : 'Perfil de Prueba';
+    return escaparTexto(sol.nombre) + ' (' + escaparTexto(sol.tipo_id + ' ' + sol.numero_id) + ') &middot; ' + base;
+}
+
+function mostrarAvisoMuestra(ok, html) {
+    var el = document.getElementById('avisoMuestra');
+    el.style.background = ok ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.15)';
+    el.style.border = '1px solid ' + (ok ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)');
+    el.style.color = ok ? '#D1FAE5' : '#FCA5A5';
+    el.innerHTML = html;
+    el.style.display = 'block';
 }
 
 var contadorArriendos = { principal: 0, secundario: 0 };
@@ -869,6 +915,8 @@ async function enviarDatos(e) {
             var carpetaData = {
                 principal: {
                     nombre: data.cliente.nombre,
+                    primer_nombre: payload.primer_nombre,
+                    primer_apellido: payload.primer_apellido,
                     tipo_id: data.cliente.tipo_identificacion,
                     numero_id: data.cliente.numero_identificacion
                 }
@@ -876,25 +924,44 @@ async function enviarDatos(e) {
             if (data.segundo_solicitante) {
                 carpetaData.secundario = {
                     nombre: data.segundo_solicitante.nombre,
+                    primer_nombre: payload.segundo_solicitante.primer_nombre,
+                    primer_apellido: payload.segundo_solicitante.primer_apellido,
                     tipo_id: data.segundo_solicitante.tipo_identificacion,
                     numero_id: data.segundo_solicitante.numero_identificacion,
                     parentesco: data.parentesco
                 };
             }
             sessionStorage.setItem('morada_carpeta', JSON.stringify(carpetaData));
+            // Una solicitud nueva deja sin vigencia los análisis anteriores
+            sessionStorage.removeItem('morada_ingresos');
+            sessionStorage.removeItem('morada_capacidad');
 
             await subirContratos('principal', data.cliente.numero_identificacion);
             if (data.segundo_solicitante) {
                 await subirContratos('secundario', data.segundo_solicitante.numero_identificacion);
             }
 
-            var selRaw = sessionStorage.getItem('morada_seleccion');
-            if (selRaw) {
-                var sel = JSON.parse(selRaw);
-                var centralesData = { principal: SOLICITANTES[sel.principalIdx].data };
-                if (sel.secundarioIdx !== null) {
-                    centralesData.secundario = SOLICITANTES[sel.secundarioIdx].data;
+            // Datos de centrales (Valor Ingreso): los Perfiles de Prueba traen
+            // mock; los clientes de la Base Experian Demo se consultan en vivo
+            // en Experian UAT.
+            var sel = leerSeleccionMuestra();
+            if (sel) {
+                var btnSubmit = document.getElementById('btnSubmit');
+                var textoBtn = btnSubmit.textContent;
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Consultando Valor Ingreso en Experian...';
+                try {
+                    var vi = await Promise.all([
+                        obtenerValorIngreso(sel.principal),
+                        obtenerValorIngreso(sel.secundario)
+                    ]);
+                } finally {
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = textoBtn;
                 }
+                var centralesData = {};
+                if (vi[0]) centralesData.principal = vi[0];
+                if (vi[1]) centralesData.secundario = vi[1];
                 sessionStorage.setItem('morada_centrales', JSON.stringify(centralesData));
             }
 
@@ -978,6 +1045,25 @@ function restaurarArriendosTipo(tipo, arriendos) {
 window.addEventListener('load', function() {
     cargarDesdeMuestra();
     restaurarArriendos();
+});
+
+// Si el navegador restaura la página desde su caché de atrás/adelante no se
+// dispara 'load': se vuelve a cargar la selección vigente de Muestra.
+window.addEventListener('pageshow', function(ev) {
+    if (ev.persisted) cargarDesdeMuestra();
+});
+
+// Muestra abierta en otra pestaña: al cambiar allá la selección, esta hoja se
+// actualiza sola. El segundo evento cubre el caso de volver a esta pestaña.
+function recargarSiCambioSeleccion() {
+    var raw = leerSeleccionCruda();
+    if (raw && raw !== sessionStorage.getItem('morada_seleccion_cargada')) cargarDesdeMuestra();
+}
+window.addEventListener('storage', function(ev) {
+    if (ev.key === CLAVE_SELECCION) recargarSiCambioSeleccion();
+});
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) recargarSiCambioSeleccion();
 });
 </script>
 

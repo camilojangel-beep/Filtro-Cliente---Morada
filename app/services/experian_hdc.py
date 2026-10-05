@@ -1,11 +1,14 @@
 import uuid
 from datetime import datetime, timezone, timedelta
+from typing import Optional
 
 import httpx
 
 from app.config import settings
 from app.services.experian_auth import obtener_token_hdc
 from app.models.hdc import (
+    TIPOS_CUENTA_NO_CREDITO,
+    AccountEntry,
     HDCplusResponse,
     ResultadoHDC,
     ObligacionCredito,
@@ -78,6 +81,91 @@ async def consultar_hdc(
     return _procesar_respuesta(raw, numero_documento)
 
 
+def _monto(v: Optional[float]) -> float:
+    """Experian usa -1 para "no aplica"; se trata como 0."""
+    if v is None or v < 0:
+        return 0.0
+    return float(v)
+
+
+def _obligacion_desde_entry(entry: AccountEntry) -> Optional[ObligacionCredito]:
+    """Convierte una entrada de liabilities/creditCard en ObligacionCredito.
+
+    Estructura real HDC+ (ver docs): los valores financieros vienen en
+    `values[0]`, la calidad del deudor en `featuresLiabilities` /
+    `FeaturesCreditCard`, la fecha de vencimiento en `liabilitiesAccount` /
+    `creditCardAccount` y el estado en `status.account`.
+    """
+    acct = entry.account
+    if acct.accountType is None or acct.accountType in TIPOS_CUENTA_NO_CREDITO:
+        return None
+
+    linea = clasificar_linea_credito(acct.accountType, acct.subAccountType or "00")
+    vals = entry.valores
+    feats = entry.caracteristicas
+    prod = entry.producto
+
+    cupo = _monto(vals.initialValue) if vals else 0.0
+    saldo = _monto(vals.debtBalance) if vals else 0.0
+    cuota = _monto(vals.valueMonthlyPayment) if vals else 0.0
+
+    cuotas_pagadas = vals.paidInstallments if vals else None
+    total_cuotas = vals.totalNumberOfInstallments if vals else None
+    cuotas_restantes = None
+    if cuotas_pagadas is not None and total_cuotas:
+        cuotas_restantes = max(0, total_cuotas - cuotas_pagadas)
+
+    periodicidad = vals.periodicityOfPayments if vals else None
+    if periodicidad is None:
+        periodicidad = 1
+
+    return ObligacionCredito(
+        entidad_nit=str(acct.counterpartyIdNumber or ""),
+        entidad_nombre=acct.nombre_entidad,
+        linea_credito=linea,
+        account_type=acct.accountType,
+        sub_account_type=acct.subAccountType or "00",
+        sub_account_type_desc=acct.subAccountTypeDesc or acct.accountTypeDesc or "",
+        cupo=cupo,
+        saldo=saldo,
+        cuota_reportada=cuota,
+        fecha_apertura=acct.accountOpeningDate,
+        fecha_vencimiento=prod.expiryDate if prod else None,
+        fecha_corte=vals.behaviourDate if vals else None,
+        calidad_deudor=(feats.typeOfDebtor if feats and feats.typeOfDebtor else "00"),
+        calidad_deudor_desc=(feats.typeOfDebtorDesc or "") if feats else "",
+        periodicidad=periodicidad,
+        cuotas_restantes=cuotas_restantes,
+        cuotas_pagadas=cuotas_pagadas,
+        total_cuotas=total_cuotas,
+        cuotas_mora=(vals.installmentsOverdue or 0) if vals else 0,
+        monto_mora=_monto(vals.businessValueBalanceOverdue) if vals else 0.0,
+        estado_cuenta=entry.estado_cuenta or "",
+        estado_cuenta_desc=entry.estado_cuenta_desc,
+        vigente=entry.es_vigente,
+    )
+
+
+def _cedula_desde_respuesta(report) -> str:
+    """Número de documento tal como lo reporta Experian, si viene."""
+    for bloque in (report.basicInformation, report.identifyingAttributes):
+        if bloque is not None and bloque.personId is not None:
+            num = bloque.personId.personIdNumber
+            if num not in (None, ""):
+                return str(num).strip()
+    return ""
+
+
+def parsear_respuesta_hdc(raw: dict, cedula: Optional[str] = None) -> ResultadoHDC:
+    """Procesa un JSON HDC+ ya obtenido (p. ej. subido por el analista).
+
+    Si no se indica la cédula se toma la que reporta la propia respuesta.
+    """
+    hdc = HDCplusResponse.model_validate(raw)
+    ced = (cedula or "").strip() or _cedula_desde_respuesta(hdc.ReportHDCplus)
+    return _procesar_respuesta(raw, ced)
+
+
 def _procesar_respuesta(raw: dict, cedula: str) -> ResultadoHDC:
     hdc = HDCplusResponse.model_validate(raw)
     report = hdc.ReportHDCplus
@@ -87,6 +175,7 @@ def _procesar_respuesta(raw: dict, cedula: str) -> ResultadoHDC:
             cedula=cedula,
             codigo_respuesta=report.productResult.responseCode,
             mensaje_respuesta=report.productResult.responseDesc or "",
+            respuesta_original=raw,
         )
 
     nombre = ""
@@ -95,46 +184,17 @@ def _procesar_respuesta(raw: dict, cedula: str) -> ResultadoHDC:
         partes = [bi.names or "", bi.firstLastName or "", bi.secondLastName or ""]
         nombre = " ".join(p for p in partes if p).strip()
 
-    obligaciones = []
-    for entry in report.savings:
-        acct = entry.account
-        if acct.accountType is None:
+    # `savings` son cuentas de ahorro/corriente: no son obligaciones.
+    obligaciones: list[ObligacionCredito] = []
+    cerradas = 0
+    for entry in report.liabilities + report.creditCard:
+        ob = _obligacion_desde_entry(entry)
+        if ob is None:
             continue
-
-        # Solo cuentas de crédito, no de ahorro/corriente
-        if acct.accountType in (1, 51):
+        if not ob.vigente:
+            cerradas += 1
             continue
-
-        linea = clasificar_linea_credito(
-            acct.accountType,
-            acct.subAccountType or "00",
-        )
-
-        cupo = acct.creditLimit or acct.disbursementAmount or 0
-        saldo = acct.currentBalance or 0
-        cuota = acct.installmentAmount or 0
-
-        obligaciones.append(ObligacionCredito(
-            entidad_nit=acct.counterpartyIdNumber or "",
-            entidad_nombre=acct.businessLineName or "",
-            linea_credito=linea,
-            account_type=acct.accountType,
-            sub_account_type=acct.subAccountType or "00",
-            sub_account_type_desc=acct.subAccountTypeDesc or "",
-            cupo=cupo,
-            saldo=saldo,
-            cuota_reportada=cuota,
-            fecha_apertura=acct.accountOpeningDate,
-            fecha_vencimiento=acct.accountExpirationDate,
-            fecha_corte=acct.behaviourDate or (
-                entry.status.behaviourDate if entry.status else None
-            ),
-            calidad_deudor=acct.guarantorCode or "00",
-            periodicidad=acct.paymentPeriodicity or 1,
-            cuotas_restantes=acct.remainingInstallments,
-            cuotas_mora=acct.pastDueInstallments or 0,
-            monto_mora=acct.pastDueAmount or 0,
-        ))
+        obligaciones.append(ob)
 
     scores = []
     for m in report.models:
@@ -149,9 +209,11 @@ def _procesar_respuesta(raw: dict, cedula: str) -> ResultadoHDC:
         cedula=cedula,
         nombre_completo=nombre,
         obligaciones=obligaciones,
+        obligaciones_cerradas=cerradas,
         scores=scores,
         huellas_consulta=len(report.inquiryFootprints),
         fecha_consulta=report.productResult.consultDate,
         codigo_respuesta=report.productResult.responseCode,
         mensaje_respuesta=report.productResult.responseDesc or "",
+        respuesta_original=raw,
     )

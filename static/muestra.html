@@ -231,7 +231,7 @@
     <a href="/">Solicitud</a>
     <a href="/analista">An&aacute;lisis de Ingresos</a>
     <a href="/analisis-ctl">An&aacute;lisis Arriendos</a>
-    <a href="/gastos-basicos">Gastos B&aacute;sicos</a>
+    <a href="/gastos-basicos">Gastos B&aacute;sicos y Cuotas Centrales</a>
     <a href="/carpeta">Carpeta</a>
 </div>
 
@@ -307,8 +307,36 @@
             Continuar a Solicitud &rarr;
         </button>
     </div>
+
+    <div class="card">
+        <h2>Base Experian Demo &mdash; Pruebas Valor Ingreso y HDC+ <span class="temp-badge" id="badgeExperian"></span></h2>
+        <p style="font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:16px;">
+            Solo personas que responden los dos informes en Experian UAT: Valor Ingreso e historia de cr&eacute;dito (HDC+).
+            Al seleccionar una queda como solicitante principal en el formulario de arriba. El Valor Ingreso se consulta
+            en vivo al continuar desde la Solicitud; los c&aacute;lculos de HDC+ (cuotas, mora, capacidad de pago) se hacen
+            en la hoja <a href="/gastos-basicos" style="color:#A78BFA;">Gastos B&aacute;sicos y Cuotas Centrales</a>.
+        </p>
+        <div style="overflow-x:auto;">
+            <table id="tablaExperian">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>C&eacute;dula</th>
+                        <th style="text-align:right">Score</th>
+                        <th style="text-align:right">Obligaciones</th>
+                        <th>Valor Ingreso</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyExperian"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
+<script src="/static/experian_demo.local.js"></script>
 <script src="/static/solicitantes.js"></script>
 <script>
 function getPerfilTag(desc) {
@@ -339,16 +367,14 @@ function poblarTabla() {
 }
 
 function poblarDropdowns() {
-    var selects = ['selectPrincipal', 'selectSecundario'];
-    for (var j = 0; j < selects.length; j++) {
-        var sel = document.getElementById(selects[j]);
-        for (var i = 0; i < SOLICITANTES.length; i++) {
-            var opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = (i + 1) + '. ' + SOLICITANTES[i].nombre + ' — ' + SOLICITANTES[i].descripcion;
-            sel.appendChild(opt);
-        }
-    }
+    poblarSelectConBases(document.getElementById('selectPrincipal'));
+    poblarSelectConBases(document.getElementById('selectSecundario'));
+}
+
+function etiquetaBase(sol) {
+    return sol.base === BASE_EXPERIAN
+        ? ' <span class="perfil-tag tag-ok" style="font-size:10px;">Experian Demo</span>'
+        : ' <span class="perfil-tag tag-warn" style="font-size:10px;">Perfil de Prueba</span>';
 }
 
 function haySegundoSolicitante() {
@@ -369,44 +395,56 @@ function toggleSegundo() {
 }
 
 function actualizarPreview() {
-    var pIdx = document.getElementById('selectPrincipal').value;
+    var pRef = document.getElementById('selectPrincipal').value;
     var preview = document.getElementById('preview');
     var btn = document.getElementById('btnContinuar');
 
-    if (pIdx === '') {
+    if (pRef === '') {
         preview.classList.remove('visible');
         btn.disabled = true;
+        borrarSeleccionMuestra();
         return;
     }
 
-    var p = SOLICITANTES[pIdx];
-    var html = '<strong>Principal:</strong> ' + p.nombre + ' (CC ' + p.data.data.numero_identificacion_persona_natural + ')';
+    var p = resolverSolicitante(pRef);
+    var html = '<strong>Principal:</strong> ' + p.nombre + ' (' + p.tipo_id + ' ' + p.numero_id + ')' + etiquetaBase(p);
+    if (p.base === BASE_EXPERIAN) {
+        html += '<br><span style="font-size:12px; color:rgba(255,255,255,0.5)">Valor Ingreso y HDC+ disponibles en Experian UAT. El Valor Ingreso se consulta en vivo al continuar desde la Solicitud.</span>';
+    }
 
     var listo = true;
 
     if (haySegundoSolicitante()) {
-        var sIdx = document.getElementById('selectSecundario').value;
+        var sRef = document.getElementById('selectSecundario').value;
         var par = document.getElementById('parentesco').value;
 
-        if (sIdx === '' || par === '') {
+        if (sRef === '' || par === '') {
             listo = false;
         }
 
-        if (sIdx !== '') {
-            if (sIdx === pIdx) {
+        if (sRef !== '') {
+            if (sRef === pRef) {
                 html += '<br><span style="color:#EF4444">El segundo solicitante debe ser diferente al principal</span>';
                 listo = false;
             } else {
-                var s = SOLICITANTES[sIdx];
-                html += '<br><strong>Segundo:</strong> ' + s.nombre + ' (CC ' + s.data.data.numero_identificacion_persona_natural + ')';
+                var s = resolverSolicitante(sRef);
+                html += '<br><strong>Segundo:</strong> ' + s.nombre + ' (' + s.tipo_id + ' ' + s.numero_id + ')' + etiquetaBase(s);
                 if (par) html += ' &mdash; Parentesco: ' + par;
             }
         } else {
             html += '<br><span style="color:rgba(255,255,255,0.5)">Seleccione el segundo solicitante</span>';
         }
-        if (!par && sIdx !== '') {
+        if (!par && sRef !== '') {
             html += '<br><span style="color:rgba(255,255,255,0.5)">Seleccione el parentesco</span>';
         }
+    }
+
+    // La selección queda guardada apenas está completa, sin esperar al botón
+    // Continuar: así la Solicitud la carga aunque se abra desde el menú o
+    // esté en otra pestaña.
+    if (listo) {
+        guardarSeleccionMuestra(seleccionActual());
+        html += '<br><span style="font-size:12px; color:#10B981">Selecci&oacute;n guardada: ya est&aacute; cargada en la hoja Solicitud.</span>';
     }
 
     preview.innerHTML = html;
@@ -414,22 +452,83 @@ function actualizarPreview() {
     btn.disabled = !listo;
 }
 
-function continuar() {
-    var pIdx = parseInt(document.getElementById('selectPrincipal').value);
-    var seleccion = { principalIdx: pIdx, secundarioIdx: null, parentesco: null };
+function seleccionActual() {
+    var seleccion = {
+        principal: document.getElementById('selectPrincipal').value,
+        secundario: null,
+        parentesco: null
+    };
 
     if (haySegundoSolicitante()) {
-        seleccion.secundarioIdx = parseInt(document.getElementById('selectSecundario').value);
+        seleccion.secundario = document.getElementById('selectSecundario').value;
         seleccion.parentesco = document.getElementById('parentesco').value;
     }
+    return seleccion;
+}
 
-    sessionStorage.setItem('morada_seleccion', JSON.stringify(seleccion));
+function continuar() {
+    guardarSeleccionMuestra(seleccionActual());
     window.location.href = '/';
+}
+
+// Al abrir Muestra se muestra la selección vigente en el formulario.
+function restaurarSeleccion() {
+    var sel = leerSeleccionMuestra();
+    if (!sel) return;
+    document.getElementById('selectPrincipal').value = sel.principal.ref;
+    if (sel.secundario) {
+        document.querySelector('input[name="haySegundo"][value="si"]').checked = true;
+        document.getElementById('segundoFields').classList.add('visible');
+        document.getElementById('selectSecundario').value = sel.secundario.ref;
+        document.getElementById('parentesco').value = sel.parentesco || '';
+    }
+    actualizarPreview();
+}
+
+function scoreBadge(score) {
+    if (score >= 700) return '<span class="perfil-tag tag-ok">' + score + '</span>';
+    if (score >= 400) return '<span class="perfil-tag tag-warn">' + score + '</span>';
+    return '<span class="perfil-tag tag-block">' + (score || 'N/A') + '</span>';
+}
+
+function poblarTablaExperian() {
+    var html = '';
+    if (EXPERIAN_DEMO.length === 0) {
+        html = '<tr><td colspan="8" style="padding:16px; color:rgba(255,255,255,0.5);">Base no cargada: falta el archivo local static/experian_demo.local.js, que no se guarda en el repositorio por contener datos personales.</td></tr>';
+    }
+    for (var i = 0; i < EXPERIAN_DEMO.length; i++) {
+        var e = EXPERIAN_DEMO[i];
+        html += '<tr style="cursor:pointer" onclick="seleccionarExperian(' + i + ')">';
+        html += '<td style="font-weight:700; color:#7C3AED">' + (i + 1) + '</td>';
+        html += '<td><strong>' + e.nombre + '</strong></td>';
+        html += '<td>' + e.tipo + '</td>';
+        html += '<td>' + e.cedula + '</td>';
+        html += '<td style="text-align:right">' + scoreBadge(e.score) + '</td>';
+        html += '<td style="text-align:right">' + e.obligaciones + ' <span style="font-size:11px;color:rgba(255,255,255,0.5)">(' + e.vigentes + ' vigentes)</span></td>';
+        html += '<td style="font-size:12px">' + resumenValorIngreso(e);
+        if (e.nombre_vi) html += '<br><span style="font-size:11px;color:rgba(255,255,255,0.5)">a nombre de ' + e.nombre_vi + '</span>';
+        html += '</td>';
+        html += '<td><button class="perfil-tag tag-ok" style="cursor:pointer; border:none; font-size:11px;" onclick="event.stopPropagation(); seleccionarExperian(' + i + ')">Seleccionar</button></td>';
+        html += '</tr>';
+    }
+    document.getElementById('tbodyExperian').innerHTML = html;
+    document.getElementById('badgeExperian').innerHTML = EXPERIAN_DEMO.length + ' c&eacute;dulas UAT';
+}
+
+// Desde la tabla Experian Demo: deja el cliente como solicitante principal
+// del formulario de selección. Los cálculos HDC+ viven en /gastos-basicos.
+function seleccionarExperian(idx) {
+    var sel = document.getElementById('selectPrincipal');
+    sel.value = BASE_EXPERIAN + ':' + idx;
+    actualizarPreview();
+    sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 window.addEventListener('load', function() {
     poblarTabla();
     poblarDropdowns();
+    poblarTablaExperian();
+    restaurarSeleccion();
 });
 </script>
 

@@ -5,10 +5,16 @@ from pydantic import BaseModel
 
 from app.models.hdc import ObligacionCredito, ResultadoHDC
 from app.models.gastos import AnalisisGastosResponse
-from app.services.gastos import analizar_gastos
+from app.services.gastos import analizar_gastos, parametros_politica
 from app.services.experian_hdc import consultar_hdc
 
 router = APIRouter(prefix="/filtro", tags=["Filtro de Originación"])
+
+
+@router.get("/parametros")
+def endpoint_parametros():
+    """Tablas de la política (gastos básicos y cuotas centrales) que usa el motor."""
+    return parametros_politica()
 
 
 class SolicitanteGastosInput(BaseModel):
@@ -41,13 +47,24 @@ def endpoint_analisis_gastos(request: AnalisisGastosRequest):
 
 
 class CapacidadPagoRequest(BaseModel):
+    """Ingreso bruto por solicitante (ingreso calculado + arriendos).
+
+    `retencion_fuente` y `solidaridad` son los que ya calculó el Análisis de
+    Ingresos; si llegan, no se recalculan. Si no llegan, el motor los obtiene
+    de las tablas de la política.
+    """
     cedula: str
     primer_apellido: str
     tipo_documento: str = "CC"
     ingreso_bruto: float
+    retencion_fuente: Optional[float] = None
+    solidaridad: Optional[float] = None
     cedula_secundario: Optional[str] = None
     primer_apellido_secundario: Optional[str] = None
+    tipo_documento_secundario: Optional[str] = None
     ingreso_bruto_secundario: Optional[float] = None
+    retencion_fuente_secundario: Optional[float] = None
+    solidaridad_secundario: Optional[float] = None
 
 
 class CapacidadPagoResponse(BaseModel):
@@ -75,20 +92,25 @@ async def endpoint_capacidad_pago(request: CapacidadPagoRequest):
         )
 
     hdc_secundario = None
-    if (
-        request.cedula_secundario
-        and request.primer_apellido_secundario
-        and request.ingreso_bruto_secundario
-    ):
+    # El segundo solicitante se consulta siempre que venga identificado, para
+    # conocer su score; sus egresos solo entran al cálculo si aporta ingreso.
+    if request.cedula_secundario and request.primer_apellido_secundario:
         try:
             hdc_secundario = await consultar_hdc(
                 numero_documento=request.cedula_secundario,
                 primer_apellido=request.primer_apellido_secundario,
-                tipo_documento=request.tipo_documento,
+                tipo_documento=request.tipo_documento_secundario
+                or request.tipo_documento,
             )
         except Exception as e:
             raise HTTPException(
                 status_code=502, detail=f"Error consultando HDC secundario: {e}"
+            )
+        if hdc_secundario.codigo_respuesta != 13:
+            raise HTTPException(
+                status_code=422,
+                detail=f"HDC secundario código {hdc_secundario.codigo_respuesta}: "
+                       f"{hdc_secundario.mensaje_respuesta}",
             )
 
     analisis = analizar_gastos(
@@ -100,6 +122,10 @@ async def endpoint_capacidad_pago(request: CapacidadPagoRequest):
         cedula_secundario=request.cedula_secundario or "",
         score_secundario=hdc_secundario.score_advance if hdc_secundario else None,
         obligaciones_secundario=hdc_secundario.obligaciones if hdc_secundario else None,
+        retefuente_principal=request.retencion_fuente,
+        solidaridad_principal=request.solidaridad,
+        retefuente_secundario=request.retencion_fuente_secundario,
+        solidaridad_secundario=request.solidaridad_secundario,
     )
 
     return CapacidadPagoResponse(

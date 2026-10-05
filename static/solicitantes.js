@@ -411,15 +411,190 @@ const SOLICITANTES = [
     }
 ];
 
-function poblarSelectSolicitantes() {
-    for (const id of ['selectPrincipal', 'selectSecundario']) {
-        const sel = document.getElementById(id);
-        if (!sel) continue;
-        SOLICITANTES.forEach((s, i) => {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = (i + 1) + '. ' + s.nombre + ' — ' + s.descripcion;
-            sel.appendChild(opt);
-        });
+// Base Experian Demo (UAT): personas que responden los DOS informes, Valor
+// Ingreso y HDC+. La lista trae datos personales (nombre, cédula, score), así
+// que vive en static/experian_demo.local.js, que está en .gitignore y no se
+// sube al repositorio. Las páginas cargan ese archivo antes que este; si no
+// existe, la base queda vacía y la app sigue funcionando con los Perfiles de
+// Prueba. Formato de cada registro: ver static/experian_demo.local.example.js.
+const EXPERIAN_DEMO = window.EXPERIAN_DEMO_LOCAL || [];
+
+// ---------------------------------------------------------------------
+// Referencias a clientes de cualquiera de las dos bases.
+// Una referencia es un string "mock:<idx>" (Perfiles de Prueba) o
+// "exp:<idx>" (Base Experian Demo). La selección se guarda como
+// { principal, secundario, parentesco }: ver guardarSeleccionMuestra().
+// ---------------------------------------------------------------------
+
+const BASE_MOCK = 'mock';
+const BASE_EXPERIAN = 'exp';
+
+function capitalizar(txt) {
+    return String(txt || '').toLowerCase().replace(/(^|\s)\S/g, function(c) { return c.toUpperCase(); });
+}
+
+// Devuelve un objeto normalizado con los datos que necesita la Solicitud,
+// o null si la referencia no es válida.
+function resolverSolicitante(ref) {
+    if (ref === null || ref === undefined || ref === '') return null;
+    var base, idx;
+    if (typeof ref === 'number') {
+        base = BASE_MOCK; idx = ref;                 // compatibilidad con selecciones antiguas
+    } else {
+        var partes = String(ref).split(':');
+        if (partes.length === 1) { base = BASE_MOCK; idx = parseInt(partes[0]); }
+        else { base = partes[0]; idx = parseInt(partes[1]); }
     }
+    if (isNaN(idx)) return null;
+
+    if (base === BASE_MOCK) {
+        var s = SOLICITANTES[idx];
+        if (!s) return null;
+        var d = s.data.data;
+        return {
+            ref: BASE_MOCK + ':' + idx, base: BASE_MOCK, idx: idx,
+            nombre: s.nombre,
+            descripcion: s.descripcion,
+            primer_nombre: d.primer_nombre_persona_natural,
+            primer_apellido: d.primer_apellido_persona_natural,
+            tipo_id: 'CC',
+            numero_id: d.numero_identificacion_persona_natural,
+            valor_ingreso: s.data,     // mock de Valor Ingreso
+        };
+    }
+    if (base === BASE_EXPERIAN) {
+        var e = EXPERIAN_DEMO[idx];
+        if (!e) return null;
+        return {
+            ref: BASE_EXPERIAN + ':' + idx, base: BASE_EXPERIAN, idx: idx,
+            nombre: e.nombre,
+            descripcion: 'Experian UAT — Score ' + (e.score || 'N/A') + ', ' + e.obligaciones + ' obligaciones, ' + resumenValorIngreso(e),
+            primer_nombre: e.nombre.split(' ')[0].toUpperCase(),
+            primer_apellido: e.apellido,
+            tipo_id: e.tipo,
+            numero_id: e.cedula,
+            score: e.score,
+            valor_ingreso: null,       // se consulta en vivo: ver obtenerValorIngreso()
+        };
+    }
+    return null;
+}
+
+// Texto corto del Valor Ingreso de un cliente de la Base Experian Demo.
+function resumenValorIngreso(e) {
+    return e.cotizante + ' (' + e.aportantes + (e.aportantes === 1 ? ' aportante' : ' aportantes') + ')';
+}
+
+// Devuelve el Valor Ingreso de un solicitante ya resuelto: el mock de los
+// Perfiles de Prueba o, para la Base Experian Demo, la consulta en vivo a
+// Experian UAT. Lanza Error si Experian no responde con información.
+async function obtenerValorIngreso(sol) {
+    if (!sol) return null;
+    if (sol.valor_ingreso) return sol.valor_ingreso;
+    if (sol.base !== BASE_EXPERIAN) return null;
+    var resp = await fetch('/experian/valor-ingreso', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            numero_documento: sol.numero_id,
+            primer_apellido: sol.primer_apellido,
+            tipo_documento: sol.tipo_id,
+        }),
+    });
+    if (!resp.ok) {
+        var detalle = 'Error ' + resp.status;
+        try { detalle = (await resp.json()).detail || detalle; } catch (e) {}
+        throw new Error('Valor Ingreso de ' + sol.nombre + ' (' + sol.tipo_id + ' ' + sol.numero_id + '): ' + detalle);
+    }
+    return await resp.json();
+}
+
+// ---------------------------------------------------------------------
+// La selección hecha en /muestra se guarda en localStorage para que la vean
+// todas las pestañas (Muestra y Solicitud suelen estar abiertas a la vez).
+// Solo contiene referencias ("exp:3"), no datos personales. Lo que se deriva
+// de ella (carpeta, centrales, HDC) sigue en sessionStorage, por pestaña.
+// ---------------------------------------------------------------------
+
+const CLAVE_SELECCION = 'morada_seleccion';
+
+// Texto JSON de la selección vigente, o null.
+function leerSeleccionCruda() {
+    try {
+        return localStorage.getItem(CLAVE_SELECCION) || sessionStorage.getItem(CLAVE_SELECCION);
+    } catch (e) {
+        return null;
+    }
+}
+
+// Una selección nueva invalida la carpeta y los datos de centrales anteriores
+// de esta pestaña.
+function invalidarDatosDeSeleccion() {
+    sessionStorage.removeItem('morada_carpeta');
+    sessionStorage.removeItem('morada_centrales');
+    sessionStorage.removeItem('morada_hdc');
+    sessionStorage.removeItem('morada_ingresos');     // resultado del Análisis de Ingresos
+    sessionStorage.removeItem('morada_capacidad');    // último cálculo de Capacidad de Pago
+}
+
+// Guarda { principal, secundario, parentesco }. Devuelve true si cambió.
+function guardarSeleccionMuestra(seleccion) {
+    var raw = JSON.stringify(seleccion);
+    if (leerSeleccionCruda() === raw) return false;
+    localStorage.setItem(CLAVE_SELECCION, raw);
+    sessionStorage.removeItem(CLAVE_SELECCION);      // copia del formato anterior
+    invalidarDatosDeSeleccion();
+    return true;
+}
+
+function borrarSeleccionMuestra() {
+    if (leerSeleccionCruda() === null) return;
+    localStorage.removeItem(CLAVE_SELECCION);
+    sessionStorage.removeItem(CLAVE_SELECCION);
+    invalidarDatosDeSeleccion();
+}
+
+// Lee la selección y devuelve { principal, secundario, parentesco } ya
+// resueltos (o null si no hay selección). Acepta el formato antiguo
+// { principalIdx, secundarioIdx }.
+function leerSeleccionMuestra() {
+    var raw = leerSeleccionCruda();
+    if (!raw) return null;
+    try {
+        var sel = JSON.parse(raw);
+        var refP = sel.principal !== undefined ? sel.principal : sel.principalIdx;
+        var refS = sel.secundario !== undefined ? sel.secundario : sel.secundarioIdx;
+        var principal = resolverSolicitante(refP);
+        if (!principal) return null;
+        return {
+            principal: principal,
+            secundario: (refS === null || refS === undefined) ? null : resolverSolicitante(refS),
+            parentesco: sel.parentesco || null,
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+// Llena un <select> con las dos bases agrupadas.
+function poblarSelectConBases(sel) {
+    var gMock = document.createElement('optgroup');
+    gMock.label = 'Perfiles de Prueba';
+    SOLICITANTES.forEach(function(s, i) {
+        var opt = document.createElement('option');
+        opt.value = BASE_MOCK + ':' + i;
+        opt.textContent = (i + 1) + '. ' + s.nombre + ' — ' + s.descripcion;
+        gMock.appendChild(opt);
+    });
+    sel.appendChild(gMock);
+
+    var gExp = document.createElement('optgroup');
+    gExp.label = 'Base Experian Demo (Valor Ingreso y HDC+ UAT)';
+    EXPERIAN_DEMO.forEach(function(e, i) {
+        var opt = document.createElement('option');
+        opt.value = BASE_EXPERIAN + ':' + i;
+        opt.textContent = (i + 1) + '. ' + e.nombre + ' (' + e.tipo + ' ' + e.cedula + ') — Score ' + (e.score || 'N/A');
+        gExp.appendChild(opt);
+    });
+    sel.appendChild(gExp);
 }

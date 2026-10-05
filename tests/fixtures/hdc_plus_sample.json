@@ -1,0 +1,721 @@
+{
+ "ReportHDCplus": {
+  "productResult": {
+   "securityCode": "0000",
+   "consultDate": "2026-09-27",
+   "responseCode": 13,
+   "responseDesc": "La consulta fue efectiva"
+  },
+  "identifyingAttributes": {
+   "personId": {
+    "personIdNumber": "1000000001",
+    "personIdType": 1,
+    "personIdDesc": "CC"
+   },
+   "personLastName": "PRUEBA",
+   "tradeholderIndicator": false
+  },
+  "basicInformation": {
+   "personId": {
+    "personIdNumber": "1000000001",
+    "personIdType": 1
+   },
+   "gender": 1,
+   "names": "JUAN",
+   "firstLastName": "PRUEBA",
+   "secondLastName": "DEMO",
+   "fullName": "JUAN PRUEBA DEMO"
+  },
+  "savings": [
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "rating": 1,
+     "ratingDesc": "NORMAL",
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "05266000",
+     "counterpartyIdNumber": 903938,
+     "businessLineName": "BANCO ALFA",
+     "accountOpeningDate": "2023-02-10",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 1,
+     "economicSectorName": "SECTOR FINANCIERO",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00890903938",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "CUENTAS DE AHORRO Y BANCARIAS",
+     "accountType": 51,
+     "subAccountType": "00",
+     "subAccountTypeDesc": "AHO"
+    },
+    "features": {
+     "accountCategory": 2,
+     "accountCategoryDesc": "GMF"
+    },
+    "status": {
+     "businessBureauEvent": "01",
+     "businessBureauEventDesc": "CUENTA ACTIVA",
+     "behaviourDate": "2026-07-31"
+    },
+    "values": [
+     {
+      "rating": 1,
+      "ratingDesc": "NORMAL",
+      "behaviourDate": "2026-07-31",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal"
+     }
+    ]
+   }
+  ],
+  "liabilities": [
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "rating": 1,
+     "ratingDesc": "A",
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "00000000",
+     "counterpartyIdNumber": 903938,
+     "businessLineName": "BANCO ALFA",
+     "accountOpeningDate": "2026-07-21",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 1,
+     "economicSectorName": "SECTOR FINANCIERO",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00890903938",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "CARTERA BANCARIA",
+     "accountType": "05",
+     "subAccountType": "00",
+     "accountTypeDesc": "CAB",
+     "subAccountTypeDesc": "CAB"
+    },
+    "liabilitiesAccount": {
+     "expiryDate": "2031-07-21",
+     "paymentType": 0,
+     "paymentTypeDesc": "VIGENTE",
+     "businessBehaviourVectorProduct": "----------------------------------------------- ",
+     "probabilityOfDefault": 0,
+     "ratingHD": true
+    },
+    "featuresLiabilities": {
+     "typeOfCredit": 2,
+     "typeOfCreditDesc": "CONSUMO",
+     "contractType": 1,
+     "contractTypeDesc": "Definido",
+     "contractTerm": 0,
+     "guaranteeType": 2,
+     "guaranteeTypeName": "OTR GAR",
+     "contractExecution": 2,
+     "typeOfDebtor": "00",
+     "typeOfDebtorDesc": "PRINCIPAL: RESPONSABLE DEL PAGO"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "01",
+      "businessAccountStatusDesc": "AL DÍA",
+      "accountStatusDate": "2026-07-31"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2026-07-21"
+     },
+     "payment": {
+      "businessBureauEvent": "01",
+      "businessBureauEventDesc": "AL DIA",
+      "paymentDate": "2026-07-31",
+      "paymentMonths": 48
+     }
+    },
+    "values": [
+     {
+      "rating": "-",
+      "ratingDesc": "NO REPORTA INFORMACIÓN",
+      "behaviourDate": "2026-07-31",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal",
+      "valueMonthlyPayment": 553000,
+      "paidInstallments": 0,
+      "installmentsOverdue": 0,
+      "delinquencyMaturation": 0,
+      "availableBalance": -1,
+      "paymentDeadline": "2026-08-21",
+      "periodicityOfPayments": 1,
+      "periodicityOfPaymentsDesc": "MENSUAL",
+      "businessValueBalanceOverdue": 0,
+      "debtBalance": 17761000,
+      "initialValue": 17600000,
+      "totalNumberOfInstallments": 60
+     }
+    ]
+   },
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "00000000",
+     "counterpartyIdNumber": 914526,
+     "businessLineName": "ALMACEN BETA",
+     "accountOpeningDate": "2022-03-10",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 3,
+     "economicSectorName": "SECTOR REAL",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00890914526",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "ALMACEN POR DEPARTAMENTOS",
+     "accountType": 47,
+     "subAccountType": "00",
+     "accountTypeDesc": "APD",
+     "subAccountTypeDesc": "APD"
+    },
+    "liabilitiesAccount": {
+     "expiryDate": "2022-08-10",
+     "paymentType": 1,
+     "paymentTypeDesc": "PAGO VOLUNTARIO",
+     "businessBehaviourVectorProduct": "---NNNN---------------------------------------- ",
+     "probabilityOfDefault": 0,
+     "ratingHD": true
+    },
+    "featuresLiabilities": {
+     "typeOfCredit": 1,
+     "typeOfCreditDesc": "COMERCIAL",
+     "contractType": 1,
+     "contractTypeDesc": "Definido",
+     "contractTerm": 0,
+     "guaranteeType": 2,
+     "guaranteeTypeName": "OTR GAR",
+     "contractExecution": 1,
+     "typeOfDebtor": "00",
+     "typeOfDebtorDesc": "PRINCIPAL: RESPONSABLE DEL PAGO"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "03",
+      "businessAccountStatusDesc": "PAGO TOTAL",
+      "accountStatusDate": "2022-10-31"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2022-03-10"
+     },
+     "payment": {
+      "businessBureauEvent": "08",
+      "businessBureauEventDesc": "PAGO VOLUNTARIO",
+      "paymentDate": "2022-10-31",
+      "paymentMonths": 48
+     }
+    },
+    "values": [
+     {
+      "rating": "-",
+      "ratingDesc": "NO REPORTA INFORMACIÓN",
+      "behaviourDate": "2022-10-31",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal",
+      "valueMonthlyPayment": 0,
+      "paidInstallments": 5,
+      "installmentsOverdue": 0,
+      "delinquencyMaturation": 0,
+      "availableBalance": -1,
+      "paymentDeadline": "2022-08-10",
+      "paymentDate": "2022-10-05",
+      "periodicityOfPayments": 9,
+      "periodicityOfPaymentsDesc": "OTRO TIPO",
+      "businessValueBalanceOverdue": 0,
+      "debtBalance": 0,
+      "initialValue": -1,
+      "totalNumberOfInstallments": 5
+     }
+    ]
+   },
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "rating": 6,
+     "ratingDesc": "AA",
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "00000000",
+     "counterpartyIdNumber": 7335,
+     "businessLineName": "BANCO GAMMA",
+     "accountOpeningDate": "2014-07-10",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 3,
+     "economicSectorName": "SECTOR REAL",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00860007335",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "CARTERA EDUCACION",
+     "accountType": 43,
+     "subAccountType": "00",
+     "accountTypeDesc": "EDU",
+     "subAccountTypeDesc": "EDU"
+    },
+    "liabilitiesAccount": {
+     "expiryDate": "2028-12-17",
+     "paymentType": 0,
+     "paymentTypeDesc": "VIGENTE",
+     "businessBehaviourVectorProduct": "N--N212111-NN2211-N321-N-N4321-NN4321-N321-N--- ",
+     "probabilityOfDefault": 0,
+     "ratingHD": true
+    },
+    "featuresLiabilities": {
+     "typeOfCredit": 2,
+     "typeOfCreditDesc": "CONSUMO",
+     "contractType": 0,
+     "contractTypeDesc": "No Reportado",
+     "contractTerm": 0,
+     "guaranteeType": 2,
+     "guaranteeTypeName": "OTR GAR",
+     "contractExecution": 2,
+     "typeOfDebtor": "01",
+     "typeOfDebtorDesc": "CODEUDOR"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "01",
+      "businessAccountStatusDesc": "AL DÍA",
+      "accountStatusDate": "2026-04-30"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2012-12-17"
+     },
+     "payment": {
+      "businessBureauEvent": 16,
+      "businessBureauEventDesc": "MORA 120 AL DIA",
+      "paymentDate": "2026-04-30",
+      "paymentMonths": 48
+     }
+    },
+    "values": [
+     {
+      "rating": "-",
+      "ratingDesc": "NO REPORTA INFORMACIÓN",
+      "behaviourDate": "2026-04-30",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal",
+      "valueMonthlyPayment": 176000,
+      "paidInstallments": 48,
+      "installmentsOverdue": 0,
+      "delinquencyMaturation": 0,
+      "availableBalance": -1,
+      "paymentDate": "2022-08-05",
+      "periodicityOfPayments": 1,
+      "periodicityOfPaymentsDesc": "MENSUAL",
+      "businessValueBalanceOverdue": 0,
+      "debtBalance": 6952000,
+      "initialValue": 11965000,
+      "totalNumberOfInstallments": 58
+     }
+    ]
+   },
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "rating": 1,
+     "ratingDesc": "A",
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "05001000",
+     "counterpartyIdNumber": 34313,
+     "businessLineName": "COOP DELTA",
+     "accountOpeningDate": "2015-03-17",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 1,
+     "economicSectorName": "SECTOR FINANCIERO",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00860034313",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "CARTERA AHORRO Y VIVIENDA",
+     "accountType": 13,
+     "subAccountType": "00",
+     "accountTypeDesc": "CAV",
+     "subAccountTypeDesc": "CAV"
+    },
+    "liabilitiesAccount": {
+     "expiryDate": "2030-08-17",
+     "paymentType": 1,
+     "paymentTypeDesc": "PAGO VOLUNTARIO",
+     "businessBehaviourVectorProduct": "-NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN ",
+     "probabilityOfDefault": 0,
+     "ratingHD": true
+    },
+    "featuresLiabilities": {
+     "typeOfCredit": 3,
+     "typeOfCreditDesc": "HIPOTECARIO",
+     "contractType": 1,
+     "contractTypeDesc": "Definido",
+     "contractTerm": 0,
+     "guaranteeType": 1,
+     "guaranteeTypeName": "ADMIS",
+     "contractExecution": 3,
+     "typeOfDebtor": 96,
+     "typeOfDebtorDesc": "COTITULAR"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "03",
+      "businessAccountStatusDesc": "PAGO TOTAL",
+      "accountStatusDate": "2022-04-07"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2015-03-17"
+     },
+     "payment": {
+      "businessBureauEvent": "08",
+      "businessBureauEventDesc": "PAGO VOLUNTARIO",
+      "paymentDate": "2022-04-07",
+      "paymentMonths": 48
+     }
+    },
+    "values": [
+     {
+      "rating": "-",
+      "ratingDesc": "NO REPORTA INFORMACIÓN",
+      "behaviourDate": "2022-04-30",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal",
+      "valueMonthlyPayment": -1,
+      "paidInstallments": 84,
+      "installmentsOverdue": 0,
+      "delinquencyMaturation": -1,
+      "availableBalance": -1,
+      "paymentDeadline": "2022-02-28",
+      "paymentDate": "2022-02-17",
+      "periodicityOfPayments": 1,
+      "periodicityOfPaymentsDesc": "MENSUAL",
+      "businessValueBalanceOverdue": -1,
+      "debtBalance": -1,
+      "initialValue": -1,
+      "totalNumberOfInstallments": 119
+     }
+    ]
+   },
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "rating": 0,
+     "ratingDesc": null,
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "00000000",
+     "counterpartyIdNumber": 300279,
+     "businessLineName": "FINANCIERA EPSILON",
+     "accountOpeningDate": "2025-08-15",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 3,
+     "economicSectorName": "SECTOR REAL",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00890300279",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "CARTERA OTROS CREDITOS",
+     "accountType": 28,
+     "subAccountType": "00",
+     "accountTypeDesc": "CON",
+     "subAccountTypeDesc": "COC"
+    },
+    "liabilitiesAccount": {
+     "expiryDate": "2025-09-14",
+     "paymentType": 0,
+     "paymentTypeDesc": "VIGENTE",
+     "businessBehaviourVectorProduct": "D654321NN-------------------------------------- ",
+     "probabilityOfDefault": 0,
+     "ratingHD": false
+    },
+    "featuresLiabilities": {
+     "typeOfCredit": 1,
+     "typeOfCreditDesc": "COMERCIAL",
+     "contractType": 1,
+     "contractTypeDesc": "Definido",
+     "contractTerm": 0,
+     "guaranteeType": 2,
+     "guaranteeTypeName": "OTR GAR",
+     "contractExecution": 1,
+     "typeOfDebtor": "00",
+     "typeOfDebtorDesc": "PRINCIPAL: RESPONSABLE DEL PAGO"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "02",
+      "businessAccountStatusDesc": "EN MORA",
+      "accountStatusDate": "2026-05-31"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2025-08-15"
+     },
+     "payment": {
+      "businessBureauEvent": 47,
+      "businessBureauEventDesc": "DUDOSO RECAUDO",
+      "paymentDate": "2026-05-31",
+      "paymentMonths": 48
+     }
+    },
+    "values": [
+     {
+      "rating": "-",
+      "ratingDesc": "NO REPORTA INFORMACIÓN",
+      "behaviourDate": "2026-05-31",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal",
+      "valueMonthlyPayment": 272000,
+      "paidInstallments": 0,
+      "installmentsOverdue": 1,
+      "delinquencyMaturation": 120,
+      "availableBalance": -1,
+      "paymentDeadline": "2026-05-31",
+      "periodicityOfPayments": 1,
+      "periodicityOfPaymentsDesc": "MENSUAL",
+      "businessValueBalanceOverdue": 761000,
+      "debtBalance": 489000,
+      "initialValue": 200000,
+      "totalNumberOfInstallments": 1
+     }
+    ]
+   },
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "00000000",
+     "counterpartyIdNumber": 9253,
+     "businessLineName": "BANCO ZETA",
+     "accountOpeningDate": "2010-05-08",
+     "tradeHolderIndicator": "N",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 3,
+     "economicSectorName": "SECTOR REAL",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00811009253",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "CARTERA ELECTRODOMESTICOS",
+     "accountType": 22,
+     "subAccountType": "00",
+     "accountTypeDesc": "CEL",
+     "subAccountTypeDesc": "CEL"
+    },
+    "liabilitiesAccount": {
+     "expiryDate": "2012-01-08",
+     "paymentType": 1,
+     "paymentTypeDesc": "PAGO VOLUNTARIO",
+     "businessBehaviourVectorProduct": "NNNNNNNNNNNNNNNNNNN---------------------------- ",
+     "probabilityOfDefault": 0,
+     "ratingHD": true
+    },
+    "featuresLiabilities": {
+     "typeOfCredit": 1,
+     "typeOfCreditDesc": "COMERCIAL",
+     "contractType": 1,
+     "contractTypeDesc": "Definido",
+     "contractTerm": 0,
+     "guaranteeType": 2,
+     "guaranteeTypeName": "OTR GAR",
+     "contractExecution": 1,
+     "typeOfDebtor": "00",
+     "typeOfDebtorDesc": "PRINCIPAL: RESPONSABLE DEL PAGO"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "03",
+      "businessAccountStatusDesc": "PAGO TOTAL",
+      "accountStatusDate": "2012-01-31"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2010-05-08"
+     },
+     "payment": {
+      "businessBureauEvent": "08",
+      "businessBureauEventDesc": "PAGO VOLUNTARIO",
+      "paymentDate": "2012-01-31",
+      "paymentMonths": 48
+     }
+    }
+   }
+  ],
+  "creditCard": [
+   {
+    "account": {
+     "primaryKey": "XXXXXXXXXX",
+     "block": false,
+     "rating": 1,
+     "ratingDesc": "A",
+     "filingCityName": "BOGOTA",
+     "filingCityCode": "00000000",
+     "businessLineCode": "BANCO ALFA VISA",
+     "accountOpeningDate": "2025-05-20",
+     "accountNumber": "000",
+     "filingOffice": "BOGOTA",
+     "economicSector": 1,
+     "economicSectorName": "SECTOR FINANCIERO",
+     "stateOfAccountHolder": 0,
+     "stateOfAccountHolderDesc": "NORMAL",
+     "personId": {
+      "personIdNumber": "00890903938",
+      "personIdType": 2,
+      "personIdDesc": "NIT"
+     },
+     "subAccountTypeName": "TARJETAS DE CREDITO",
+     "accountType": "02",
+     "subAccountType": "00",
+     "subAccountTypeDesc": "TDC",
+     "counterpartyIdNumber": 903938
+    },
+    "creditCardAccount": {
+     "expiryDate": "2029-07-04",
+     "paymentType": 0,
+     "paymentTypeDesc": "VIGENTE",
+     "businessBehaviourVectorProduct": "NNNNNNNNNNNNNN--------------------------------- ",
+     "probabilityOfDefault": 0,
+     "ratingHD": true
+    },
+    "FeaturesCreditCard": {
+     "debtor": false,
+     "cardClass": 1,
+     "privateBrandName": "000",
+     "cardClassName": null,
+     "guaranteeType": 2,
+     "guaranteeTypeName": "OTR GAR",
+     "franchiseType": 2,
+     "franchiseName": "VISA",
+     "typeOfDebtor": "00",
+     "typeOfDebtorDesc": "PRINCIPAL: RESPONSABLE DEL PAGO"
+    },
+    "status": {
+     "account": {
+      "businessAccountStatus": "01",
+      "businessAccountStatusDesc": "AL DÍA",
+      "accountStatusDate": "2026-07-31"
+     },
+     "origin": {
+      "originStatusOfAccount": 0,
+      "originStatusOfAccountDesc": "NORMAL",
+      "dateOfOriginStatus": "2025-05-20"
+     },
+     "payment": {
+      "businessBureauEvent": "01",
+      "businessBureauEventDesc": "AL DIA",
+      "paymentDate": "2026-07-31",
+      "paymentMonths": 48
+     },
+     "card": {
+      "cardStatusCode": 1,
+      "cardStatusName": "ENTREGADO",
+      "dateOfCreditStatus": "2026-09-27"
+     }
+    },
+    "values": [
+     {
+      "rating": "-",
+      "ratingDesc": "NO REPORTA INFORMACIÓN",
+      "behaviourDate": "2026-07-31",
+      "currencyType": 1,
+      "currencyTypeDesc": "Moneda Legal",
+      "valueMonthlyPayment": 903000,
+      "installmentsOverdue": 0,
+      "delinquencyMaturation": 0,
+      "availableBalance": 123000,
+      "paymentDeadline": "2026-08-03",
+      "paymentDate": "2026-07-23",
+      "businessValueBalanceOverdue": 0,
+      "debtBalance": 2576000,
+      "initialValue": 2700000
+     }
+    ]
+   }
+  ],
+  "location": [],
+  "globalIndebtedness": [],
+  "inquiryFootprints": [
+   {
+    "primaryKey": "Y",
+    "quantity": "1",
+    "economicSectorName": "SECTOR FINANCIERO",
+    "economicSector": 1,
+    "inquiryDate": "2026-09-01"
+   },
+   {
+    "primaryKey": "Y",
+    "quantity": "1",
+    "economicSectorName": "SECTOR FINANCIERO",
+    "economicSector": 1,
+    "inquiryDate": "2026-09-01"
+   },
+   {
+    "primaryKey": "Y",
+    "quantity": "1",
+    "economicSectorName": "SECTOR FINANCIERO",
+    "economicSector": 1,
+    "inquiryDate": "2026-09-01"
+   }
+  ],
+  "models": [
+   {
+    "ScoreReason": [
+     "00099",
+     "00000"
+    ],
+    "modelCode": "DF",
+    "modelCodeDesc": null,
+    "modelName": [
+     null,
+     null
+    ],
+    "modelDate": "2026-09-27",
+    "scoreValue": 658,
+    "population": 0
+   }
+  ],
+  "agregatedInfo": null,
+  "agregatedInfoMicrocredit": null
+ }
+}
