@@ -336,7 +336,6 @@
     </div>
 </div>
 
-<script src="/static/experian_demo.local.js"></script>
 <script src="/static/solicitantes.js"></script>
 <script>
 function getPerfilTag(desc) {
@@ -493,9 +492,6 @@ function scoreBadge(score) {
 
 function poblarTablaExperian() {
     var html = '';
-    if (EXPERIAN_DEMO.length === 0) {
-        html = '<tr><td colspan="8" style="padding:16px; color:rgba(255,255,255,0.5);">Base no cargada: falta el archivo local static/experian_demo.local.js, que no se guarda en el repositorio por contener datos personales.</td></tr>';
-    }
     for (var i = 0; i < EXPERIAN_DEMO.length; i++) {
         var e = EXPERIAN_DEMO[i];
         html += '<tr style="cursor:pointer" onclick="seleccionarExperian(' + i + ')">';

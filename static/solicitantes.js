@@ -411,13 +411,77 @@ const SOLICITANTES = [
     }
 ];
 
-// Base Experian Demo (UAT): personas que responden los DOS informes, Valor
-// Ingreso y HDC+. La lista trae datos personales (nombre, cédula, score), así
-// que vive en static/experian_demo.local.js, que está en .gitignore y no se
-// sube al repositorio. Las páginas cargan ese archivo antes que este; si no
-// existe, la base queda vacía y la app sigue funcionando con los Perfiles de
-// Prueba. Formato de cada registro: ver static/experian_demo.local.example.js.
-const EXPERIAN_DEMO = window.EXPERIAN_DEMO_LOCAL || [];
+// Base Experian Demo (UAT): solo personas que responden los DOS informes,
+// Valor Ingreso (respuesta_id 4) y HDC+ (código 13). Verificado en vivo el
+// 2026-10-03. Es la base de pruebas de Experian: nombres, cédulas e
+// información vienen enmascarados y no corresponden a personas reales.
+// `nombre`, `score`, `obligaciones` (vigentes + cerradas) y `vigentes` vienen
+// de HDC+; `aportantes` y `cotizante` de Valor Ingreso.
+// `nombre_vi` aparece cuando Valor Ingreso devuelve otro nombre de pila para
+// la misma cédula; el primer apellido coincide.
+const EXPERIAN_DEMO = [
+    // Formato ambiente demo Valor Ingreso (JJJ 20260914): 24 cédulas
+    { nombre: "Ruben Dario Martinez Garzon", cedula: "15446987", apellido: "MARTINEZ", tipo: "CC", score: 816, obligaciones: 30, vigentes: 7, aportantes: 1, cotizante: "Empleado", nombre_vi: "Jose Luis Martinez Garzon" },
+    { nombre: "Yolanda Tobon Tobon", cedula: "39193322", apellido: "TOBON", tipo: "CC", score: 804, obligaciones: 51, vigentes: 4, aportantes: 1, cotizante: "Empleado", nombre_vi: "Rosalba Tobon Tobon" },
+    { nombre: "Jennifer Matilde Callejas Angarita", cedula: "1023003654", apellido: "CALLEJAS", tipo: "CC", score: 743, obligaciones: 163, vigentes: 14, aportantes: 1, cotizante: "Empleado", nombre_vi: "Mario Callejas Angarita" },
+    { nombre: "Sandra Janneth Munoz Herreria", cedula: "6853544", apellido: "MUÑOZ", tipo: "CC", score: 662, obligaciones: 5, vigentes: 0, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Eugenio Montoya Arboleda", cedula: "1017178557", apellido: "MONTOYA", tipo: "CC", score: 868, obligaciones: 19, vigentes: 6, aportantes: 1, cotizante: "Pensionado", nombre_vi: "Ofelia Montoya Arboleda" },
+    { nombre: "Juan Carlos Muñoz de Ossa", cedula: "71278597", apellido: "MUÑOZ", tipo: "CC", score: 827, obligaciones: 21, vigentes: 5, aportantes: 1, cotizante: "Pensionado", nombre_vi: "Luis Alvaro Muñoz de Ossa" },
+    { nombre: "Nicolas Anibal Zuluaga Osorio", cedula: "71117679", apellido: "ZULUAGA", tipo: "CC", score: 814, obligaciones: 44, vigentes: 8, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Gilberto Florez Diaz", cedula: "19328060", apellido: "FLOREZ", tipo: "CC", score: 677, obligaciones: 5, vigentes: 3, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Alex Acosta Mejia", cedula: "71765991", apellido: "ACOSTA", tipo: "CC", score: 588, obligaciones: 35, vigentes: 6, aportantes: 1, cotizante: "Empleado", nombre_vi: "Eliria del Socorro Acosta Mejia" },
+    { nombre: "Hernan Dario Arias Tabares", cedula: "1040045649", apellido: "ARIAS", tipo: "CC", score: 791, obligaciones: 38, vigentes: 6, aportantes: 1, cotizante: "Empleado", nombre_vi: "Luz Dary Arias Tabares" },
+    { nombre: "Nora Emilse Cardona Garcia", cedula: "43558013", apellido: "CARDONA", tipo: "CC", score: 776, obligaciones: 98, vigentes: 10, aportantes: 1, cotizante: "Empleado", nombre_vi: "Maria Teresa Cardona Garcia" },
+    { nombre: "Johan Arley Vanegas Serna", cedula: "1128465811", apellido: "VANEGAS", tipo: "CC", score: 721, obligaciones: 119, vigentes: 6, aportantes: 1, cotizante: "Empleado", nombre_vi: "Victoria Vanegas Serna" },
+    { nombre: "Orlando Garaviz Zabala", cedula: "16656581", apellido: "GARAVIZ", tipo: "CC", score: 827, obligaciones: 84, vigentes: 3, aportantes: 1, cotizante: "Pensionado", nombre_vi: "Maria Rocio Garaviz Zabala" },
+    { nombre: "Jacob Cardenas Marin", cedula: "70300657", apellido: "CARDENAS", tipo: "CC", score: 870, obligaciones: 45, vigentes: 8, aportantes: 1, cotizante: "Empleado", nombre_vi: "Maria de los Angeles Cardenas Marin" },
+    { nombre: "Ramon Antonio Vasquez Taborda", cedula: "3382927", apellido: "VASQUEZ", tipo: "CC", score: 870, obligaciones: 33, vigentes: 3, aportantes: 1, cotizante: "Pensionado", nombre_vi: "Hector Vidal Vasquez Taborda" },
+    { nombre: "Jose Antonio Velasco Fontecha", cedula: "19452849", apellido: "VELASCO", tipo: "CC", score: 601, obligaciones: 34, vigentes: 4, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Luis Carlos Pereira Perez", cedula: "1041258701", apellido: "PEREIRA", tipo: "CC", score: 729, obligaciones: 23, vigentes: 11, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Reimond Jose Rojas Anibal", cedula: "12400430", apellido: "ROJAS", tipo: "CC", score: 575, obligaciones: 46, vigentes: 8, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Gerardo de Jesus Sanchez Cano", cedula: "98541406", apellido: "SANCHEZ", tipo: "CC", score: 539, obligaciones: 59, vigentes: 7, aportantes: 1, cotizante: "Empleado", nombre_vi: "Alvaro Mauricio Sanchez Cano" },
+    { nombre: "Gloria Elena Arango Perez", cedula: "42899581", apellido: "ARANGO", tipo: "CC", score: 640, obligaciones: 103, vigentes: 13, aportantes: 1, cotizante: "Empleado", nombre_vi: "Adriana Patricia Arango Perez" },
+    { nombre: "Marta Cecilia Giraldo Loaiza", cedula: "66721558", apellido: "GIRALDO", tipo: "CC", score: 770, obligaciones: 75, vigentes: 18, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Diogenes Manuel Hidalgo Rojas", cedula: "71672697", apellido: "HIDALGO", tipo: "CC", score: 597, obligaciones: 23, vigentes: 2, aportantes: 1, cotizante: "Empleado", nombre_vi: "Hernan de Jesus Hidalgo Rojas" },
+    { nombre: "Dayron Cardona Osorio", cedula: "1017130968", apellido: "CARDONA", tipo: "CC", score: 756, obligaciones: 26, vigentes: 6, aportantes: 1, cotizante: "Empleado", nombre_vi: "Maria Luisa Cardona Osorio" },
+    { nombre: "Jairo Antonio Ochoa Ospina", cedula: "15525560", apellido: "OCHOA", tipo: "CC", score: 870, obligaciones: 32, vigentes: 5, aportantes: 1, cotizante: "Empleado", nombre_vi: "Adriana Elicet Ochoa Ospina" },
+    // Lista Experian del 2026-10-02: 15 cédulas
+    { nombre: "Jhank Paulo Prada Herrada", cedula: "1075307496", apellido: "PRADA", tipo: "CC", score: 870, obligaciones: 31, vigentes: 8, aportantes: 1, cotizante: "Empleado", nombre_vi: "Raul Vicente Prada Cortes" },
+    { nombre: "Juan Felipe Carvajal Pineda", cedula: "1003805261", apellido: "CARVAJAL", tipo: "CC", score: 928, obligaciones: 10, vigentes: 4, aportantes: 2, cotizante: "Independiente", nombre_vi: "Jose Manuel Carvajal Pinzon" },
+    { nombre: "Juan Pablo Giron Murcia", cedula: "1003805317", apellido: "GIRON", tipo: "CC", score: 769, obligaciones: 8, vigentes: 4, aportantes: 3, cotizante: "Empleado", nombre_vi: "Virgilio Roberto Giron Diaz" },
+    { nombre: "Jheyson Leandro Cardenas Cuellar", cedula: "1075220361", apellido: "CARDENAS", tipo: "CC", score: 909, obligaciones: 71, vigentes: 6, aportantes: 3, cotizante: "Pensionado", nombre_vi: "Gustavo Alonso Cardenas Zuluaga" },
+    { nombre: "Sergio Daniel Cometa Trujillo", cedula: "1075314189", apellido: "COMETA", tipo: "CC", score: 792, obligaciones: 4, vigentes: 2, aportantes: 2, cotizante: "Empleado", nombre_vi: "Reiner Werner Cometa" },
+    { nombre: "Oscar Alejandro Serrano Urueña", cedula: "1075315125", apellido: "SERRANO", tipo: "CC", score: 781, obligaciones: 22, vigentes: 7, aportantes: 3, cotizante: "Pensionado", nombre_vi: "Francisco Alberto Serrano Avila" },
+    { nombre: "Cristian Alexander Garzon Florez", cedula: "1075317291", apellido: "GARZON", tipo: "CC", score: 831, obligaciones: 9, vigentes: 2, aportantes: 3, cotizante: "Empleado", nombre_vi: "Gilberto Mauricio Garzon Arias" },
+    { nombre: "Mairon Alexis Murcia Villalba", cedula: "1075319008", apellido: "MURCIA", tipo: "CC", score: 844, obligaciones: 17, vigentes: 8, aportantes: 8, cotizante: "Pensionado", nombre_vi: "Hernan Javier Murcia Calderon" },
+    { nombre: "Julian Camilo Pastrana Bravo", cedula: "1075319036", apellido: "PASTRANA", tipo: "CC", score: 921, obligaciones: 2, vigentes: 2, aportantes: 2, cotizante: "Empleado", nombre_vi: "Gabriel Pastrana Roldan" },
+    { nombre: "David Alejandro Reyes Perez", cedula: "1076501150", apellido: "REYES", tipo: "CC", score: 699, obligaciones: 3, vigentes: 2, aportantes: 1, cotizante: "Empleado", nombre_vi: "Mario Alejandro Reyes Mahecha" },
+    { nombre: "Andres Mauricio Penagos Gonzalez", cedula: "1080296993", apellido: "PENAGOS", tipo: "CC", score: 754, obligaciones: 7, vigentes: 3, aportantes: 2, cotizante: "Independiente", nombre_vi: "Orlando Penagos Duarte" },
+    { nombre: "Harold Bello Valenzuela", cedula: "7690312", apellido: "BELLO", tipo: "CC", score: 837, obligaciones: 84, vigentes: 10, aportantes: 3, cotizante: "Empleado", nombre_vi: "Luis Hernando Bello Aldana" },
+    { nombre: "Marco Fidel Valbuena Macias", cedula: "83243606", apellido: "VALBUENA", tipo: "CC", score: 844, obligaciones: 42, vigentes: 8, aportantes: 1, cotizante: "Empleado", nombre_vi: "Carlos Mauricio Valbuena Perez" },
+    { nombre: "Katerin Lorena Silva Blanquiceth", cedula: "1003801196", apellido: "SILVA", tipo: "CC", score: 864, obligaciones: 34, vigentes: 9, aportantes: 2, cotizante: "Independiente", nombre_vi: "Juan Carlos Silva Perdomo" },
+    { nombre: "Jader Mauricio Chalar Soto", cedula: "1075211751", apellido: "CHALAR", tipo: "CC", score: 909, obligaciones: 170, vigentes: 15, aportantes: 3, cotizante: "Empleado", nombre_vi: "Efrain Chalar Gonzalez" },
+    // Base HDC+ inicial: 19 cédulas (ahora también con Valor Ingreso)
+    { nombre: "Elisabet Valderrama Valderrama", cedula: "1128473987", apellido: "VALDERRAMA", tipo: "CC", score: 770, obligaciones: 14, vigentes: 5, aportantes: 2, cotizante: "Pensionado / Empleado" },
+    { nombre: "Camilo Uribe Monsalve", cedula: "1017260977", apellido: "URIBE", tipo: "CC", score: 658, obligaciones: 11, vigentes: 5, aportantes: 2, cotizante: "Empleado" },
+    { nombre: "Felix Sanchez Arellano", cedula: "1412942", apellido: "SANCHEZ", tipo: "CE", score: 0, obligaciones: 8, vigentes: 2, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Darwin Ferney Vergara Angulo", cedula: "1003289970", apellido: "VERGARA", tipo: "CC", score: 482, obligaciones: 21, vigentes: 4, aportantes: 1, cotizante: "Pensionado" },
+    { nombre: "Victor Alfonso Atehortua Osorio", cedula: "1001390631", apellido: "ATEHORTUA", tipo: "CC", score: 837, obligaciones: 17, vigentes: 8, aportantes: 1, cotizante: "Pensionado", nombre_vi: "Amparo Atehortua Osorio" },
+    { nombre: "Mayra Alejandra Montoya Gomez", cedula: "1035439344", apellido: "MONTOYA", tipo: "CC", score: 744, obligaciones: 18, vigentes: 2, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Reinaldo de Jesus Pulgarin Mejia", cedula: "71600926", apellido: "PULGARIN", tipo: "CC", score: 795, obligaciones: 26, vigentes: 7, aportantes: 2, cotizante: "Empleado / Pensionado" },
+    { nombre: "Fabian David Arias Lopez", cedula: "1003045051", apellido: "ARIAS", tipo: "CC", score: 607, obligaciones: 24, vigentes: 8, aportantes: 2, cotizante: "Empleado" },
+    { nombre: "Juan Diego Cardenas Toro", cedula: "1035066669", apellido: "CARDENAS", tipo: "CC", score: 342, obligaciones: 7, vigentes: 7, aportantes: 3, cotizante: "Empleado" },
+    { nombre: "Maria Fernanda Carrasquilla Jaramillo", cedula: "1045423627", apellido: "CARRASQUILLA", tipo: "CC", score: 683, obligaciones: 18, vigentes: 10, aportantes: 2, cotizante: "Pensionado / Empleado" },
+    { nombre: "Maria Fernanda Perez Torres", cedula: "1018234280", apellido: "PEREZ", tipo: "CC", score: 674, obligaciones: 9, vigentes: 7, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Cristian Camilo Velasquez Ramirez", cedula: "1040739580", apellido: "VELASQUEZ", tipo: "CC", score: 653, obligaciones: 15, vigentes: 2, aportantes: 3, cotizante: "Empleado", nombre_vi: "Luz Elena de Jesus Velasquez Ramirez" },
+    { nombre: "Adriana Maria Saenz Jurado", cedula: "39439164", apellido: "SAENZ", tipo: "CC", score: 735, obligaciones: 45, vigentes: 10, aportantes: 1, cotizante: "Pensionado" },
+    { nombre: "Jorge Luis Arevalo Guerra", cedula: "77034739", apellido: "AREVALO", tipo: "CC", score: 704, obligaciones: 165, vigentes: 19, aportantes: 2, cotizante: "Empleado" },
+    { nombre: "Guillermo Leon Montoya Gomez", cedula: "8434598", apellido: "MONTOYA", tipo: "CC", score: 502, obligaciones: 14, vigentes: 5, aportantes: 2, cotizante: "Empleado / Pensionado" },
+    { nombre: "Pedro Yezid Buitrago Pulido", cedula: "79704267", apellido: "BUITRAGO", tipo: "CC", score: 763, obligaciones: 85, vigentes: 11, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Claudia Maria Restrepo Vasquez", cedula: "43737805", apellido: "RESTREPO", tipo: "CC", score: 837, obligaciones: 39, vigentes: 7, aportantes: 1, cotizante: "Empleado" },
+    { nombre: "Aura Cristina Lopez Bracamonte", cedula: "1003434832", apellido: "LOPEZ", tipo: "CC", score: 0, obligaciones: 63, vigentes: 5, aportantes: 2, cotizante: "Empleado" },
+    { nombre: "Claudia Patricia Gomez Escobar", cedula: "43546366", apellido: "GOMEZ", tipo: "CC", score: 850, obligaciones: 47, vigentes: 6, aportantes: 2, cotizante: "Pensionado / Empleado" },
+];
 
 // ---------------------------------------------------------------------
 // Referencias a clientes de cualquiera de las dos bases.

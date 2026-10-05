@@ -5,5 +5,3 @@ __pycache__/
 *.docx
 *.xlsx
 .DS_Store
-# Base Experian Demo: datos personales (nombre, cédula, score)
-static/experian_demo.local.js
